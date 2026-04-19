@@ -1,0 +1,55 @@
+ISLAND DREAMS — Médias & Polices récupérés depuis islanddreams.re
+=================================================================
+
+## Polices utilisées sur le site actuel
+
+1. Fredoka One   — titres principaux (display, bold/rounded)
+2. Fredoka       — variante titres secondaires
+3. Lato          — corps de texte
+4. Nunito Sans   — texte alternatif
+5. Inter         — UI / légendes
+6. Heebo         — texte complémentaire
+
+Source : Elementor Google Fonts (hébergées localement sur le serveur WP)
+
+---
+
+## Médias récupérés (full-size)
+
+### Logos & branding
+- ID-Logo-HD-Horizontal.png          — logo principal horizontal
+- Favicon-ISLAND-DREAMS.png          — favicon
+- Pirrha-Logo-2022-SD-Blanc.webp     — logo agence (footer)
+
+### Illustrations & visuels
+- Header-Element-Site-ISLANDDREAMS-wp.webp  — illustration header (personnages + jungle)
+- Pub-27-communes-island.jpg                — visuel pub 27 communes
+- carte-reunion.webp                        — carte illustrée de La Réunion
+- fond-carte-reunion.jpg                    — fond derrière la carte (ciel + océan)
+
+### Icônes catégories
+- Icones-Categories-Stcikers-ISLAND-DREAMS.webp
+- Icones-Categorie-Magnets-ISLAND-DREAMS.webp
+- Icones-Categories-Goodies-ISLAND-DREAMS.webp
+- Icones-Categories-Textiles-ISLAND-DREAMS.webp
+- Icones-Categories-Decorations-ISLAND-DREAMS.webp
+
+### Produits — packs régions
+- Le-nord-ISLAND-DREAMS.jpg
+- Cote-Ouest-ISLAND-DREAMS.jpg
+- EST-ISLAND-DREAMS.jpg
+- Sud-Sauvage-ISLAND-DREAMS.jpg
+- Les-cirques-ISLAND-DREAMS.jpg
+
+### Produits — plaques décoration
+- Carte-Reunion-Affiche-ISLAND-DREAMS-3.jpg
+- Carte-Reunion-Plaque-Metal-Sans-Magnets-ISLAND-DREAMS.jpg
+- 27-Communes-Magnets-ISLAND-DREAMS.jpg
+- Immatriculation-Ile-de-l-areunion-ISLAND-DREAMS.jpg
+- Immatriculation-Mafate-ISLAND-DREAMS.jpg
+- Immatriculation-Saint-Gilles-ISLAND-DREAMS.jpg
+- Immatriculation-Saint-Rose-ISLAND-DREAMS.jpg
+
+### Logos partenaires (footer)
+- logo-union-euro2.png
+- logo-region.jpg

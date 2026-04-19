@@ -1,0 +1,97 @@
+@import "tailwindcss";
+
+/* Scroll smooth via Lenis — pas de snap CSS (conflit avec Lenis) */
+
+/* Island Dreams — Design Tokens */
+@theme {
+  /* Palette principale */
+  --color-jungle-50: #f0f7f1;
+  --color-jungle-100: #dcebdf;
+  --color-jungle-200: #b8d7be;
+  --color-jungle-300: #8bbc95;
+  --color-jungle-400: #5f9b6d;
+  --color-jungle-500: #3f7e4f;
+  --color-jungle-600: #2d6a3c;
+  --color-jungle-700: #1f4f2d;
+  --color-jungle-800: #143821;
+  --color-jungle-900: #0a2214;
+
+  --color-coral-50: #fff1f0;
+  --color-coral-100: #ffdedc;
+  --color-coral-200: #ffb8b3;
+  --color-coral-300: #ff867f;
+  --color-coral-400: #ff5a4f;
+  --color-coral-500: #e84c3d;
+  --color-coral-600: #c93a2d;
+  --color-coral-700: #a62c22;
+
+  --color-sun-50: #fffaeb;
+  --color-sun-100: #fff0c2;
+  --color-sun-200: #ffe08a;
+  --color-sun-300: #ffcc4d;
+  --color-sun-400: #f5c144;
+  --color-sun-500: #e0a618;
+  --color-sun-600: #b3820b;
+
+  --color-ocean-50: #eef7fa;
+  --color-ocean-100: #cfe7ef;
+  --color-ocean-200: #a0cfdd;
+  --color-ocean-300: #6ab3c7;
+  --color-ocean-400: #4a9cae;
+  --color-ocean-500: #3d8fa3;
+  --color-ocean-600: #2d7a8e;
+  --color-ocean-700: #1f5f71;
+
+  --color-bougainvillea: #b14ea8;
+  --color-flamboyant: #ff6b2c;
+  --color-hibiscus: #e84c3d;
+
+  --color-cream: #f5efe0;
+  --color-ink: #1a2e3b;
+
+  /* Typographies */
+  --font-display: var(--font-display), "Fraunces", "Playfair Display", serif;
+  --font-body: var(--font-body), "Inter", system-ui, sans-serif;
+  --font-script: "Caveat", "Dancing Script", cursive;
+}
+
+:root {
+  --background: var(--color-cream);
+  --foreground: var(--color-ink);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+}
+
+/* Utilitaires personnalisés Island Dreams */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .text-pretty {
+    text-wrap: pretty;
+  }
+
+  /* Typo "chunky 3D" façon Cheech & Chong */
+  .title-chunky {
+    font-family: var(--font-oswald);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    line-height: 0.95;
+    text-transform: uppercase;
+    text-shadow:
+      3px 3px 0 #a07040,
+      6px 6px 0 var(--color-ink);
+    background: linear-gradient(180deg, #d4a66a 0%, #c8965a 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-stroke: 2px var(--color-ink);
+    paint-order: stroke fill;
+  }
+}
