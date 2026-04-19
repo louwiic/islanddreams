@@ -2,6 +2,9 @@ import type { Metadata } from 'next';
 import { Sidebar } from '@/components/admin/Sidebar';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 
+// Toutes les pages admin sont dynamiques (pas de prerender au build)
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Admin — Island Dreams',
 };
