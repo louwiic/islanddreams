@@ -60,10 +60,18 @@ export const communes: Commune[] = [
   {
     id: 'saint-benoit',
     name: 'Saint-Benoît',
-    postalCode: '97470',
+    postalCode: '97437',
     color: 'var(--color-flamboyant)',
     image: `${MAGNETS}/saint-benoit.webp`,
-    mapTarget: { x: 82, y: 34, rotation: 3 },
+    mapTarget: { x: 85, y: 35, rotation: 3 },
+  },
+  {
+    id: 'sainte-anne',
+    name: 'Sainte-Anne',
+    postalCode: '97470',
+    color: 'var(--color-ocean-400)',
+    image: `${MAGNETS}/saint-benoit-anne.webp`,
+    mapTarget: { x: 78, y: 25, rotation: -2 },
   },
   // ── Sud-Est ─────────────────────────────
   {
@@ -146,6 +154,14 @@ export const communes: Commune[] = [
     color: 'var(--color-bougainvillea)',
     image: `${MAGNETS}/saint-leu.webp`,
     mapTarget: { x: 13, y: 55, rotation: 4 },
+  },
+  {
+    id: 'saint-gilles',
+    name: 'Saint-Gilles',
+    postalCode: '97434',
+    color: 'var(--color-ocean-300)',
+    image: `${MAGNETS}/saint-gilles.webp`,
+    mapTarget: { x: 8, y: 42, rotation: 4 },
   },
   {
     id: 'trois-bassins',
