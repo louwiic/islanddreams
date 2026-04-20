@@ -143,10 +143,10 @@ export function FridgeCollection() {
             <div
               ref={bubbleRef}
               onClick={handleBubbleClick}
-              className="absolute -right-[60px] md:-right-[180px] top-[30%] cursor-pointer hover:scale-105 transition-transform z-50"
+              className="absolute -right-2 md:-right-[180px] top-[20%] md:top-[30%] cursor-pointer hover:scale-105 transition-transform z-50"
             >
-              <div className="relative bg-white rounded-2xl px-5 py-3 md:px-6 md:py-4 shadow-lg border-2 border-ink max-w-[180px] md:max-w-[220px]">
-                <p className="text-ink font-bold text-xs md:text-sm leading-snug text-center">
+              <div className="relative bg-white rounded-2xl px-3 py-2 md:px-6 md:py-4 shadow-lg border-2 border-ink max-w-[140px] md:max-w-[220px]">
+                <p className="text-ink font-bold text-[10px] md:text-sm leading-snug text-center">
                   Hey, clique sur ta commune ! 😉
                 </p>
                 {/* Queue de la bulle BD — pointe vers la gauche */}
