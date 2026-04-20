@@ -105,6 +105,16 @@ export function ProductCarousel({ products }: { products: CarouselProduct[] }) {
       <div className="absolute inset-0 bg-cream" />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 w-full">
+        {/* Titre */}
+        <div className="text-center mb-4 md:mb-6">
+          <h2 className="title-chunky text-2xl md:text-4xl lg:text-6xl">
+            {selectedVille ? `LES SOUVENIRS DE ${selectedVille.toUpperCase()}` : 'NOUT BOUTIK'}
+          </h2>
+          <p className="mt-2 text-ink/70 text-xs md:text-base italic max-w-2xl mx-auto">
+            Des souvenirs pensés, dessinés et imprimés à La Réunion.
+          </p>
+        </div>
+
         {/* Onglets catégories */}
         <nav className="flex justify-center items-center gap-2 md:gap-6 mb-4 md:mb-6 flex-wrap">
           {availableCategories.map((cat) => (
@@ -134,16 +144,6 @@ export function ProductCarousel({ products }: { products: CarouselProduct[] }) {
             </button>
           )}
         </nav>
-
-        {/* Titre */}
-        <div className="text-center mb-4 md:mb-8">
-          <h2 className="title-chunky text-2xl md:text-4xl lg:text-6xl">
-            {selectedVille ? `LES SOUVENIRS DE ${selectedVille.toUpperCase()}` : 'NOUT BOUTIK'}
-          </h2>
-          <p className="mt-2 text-ink/70 text-xs md:text-base italic max-w-2xl mx-auto">
-            Des souvenirs pensés, dessinés et imprimés à La Réunion.
-          </p>
-        </div>
 
         {/* Carousel Embla */}
         <div className="relative">

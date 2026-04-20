@@ -124,9 +124,10 @@ export function FridgeCollection() {
                   {/* Halo pulsant — renforcé pour Cilaos */}
                   {commune.id === 'cilaos' ? (
                     <>
-                      <span className="absolute inset-[-10px] rounded-full bg-jungle-500/30 animate-ping" style={{ animationDuration: '2s' }} />
-                      <span className="absolute inset-[-6px] rounded-full bg-jungle-500/20 animate-pulse" />
-                      <span className="absolute inset-[-3px] rounded-full border-2 border-jungle-500/50 animate-pulse" />
+                      <span className="absolute inset-[-16px] rounded-full bg-jungle-400/40 animate-ping" style={{ animationDuration: '1.5s' }} />
+                      <span className="absolute inset-[-10px] rounded-full bg-jungle-500/30 animate-pulse" />
+                      <span className="absolute inset-[-4px] rounded-full border-3 border-jungle-400/70 animate-pulse" />
+                      <span className="absolute inset-[-8px] rounded-full shadow-[0_0_20px_6px_rgba(47,106,60,0.5)]" />
                     </>
                   ) : (
                     <>
@@ -142,7 +143,7 @@ export function FridgeCollection() {
             <div
               ref={bubbleRef}
               onClick={handleBubbleClick}
-              className="absolute -right-4 md:-right-10 top-4 md:top-8 cursor-pointer hover:scale-105 transition-transform z-30"
+              className="absolute -right-4 md:-right-10 top-4 md:top-8 cursor-pointer hover:scale-105 transition-transform z-50"
             >
               <div className="relative bg-white rounded-2xl px-5 py-3 md:px-6 md:py-4 shadow-lg border-2 border-ink max-w-[180px] md:max-w-[220px]">
                 <p className="text-ink font-bold text-xs md:text-sm leading-snug text-center">
