@@ -1,8 +1,10 @@
 import { Hero } from '@/components/sections/Hero';
 import { FridgeCollection } from '@/components/sections/FridgeCollection';
 import { FlyingMagnets } from '@/components/sections/FlyingMagnets';
+
 import { ProductCarousel } from '@/components/sections/ProductCarousel';
 import { VillesBlock } from '@/components/sections/VillesBlock';
+import { SmoothScroll } from '@/components/ui/SmoothScroll';
 import { getPublishedProducts } from '@/lib/queries/products';
 
 export default async function Home() {
@@ -10,6 +12,7 @@ export default async function Home() {
 
   return (
     <>
+      <SmoothScroll />
       <Hero />
       <FridgeCollection />
       <FlyingMagnets />

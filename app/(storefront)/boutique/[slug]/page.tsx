@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { getProductBySlug } from '@/lib/actions/products';
 import { AddToCartButton } from '@/components/ui/AddToCartButton';
+import { ProductGallery } from '@/components/ui/ProductGallery';
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -58,7 +59,10 @@ export default async function ProductPage({ params }: PageProps) {
   if (!product) notFound();
 
   const mainImage = product.images.find((i) => i.is_main) ?? product.images[0];
-  const gallery = product.images.filter((i) => !i.is_main);
+  const sortedImages = [
+    ...product.images.filter((i) => i.is_main),
+    ...product.images.filter((i) => !i.is_main).sort((a, b) => (a.position ?? 0) - (b.position ?? 0)),
+  ];
 
   const categoryLabel = CATEGORY_LABELS[product.category ?? 'uncategorized'] ?? product.category;
 
@@ -93,36 +97,7 @@ export default async function ProductPage({ params }: PageProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
           {/* Images */}
           <div>
-            {mainImage && (
-              <div className="aspect-square relative rounded-xl overflow-hidden bg-gray-100 mb-4">
-                <Image
-                  src={mainImage.url}
-                  alt={mainImage.alt || product.name}
-                  fill
-                  className="object-contain p-6"
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  priority
-                />
-              </div>
-            )}
-            {gallery.length > 0 && (
-              <div className="grid grid-cols-4 gap-2">
-                {gallery.map((img) => (
-                  <div
-                    key={img.id}
-                    className="aspect-square relative rounded-lg overflow-hidden bg-gray-100"
-                  >
-                    <Image
-                      src={img.url}
-                      alt={img.alt || product.name}
-                      fill
-                      className="object-contain p-2"
-                      sizes="12vw"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
+            <ProductGallery images={sortedImages} productName={product.name} />
           </div>
 
           {/* Infos */}

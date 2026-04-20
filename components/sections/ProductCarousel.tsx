@@ -32,17 +32,18 @@ export function ProductCarousel({ products }: { products: CarouselProduct[] }) {
   }, [products]);
 
   const [activeCategory, setActiveCategory] = useState<string>('Tout');
+  const [selectedVille, setSelectedVille] = useState<string | null>(null);
 
-  const filtered = useMemo(
-    () =>
-      activeCategory === 'Tout'
-        ? products
-        : products.filter(
-            (p) =>
-              CATEGORY_LABELS[p.category ?? 'uncategorized'] === activeCategory
-          ),
-    [activeCategory, products]
-  );
+  const filtered = useMemo(() => {
+    if (selectedVille) {
+      const upper = selectedVille.toUpperCase();
+      return products.filter((p) => p.name.toUpperCase().includes(upper));
+    }
+    if (activeCategory === 'Tout') return products;
+    return products.filter(
+      (p) => CATEGORY_LABELS[p.category ?? 'uncategorized'] === activeCategory
+    );
+  }, [activeCategory, selectedVille, products]);
 
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,
@@ -59,15 +60,29 @@ export function ProductCarousel({ products }: { products: CarouselProduct[] }) {
     if (!emblaApi) return;
     emblaApi.reInit();
     setSelectedIndex(0);
-  }, [activeCategory, emblaApi]);
+  }, [activeCategory, selectedVille, emblaApi]);
 
   useEffect(() => {
     const handler = (e: Event) => {
       const cat = (e as CustomEvent).detail;
-      if (cat) setActiveCategory(cat);
+      if (cat) {
+        setSelectedVille(null);
+        setActiveCategory(cat);
+      }
+    };
+    const villeHandler = (e: Event) => {
+      const ville = (e as CustomEvent).detail;
+      if (ville) {
+        setActiveCategory('');
+        setSelectedVille(ville);
+      }
     };
     window.addEventListener('select-category', handler);
-    return () => window.removeEventListener('select-category', handler);
+    window.addEventListener('select-ville', villeHandler);
+    return () => {
+      window.removeEventListener('select-category', handler);
+      window.removeEventListener('select-ville', villeHandler);
+    };
   }, []);
 
   useEffect(() => {
@@ -87,15 +102,7 @@ export function ProductCarousel({ products }: { products: CarouselProduct[] }) {
       id="product-carousel"
       className="relative w-full min-h-[100svh] flex flex-col justify-center overflow-hidden py-8 md:py-12"
     >
-      {/* Fond illustré */}
-      <Image
-        src="/images/scratch/wp-uploads-raw/fond-carte-reunion.jpg"
-        alt=""
-        fill
-        className="object-cover"
-        aria-hidden="true"
-      />
-      <div className="absolute inset-0 bg-cream/30" />
+      <div className="absolute inset-0 bg-cream" />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 w-full">
         {/* Onglets catégories */}
@@ -103,9 +110,12 @@ export function ProductCarousel({ products }: { products: CarouselProduct[] }) {
           {availableCategories.map((cat) => (
             <button
               key={cat}
-              onClick={() => setActiveCategory(cat)}
+              onClick={() => {
+                setSelectedVille(null);
+                setActiveCategory(cat);
+              }}
               className={`px-3 py-1.5 md:px-5 md:py-2 text-xs md:text-sm font-bold uppercase tracking-[0.15em] transition-all duration-300 ${
-                activeCategory === cat
+                activeCategory === cat && !selectedVille
                   ? 'text-jungle-800 border-b-2 border-jungle-800'
                   : 'text-ink/50 hover:text-ink border-b-2 border-transparent'
               }`}
@@ -113,12 +123,22 @@ export function ProductCarousel({ products }: { products: CarouselProduct[] }) {
               {cat}
             </button>
           ))}
+
+          {/* Onglet dynamique — apparaît quand une commune est cliquée */}
+          {selectedVille && (
+            <button
+              className="px-3 py-1.5 md:px-5 md:py-2 text-xs md:text-sm font-bold uppercase tracking-[0.15em] text-coral-600 border-b-2 border-coral-500 animate-in fade-in duration-300 flex items-center gap-1.5"
+            >
+              <span className="w-2 h-2 rounded-full bg-coral-500" />
+              {selectedVille}
+            </button>
+          )}
         </nav>
 
         {/* Titre */}
         <div className="text-center mb-4 md:mb-8">
           <h2 className="title-chunky text-2xl md:text-4xl lg:text-6xl">
-            NOUT BOUTIK
+            {selectedVille ? `LES SOUVENIRS DE ${selectedVille.toUpperCase()}` : 'NOUT BOUTIK'}
           </h2>
           <p className="mt-2 text-ink/70 text-xs md:text-base italic max-w-2xl mx-auto">
             Des souvenirs pensés, dessinés et imprimés à La Réunion.

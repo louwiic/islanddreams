@@ -165,7 +165,7 @@ export function FlyingMagnets() {
 
   if (!mounted) return null;
 
-  const magnetSize = isMobileRef.current ? 36 : 60;
+  const magnetSize = isMobileRef.current ? 44 : 70;
 
   return createPortal(
     <div

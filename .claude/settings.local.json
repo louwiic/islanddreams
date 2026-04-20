@@ -1,0 +1,42 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node:*)",
+      "Bash(npm run:*)",
+      "Bash(curl -s http://localhost:3000)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000)",
+      "WebFetch(domain:www.islanddreams.re)",
+      "Bash(curl -sL \"https://www.islanddreams.re/wp-content/uploads/2025/01/Map-Island-Dreams-SiteInternet-wbp.webp\" -o /Users/loic/IT/islanddreams/medias_sources/carte-reunion.webp)",
+      "Bash(curl -sL \"https://www.islanddreams.re/decouvrir-la-reunion/\")",
+      "Bash(curl -sL \"https://www.islanddreams.re/wp-content/uploads/elementor/css/post-172.css\")",
+      "Bash(curl -sL \"https://www.islanddreams.re/wp-content/uploads/2025/11/Back-map-Decouvrir-Ile-de-la-Reunion-island-dreams-100.jpg\" -o /Users/loic/IT/islanddreams/medias_sources/fond-carte-reunion.jpg)",
+      "Bash(curl:*)",
+      "Bash(sips -g pixelWidth -g pixelHeight /Users/loic/IT/islanddreams/public/images/hero/hero-illustration.png)",
+      "Bash(sips -s format webp -s formatOptions 80 /Users/loic/IT/islanddreams/public/images/hero/hero-illustration.png --out /Users/loic/IT/islanddreams/public/images/hero/hero-illustration.webp)",
+      "Bash(sips -s format jpeg -s formatOptions 75 /Users/loic/IT/islanddreams/public/images/hero/hero-illustration.png --out /Users/loic/IT/islanddreams/public/images/hero/hero-illustration.jpg)",
+      "Bash(\"/Applications/FreeCAD.app/Contents/MacOS/FreeCADCmd\" -c \"import Part; print\\(Part.makeWireString.__doc__\\)\")",
+      "Bash(/Applications/FreeCAD.app/Contents/Resources/bin/freecadcmd:*)",
+      "Bash(pip3 install:*)",
+      "Bash(python3:*)",
+      "Bash(gh repo:*)",
+      "Bash(gh api:*)",
+      "Bash(mkdir -p /Users/loic/IT/islanddreams/app/\\\\\\(storefront\\\\\\))",
+      "Bash(mkdir -p /Users/loic/IT/islanddreams/app/admin/produits)",
+      "Bash(mkdir -p /Users/loic/IT/islanddreams/app/admin/commandes)",
+      "Bash(mkdir -p /Users/loic/IT/islanddreams/app/admin/clients)",
+      "Bash(mkdir -p /Users/loic/IT/islanddreams/app/admin/parametres)",
+      "mcp__plugin_supabase_supabase__list_organizations",
+      "Bash(npx supabase:*)",
+      "mcp__plugin_supabase_supabase__get_cost",
+      "mcp__plugin_supabase_supabase__confirm_cost",
+      "mcp__plugin_supabase_supabase__create_project",
+      "mcp__plugin_supabase_supabase__apply_migration",
+      "mcp__plugin_supabase_supabase__get_project_url",
+      "mcp__plugin_supabase_supabase__get_publishable_keys",
+      "mcp__plugin_supabase_supabase__generate_typescript_types",
+      "mcp__plugin_supabase_supabase__execute_sql",
+      "Bash(git:*)",
+      "Bash(gh auth:*)"
+    ]
+  }
+}

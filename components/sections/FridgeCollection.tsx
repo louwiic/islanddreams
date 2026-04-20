@@ -46,87 +46,115 @@ export function FridgeCollection() {
     return () => ctx.revert();
   }, []);
 
+  const handleCommuneClick = (communeName: string) => {
+    const carousel = document.getElementById('product-carousel');
+    if (carousel) {
+      carousel.scrollIntoView({ behavior: 'smooth' });
+      // Déclenche le filtre par ville via un custom event
+      window.dispatchEvent(new CustomEvent('select-ville', { detail: communeName }));
+    }
+  };
+
   const handleBubbleClick = () => {
     const carousel = document.getElementById('product-carousel');
     if (carousel) {
       carousel.scrollIntoView({ behavior: 'smooth' });
-      // Déclenche le filtre Magnets via un custom event
       window.dispatchEvent(new CustomEvent('select-category', { detail: 'Magnets' }));
     }
   };
 
   return (
     <section
-      className="relative w-full bg-cream py-12 md:py-24 px-4 md:px-6"
+      className="relative w-full py-12 md:py-24 px-4 md:px-6 overflow-hidden"
       id="fridge-section"
     >
-      <div className="max-w-6xl mx-auto">
+      {/* Fond illustré */}
+      <Image
+        src="/images/map/fond-carte-reunion.jpg"
+        alt=""
+        fill
+        className="object-cover"
+        aria-hidden="true"
+      />
+      <div className="absolute inset-0 bg-cream/40" />
+      <div className="relative z-10 max-w-6xl mx-auto">
         {/* Titre */}
         <div className="text-center mb-8 md:mb-12">
-          <p className="text-coral-500 text-xs md:text-sm uppercase tracking-[0.3em] mb-2 md:mb-3">
-            Chapitre 2
-          </p>
-          <h2 className="title-chunky text-3xl md:text-5xl lg:text-7xl">
+          <h2 className="title-chunky text-3xl md:text-5xl lg:text-7xl leading-[1.2]">
             COLLECTIONNEZ VOS
             <br />
             MAGNETS PÉI
           </h2>
-          <p className="mt-2 text-ink/50 text-sm md:text-base font-semibold tracking-wide">
+          <p className="mt-4 md:mt-6 text-ink/50 text-sm md:text-base font-semibold tracking-wide">
             Island Dreams
           </p>
           <p className="mt-3 md:mt-4 text-ink/70 text-sm md:text-lg italic max-w-2xl mx-auto">
-            Réunissez les 27 magnets des communes de l&apos;île sur votre carte magnétique murale et offrez-vous un voyage inoubliable !
+            Découvre le trésor que cache ta commune, clique sur la tienne !
           </p>
         </div>
 
         {/* La carte de La Réunion */}
         <div className="relative mx-auto max-w-[90vw] md:max-w-[700px]">
           <div className="relative" id="fridge-door">
-            <Image
-              src="/images/map/carte-reunion.webp"
-              alt="Carte illustrée de La Réunion"
-              width={1228}
-              height={1080}
-              className="w-full h-auto"
-              priority
-            />
-
-            {/* Cibles cliquables où les magnets vont atterrir */}
-            {otherMagnets.map((commune) => (
-              <button
-                key={commune.id}
-                className="fridge-target absolute z-10 cursor-pointer rounded-full hover:ring-2 hover:ring-sun-400 hover:ring-offset-2 transition-all"
-                data-commune-id={commune.id}
-                onClick={handleBubbleClick}
-                aria-label={`Voir le magnet ${commune.name}`}
-                style={{
-                  left: `${commune.mapTarget.x}%`,
-                  top: `${commune.mapTarget.y}%`,
-                  transform: 'translate(-50%, -50%)',
-                  width: 50,
-                  height: 50,
-                }}
+              <Image
+                src="/images/map/carte-reunion.webp"
+                alt="Carte illustrée de La Réunion"
+                width={1228}
+                height={1080}
+                className="w-full h-auto"
+                priority
               />
-            ))}
-          </div>
 
-          {/* Bulle BD */}
-          <div
-            ref={bubbleRef}
-            onClick={handleBubbleClick}
-            className="absolute -right-4 md:-right-16 top-4 md:top-8 cursor-pointer hover:scale-105 transition-transform z-10"
-          >
-            <div className="relative bg-white rounded-2xl px-5 py-3 md:px-6 md:py-4 shadow-lg border-2 border-ink max-w-[180px] md:max-w-[220px]">
-              <p className="text-ink font-bold text-xs md:text-sm leading-snug text-center">
-                Hey, clique sur ta commune ! 😉
-              </p>
-              {/* Queue de la bulle BD */}
-              <div
-                className="absolute -bottom-3 left-8 w-6 h-6 bg-white border-b-2 border-l-2 border-ink"
-                style={{ transform: 'rotate(-45deg)' }}
-              />
+              {/* Cibles cliquables où les magnets vont atterrir */}
+              {otherMagnets.map((commune) => (
+                <button
+                  key={commune.id}
+                  className="fridge-target absolute z-10 cursor-pointer rounded-full hover:ring-2 hover:ring-sun-400 hover:ring-offset-2 transition-all group/target"
+                  data-commune-id={commune.id}
+                  onClick={() => handleCommuneClick(commune.name)}
+                  aria-label={`Voir le magnet ${commune.name}`}
+                  style={{
+                    left: `${commune.mapTarget.x}%`,
+                    top: `${commune.mapTarget.y}%`,
+                    transform: 'translate(-50%, -50%)',
+                    width: 55,
+                    height: 55,
+                  }}
+                >
+                  {/* Halo pulsant — renforcé pour Cilaos */}
+                  {commune.id === 'cilaos' ? (
+                    <>
+                      <span className="absolute inset-[-10px] rounded-full bg-jungle-500/30 animate-ping" style={{ animationDuration: '2s' }} />
+                      <span className="absolute inset-[-6px] rounded-full bg-jungle-500/20 animate-pulse" />
+                      <span className="absolute inset-[-3px] rounded-full border-2 border-jungle-500/50 animate-pulse" />
+                    </>
+                  ) : (
+                    <>
+                      <span className="absolute inset-[-6px] rounded-full bg-sun-400/20 animate-ping" style={{ animationDuration: '3s' }} />
+                      <span className="absolute inset-[-3px] rounded-full bg-sun-400/10 animate-pulse" />
+                    </>
+                  )}
+                </button>
+              ))}
             </div>
-          </div>
+
+            {/* Bulle BD */}
+            <div
+              ref={bubbleRef}
+              onClick={handleBubbleClick}
+              className="absolute -right-4 md:-right-10 top-4 md:top-8 cursor-pointer hover:scale-105 transition-transform z-30"
+            >
+              <div className="relative bg-white rounded-2xl px-5 py-3 md:px-6 md:py-4 shadow-lg border-2 border-ink max-w-[180px] md:max-w-[220px]">
+                <p className="text-ink font-bold text-xs md:text-sm leading-snug text-center">
+                  Hey, clique sur ta commune ! 😉
+                </p>
+                {/* Queue de la bulle BD */}
+                <div
+                  className="absolute -bottom-3 left-8 w-6 h-6 bg-white border-b-2 border-l-2 border-ink"
+                  style={{ transform: 'rotate(-45deg)' }}
+                />
+              </div>
+            </div>
         </div>
 
         <p className="text-center mt-6 md:mt-8 text-ink/60 text-xs md:text-sm italic">
