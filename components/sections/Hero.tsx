@@ -204,9 +204,9 @@ export function Hero() {
         <Image
           src="/images/magnets/magnet-974.webp"
           alt="Magnet 974 Île de la Réunion"
-          width={300}
-          height={300}
-          className="relative w-[220px] h-[220px] md:w-[300px] md:h-[300px] drop-shadow-2xl"
+          width={825}
+          height={810}
+          className="relative w-[220px] md:w-[300px] h-auto drop-shadow-2xl"
           priority
         />
       </div>

@@ -36,7 +36,8 @@
       "mcp__plugin_supabase_supabase__generate_typescript_types",
       "mcp__plugin_supabase_supabase__execute_sql",
       "Bash(git:*)",
-      "Bash(gh auth:*)"
+      "Bash(gh auth:*)",
+      "Bash(sips -g pixelWidth -g pixelHeight /Users/loic/IT/islanddreams/public/images/magnets/magnet-974.webp)"
     ]
   }
 }
