@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Fraunces, Inter, Oswald } from 'next/font/google';
+import { Fraunces, Inter, Oswald, Londrina_Solid, Barlow_Semi_Condensed } from 'next/font/google';
 import './globals.css';
 
 const fraunces = Fraunces({
@@ -19,6 +19,20 @@ const oswald = Oswald({
   variable: '--font-oswald',
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
+  display: 'swap',
+});
+
+const londrina = Londrina_Solid({
+  variable: '--font-londrina',
+  subsets: ['latin'],
+  weight: ['100', '300', '400', '900'],
+  display: 'swap',
+});
+
+const barlow = Barlow_Semi_Condensed({
+  variable: '--font-barlow',
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
   display: 'swap',
 });
 
@@ -42,7 +56,7 @@ export default function RootLayout({
   return (
     <html
       lang="fr"
-      className={`${fraunces.variable} ${inter.variable} ${oswald.variable} h-full antialiased`}
+      className={`${fraunces.variable} ${inter.variable} ${oswald.variable} ${londrina.variable} ${barlow.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         {children}

@@ -51,7 +51,8 @@
 
   /* Typographies */
   --font-display: var(--font-display), "Fraunces", "Playfair Display", serif;
-  --font-body: var(--font-body), "Inter", system-ui, sans-serif;
+  --font-body: var(--font-barlow), "Barlow Semi Condensed", var(--font-body), "Inter", system-ui, sans-serif;
+  --font-heading: var(--font-londrina), "Londrina Solid", cursive;
   --font-script: "Caveat", "Dancing Script", cursive;
 }
 
@@ -77,31 +78,13 @@ body {
     text-wrap: pretty;
   }
 
-  /* Typo "chunky 3D" façon Cheech & Chong */
+  /* Typo titre — Londrina Solid (style Candia Columbus) */
   .title-chunky {
-    font-family: var(--font-oswald);
-    font-weight: 700;
+    font-family: var(--font-heading);
+    font-weight: 900;
     letter-spacing: 0.02em;
-    line-height: 1;
+    line-height: 1.05;
     text-transform: uppercase;
-    color: #c8965a;
-    text-shadow:
-      1px 1px 0 #a07040,
-      2px 2px 0 rgba(26, 46, 59, 0.4);
-    -webkit-text-stroke: 0px transparent;
-    paint-order: stroke fill;
-  }
-
-  @media (min-width: 768px) {
-    .title-chunky {
-      text-shadow:
-        2px 2px 0 #a07040,
-        4px 4px 0 var(--color-ink);
-      background: linear-gradient(180deg, #d4a66a 0%, #c8965a 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      -webkit-text-stroke: 2px var(--color-ink);
-    }
+    color: var(--color-ink);
   }
 }

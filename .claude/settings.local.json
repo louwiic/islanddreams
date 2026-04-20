@@ -38,7 +38,8 @@
       "Bash(git:*)",
       "Bash(gh auth:*)",
       "Bash(sips -g pixelWidth -g pixelHeight /Users/loic/IT/islanddreams/public/images/magnets/magnet-974.webp)",
-      "Bash(npx tsx:*)"
+      "Bash(npx tsx:*)",
+      "WebFetch(domain:www.candia.fr)"
     ]
   }
 }
