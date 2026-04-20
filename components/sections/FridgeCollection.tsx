@@ -139,20 +139,20 @@ export function FridgeCollection() {
               ))}
             </div>
 
-            {/* Bulle BD */}
+            {/* Bulle BD — à droite de l'île */}
             <div
               ref={bubbleRef}
               onClick={handleBubbleClick}
-              className="absolute -right-4 md:-right-10 top-4 md:top-8 cursor-pointer hover:scale-105 transition-transform z-50"
+              className="absolute -right-[60px] md:-right-[180px] top-[30%] cursor-pointer hover:scale-105 transition-transform z-50"
             >
               <div className="relative bg-white rounded-2xl px-5 py-3 md:px-6 md:py-4 shadow-lg border-2 border-ink max-w-[180px] md:max-w-[220px]">
                 <p className="text-ink font-bold text-xs md:text-sm leading-snug text-center">
                   Hey, clique sur ta commune ! 😉
                 </p>
-                {/* Queue de la bulle BD */}
+                {/* Queue de la bulle BD — pointe vers la gauche */}
                 <div
-                  className="absolute -bottom-3 left-8 w-6 h-6 bg-white border-b-2 border-l-2 border-ink"
-                  style={{ transform: 'rotate(-45deg)' }}
+                  className="absolute top-1/2 -left-3 -translate-y-1/2 w-6 h-6 bg-white border-b-2 border-l-2 border-ink"
+                  style={{ transform: 'rotate(45deg)' }}
                 />
               </div>
             </div>
