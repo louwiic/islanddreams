@@ -78,13 +78,31 @@ body {
     text-wrap: pretty;
   }
 
-  /* Typo titre — Londrina Solid (style Candia Columbus) */
+  /* Typo titre — Londrina Solid bold, ombre portée pour lisibilité */
   .title-chunky {
     font-family: var(--font-heading);
     font-weight: 900;
-    letter-spacing: 0.02em;
-    line-height: 1.05;
+    letter-spacing: 0.03em;
+    line-height: 1.0;
     text-transform: uppercase;
     color: var(--color-ink);
+    text-shadow:
+      2px 3px 0px rgba(255, 107, 44, 0.25),
+      0 4px 16px rgba(26, 46, 59, 0.12);
+    -webkit-text-stroke: 0.5px rgba(26, 46, 59, 0.08);
+  }
+
+  /* Titre sur fond sombre (hero) */
+  .title-chunky-light {
+    font-family: var(--font-heading);
+    font-weight: 900;
+    letter-spacing: 0.03em;
+    line-height: 1.0;
+    text-transform: uppercase;
+    color: #ffffff;
+    text-shadow:
+      2px 3px 0px rgba(255, 107, 44, 0.5),
+      0 0 40px rgba(255, 210, 30, 0.3),
+      0 6px 20px rgba(0, 0, 0, 0.4);
   }
 }

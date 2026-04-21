@@ -213,7 +213,7 @@ export function Hero() {
 
       {/* Titre */}
       <div className="absolute bottom-14 md:bottom-24 left-0 right-0 z-10 text-center px-4">
-        <h1 className="title-chunky text-[2.5rem] leading-[0.85] md:text-7xl lg:text-8xl">
+        <h1 className="title-chunky-light text-[2.8rem] leading-[0.9] md:text-7xl lg:text-8xl">
           UNE HISTOIRE,
           <br />
           UN SOUVENIR…
