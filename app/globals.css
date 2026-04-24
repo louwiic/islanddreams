@@ -4,17 +4,17 @@
 
 /* Island Dreams — Design Tokens */
 @theme {
-  /* Palette principale */
-  --color-jungle-50: #f0f7f1;
-  --color-jungle-100: #dcebdf;
-  --color-jungle-200: #b8d7be;
-  --color-jungle-300: #8bbc95;
-  --color-jungle-400: #5f9b6d;
-  --color-jungle-500: #3f7e4f;
-  --color-jungle-600: #2d6a3c;
-  --color-jungle-700: #1f4f2d;
-  --color-jungle-800: #143821;
-  --color-jungle-900: #0a2214;
+  /* Palette principale — teal Island Dreams (#0D6B75) */
+  --color-jungle-50:  #e8f5f6;
+  --color-jungle-100: #c0e2e6;
+  --color-jungle-200: #90ccd3;
+  --color-jungle-300: #5ab4be;
+  --color-jungle-400: #2d9fac;
+  --color-jungle-500: #0f8090;
+  --color-jungle-600: #0D6B75;
+  --color-jungle-700: #0a5560;
+  --color-jungle-800: #073f47;
+  --color-jungle-900: #042a30;
 
   --color-coral-50: #fff1f0;
   --color-coral-100: #ffdedc;

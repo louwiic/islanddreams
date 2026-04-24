@@ -100,7 +100,7 @@ export function ProductCarousel({ products }: { products: CarouselProduct[] }) {
   return (
     <section
       id="product-carousel"
-      className="relative w-full min-h-[100svh] flex flex-col justify-center overflow-hidden py-8 md:py-12"
+      className="relative w-full min-h-[80svh] flex flex-col justify-center overflow-visible py-8 md:py-12 pb-48 md:pb-56"
     >
       <div className="absolute inset-0 bg-cream" />
 

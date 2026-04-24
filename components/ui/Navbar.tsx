@@ -61,7 +61,7 @@ export function Navbar({
       ref={navRef}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled
-          ? 'bg-jungle-800/95 backdrop-blur-md shadow-lg py-3'
+          ? 'bg-jungle-600/97 backdrop-blur-md shadow-lg py-3'
           : 'bg-transparent py-5'
       }`}
     >
@@ -159,7 +159,7 @@ export function Navbar({
           mobileOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
         }`}
       >
-        <div className="px-6 pt-4 pb-6 flex flex-col gap-4 bg-jungle-800/95 backdrop-blur-md">
+        <div className="px-6 pt-4 pb-6 flex flex-col gap-4 bg-jungle-600/97 backdrop-blur-md">
           {allMobileLinks.map((link) => (
             <Link
               key={link.label}
