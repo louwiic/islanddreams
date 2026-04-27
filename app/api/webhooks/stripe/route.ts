@@ -86,6 +86,18 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const shippingCost = (session.total_details?.amount_shipping ?? 0) / 100;
   const total = (session.amount_total ?? 0) / 100;
 
+  // Idempotence — ne pas créer deux fois la même commande
+  const { data: existing } = await supabase
+    .from('orders')
+    .select('id')
+    .eq('stripe_session_id', session.id)
+    .single();
+
+  if (existing) {
+    console.log(`⚠ Commande déjà créée pour session ${session.id}, ignoré`);
+    return;
+  }
+
   // Créer la commande
   const { data: order, error: orderError } = await supabase
     .from('orders')
@@ -114,6 +126,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       order_id: order.id,
       product_id: product?.metadata?.productId || null,
       variant_id: product?.metadata?.variantId || null,
+      variant_label: product?.metadata?.variantLabel || null,
       product_name: li.description || 'Produit',
       quantity: li.quantity ?? 1,
       unit_price: (li.price?.unit_amount ?? 0) / 100,

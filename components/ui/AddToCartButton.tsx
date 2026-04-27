@@ -17,9 +17,10 @@ type Props = {
   };
   variantId?: string;
   variantLabel?: string;
+  disabled?: boolean;
 };
 
-export function AddToCartButton({ product, variantId, variantLabel }: Props) {
+export function AddToCartButton({ product, variantId, variantLabel, disabled }: Props) {
   const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
@@ -82,10 +83,13 @@ export function AddToCartButton({ product, variantId, variantLabel }: Props) {
       {/* Bouton */}
       <button
         onClick={handleAdd}
+        disabled={disabled}
         className={`w-full py-3 flex items-center justify-center gap-2 text-sm font-bold uppercase tracking-wider rounded-xl transition-all duration-300 ${
-          added
-            ? 'bg-jungle-500 text-white'
-            : 'bg-jungle-700 hover:bg-jungle-800 text-cream'
+          disabled
+            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+            : added
+              ? 'bg-jungle-500 text-white'
+              : 'bg-jungle-700 hover:bg-jungle-800 text-cream'
         }`}
       >
         {added ? (

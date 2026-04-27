@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { getProductBySlug } from '@/lib/actions/products';
-import { AddToCartButton } from '@/components/ui/AddToCartButton';
+import { ProductForm } from '@/components/ui/ProductForm';
 import { ProductGallery } from '@/components/ui/ProductGallery';
 
 type PageProps = {
@@ -133,30 +133,7 @@ export default async function ProductPage({ params }: PageProps) {
               />
             )}
 
-            {/* Variantes */}
-            {product.variants.length > 0 && (
-              <div className="mt-6 space-y-3">
-                {product.attributes.map((attr) => (
-                  <div key={attr.id}>
-                    <p className="text-sm font-medium text-gray-700 mb-2">
-                      {attr.name}
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {attr.values.map((val) => (
-                        <button
-                          key={val}
-                          className="px-3 py-1.5 rounded-lg border border-gray-200 text-sm hover:border-jungle-500 transition-colors"
-                        >
-                          {val}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Stock */}
+            {/* Stock global */}
             <div className="mt-6">
               {product.in_stock ? (
                 <p className="text-sm text-jungle-600 font-medium">En stock</p>
@@ -167,18 +144,23 @@ export default async function ProductPage({ params }: PageProps) {
               )}
             </div>
 
-            {/* CTA */}
+            {/* Variantes + CTA */}
             <div className="mt-6">
-              <AddToCartButton
+              <ProductForm
                 product={{
                   id: product.id,
                   slug: product.slug,
                   name: product.name,
                   price: product.price,
-                  salePrice: product.sale_price,
+                  sale_price: product.sale_price,
+                  in_stock: product.in_stock,
                   image: mainImage?.url,
-                  inStock: product.in_stock ?? true,
                 }}
+                attributes={product.attributes}
+                variants={product.variants.map((v) => ({
+                  ...v,
+                  combination: v.combination as Record<string, string>,
+                }))}
               />
             </div>
 

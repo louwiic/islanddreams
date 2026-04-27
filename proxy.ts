@@ -4,8 +4,14 @@ import { NextResponse, type NextRequest } from 'next/server';
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Ne protéger que /admin (sauf /admin/login)
-  if (!pathname.startsWith('/admin') || pathname === '/admin/login') {
+  const isAdminRoute = pathname.startsWith('/admin') && pathname !== '/admin/login';
+  const isCompteRoute = pathname.startsWith('/compte') && pathname !== '/compte/connexion'
+    && !pathname.startsWith('/compte/mot-de-passe-oublie')
+    && !pathname.startsWith('/compte/nouveau-mot-de-passe');
+  const isLoginRoute = pathname === '/compte/connexion';
+
+  // Passer les routes non protégées directement
+  if (!isAdminRoute && !isCompteRoute && !isLoginRoute) {
     return NextResponse.next();
   }
 
@@ -31,19 +37,30 @@ export async function proxy(request: NextRequest) {
     }
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user) {
+  // Protéger /admin
+  if (isAdminRoute && !user) {
     const loginUrl = new URL('/admin/login', request.url);
     loginUrl.searchParams.set('redirect', pathname);
     return NextResponse.redirect(loginUrl);
+  }
+
+  // Protéger /compte
+  if (isCompteRoute && !user) {
+    const loginUrl = new URL('/compte/connexion', request.url);
+    loginUrl.searchParams.set('redirect', pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  // Rediriger vers /compte si déjà connecté et tente /compte/connexion
+  if (isLoginRoute && user) {
+    return NextResponse.redirect(new URL('/compte', request.url));
   }
 
   return response;
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ['/admin/:path*', '/compte/:path*'],
 };

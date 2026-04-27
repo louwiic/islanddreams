@@ -3,7 +3,9 @@ import { XCircle, ArrowLeft, ShoppingBag } from 'lucide-react';
 
 export default function CheckoutCancelPage() {
   return (
-    <main className="pt-28 pb-16 px-4">
+    <main className="bg-cream min-h-screen">
+      <div className="bg-jungle-800 pt-24 pb-8" />
+      <div className="px-4 pt-10 pb-16">
       <div className="max-w-lg mx-auto text-center">
         <div className="w-20 h-20 rounded-full bg-coral-50 flex items-center justify-center mx-auto mb-6">
           <XCircle size={40} className="text-coral-500" />
@@ -34,6 +36,7 @@ export default function CheckoutCancelPage() {
             Accueil
           </Link>
         </div>
+      </div>
       </div>
     </main>
   );

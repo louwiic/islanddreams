@@ -3,6 +3,7 @@ import { FridgeCollection } from '@/components/sections/FridgeCollection';
 import { FlyingMagnets } from '@/components/sections/FlyingMagnets';
 
 import { ProductCarousel } from '@/components/sections/ProductCarousel';
+import { FrizeLivraison } from '@/components/sections/FrizeLivraison';
 import { ServiettePlage } from '@/components/sections/ServiettePlage';
 import { FemmePlage } from '@/components/sections/FemmePlage';
 import { VillesBlock } from '@/components/sections/VillesBlock';
@@ -19,6 +20,7 @@ export default async function Home() {
       <Hero />
       <FridgeCollection />
       <FlyingMagnets />
+      <FrizeLivraison />
       <ProductCarousel products={products} />
       <ServiettePlage />
       <FemmePlage />

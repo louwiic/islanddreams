@@ -21,6 +21,7 @@ const rightLinks = [
   { label: 'À propos', href: '/a-propos' },
   { label: 'Découvrir la Réunion', href: '/decouvrir' },
   { label: 'Contact', href: '/contact' },
+  { label: 'Mon compte', href: '/compte' },
 ];
 
 export function Navbar({

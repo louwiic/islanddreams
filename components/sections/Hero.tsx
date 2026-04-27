@@ -172,7 +172,7 @@ export function Hero() {
     >
       {/* Illustration hero */}
       <Image
-        src="/images/hero/hero-illustration.png"
+        src="/images/hero/hero3.png"
         alt="Mémé créole et ti-marmaille dans la jungle péi"
         fill
         priority

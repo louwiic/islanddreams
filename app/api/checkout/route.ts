@@ -16,25 +16,74 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Panier vide' }, { status: 400 });
     }
 
-    const lineItems = items.map((item) => ({
-      price_data: {
-        currency: 'eur',
-        product_data: {
-          name: item.name + (item.variantLabel ? ` — ${item.variantLabel}` : ''),
-          ...(item.image ? { images: [item.image] } : {}),
-          metadata: {
-            productId: item.productId,
-            variantId: item.variantId || '',
-          },
-        },
-        unit_amount: Math.round(item.price * 100),
-      },
-      quantity: item.quantity,
-    }));
+    const supabase = createAdminClient();
 
-    // Ajouter les frais de livraison si une méthode est sélectionnée
+    // ── Valider les prix et le stock depuis la BDD ──────────────────────
+    const productIds = items.map((i) => i.productId);
+    const { data: dbProducts, error: dbError } = await supabase
+      .from('products')
+      .select('id, name, price, sale_price, manage_stock, stock_quantity, in_stock')
+      .in('id', productIds);
+
+    if (dbError || !dbProducts) {
+      return NextResponse.json({ error: 'Impossible de vérifier les produits' }, { status: 500 });
+    }
+
+    const productMap = new Map(dbProducts.map((p) => [p.id, p]));
+
+    // Vérifications : prix + stock
+    for (const item of items) {
+      const dbProd = productMap.get(item.productId);
+      if (!dbProd) {
+        return NextResponse.json(
+          { error: `Produit introuvable : ${item.name}` },
+          { status: 400 },
+        );
+      }
+      if (!dbProd.in_stock) {
+        return NextResponse.json(
+          { error: `"${dbProd.name}" n'est plus disponible` },
+          { status: 400 },
+        );
+      }
+      if (dbProd.manage_stock && dbProd.stock_quantity !== null) {
+        if (item.quantity > dbProd.stock_quantity) {
+          return NextResponse.json(
+            {
+              error: `Stock insuffisant pour "${dbProd.name}" (dispo : ${dbProd.stock_quantity})`,
+            },
+            { status: 400 },
+          );
+        }
+      }
+    }
+
+    // ── Construire les line items avec les prix de la BDD ───────────────
+    const lineItems = items.map((item) => {
+      const dbProd = productMap.get(item.productId)!;
+      // Prix réel : promo si dispo, sinon prix de base
+      const unitPrice = dbProd.sale_price ?? dbProd.price;
+
+      return {
+        price_data: {
+          currency: 'eur',
+          product_data: {
+            name: item.name + (item.variantLabel ? ` — ${item.variantLabel}` : ''),
+            ...(item.image ? { images: [item.image] } : {}),
+            metadata: {
+              productId: item.productId,
+              variantId: item.variantId || '',
+              variantLabel: item.variantLabel || '',
+            },
+          },
+          unit_amount: Math.round(unitPrice * 100),
+        },
+        quantity: item.quantity,
+      };
+    });
+
+    // ── Frais de livraison ──────────────────────────────────────────────
     if (shippingMethodId) {
-      const supabase = createAdminClient();
       const { data: method } = await supabase
         .from('shipping_methods')
         .select('name, cost')
@@ -47,7 +96,7 @@ export async function POST(req: NextRequest) {
             currency: 'eur',
             product_data: {
               name: `Livraison — ${method.name}`,
-              metadata: { productId: '', variantId: '' },
+              metadata: { productId: '', variantId: '', variantLabel: '' },
             },
             unit_amount: Math.round(method.cost * 100),
           },
