@@ -2,14 +2,12 @@
 
 import { useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { gsap, ScrollTrigger, registerGsapPlugins } from '@/lib/animations/gsap-setup';
+import { gsap, registerGsapPlugins } from '@/lib/animations/gsap-setup';
 
 export function FrizeLivraison() {
-  const sectionRef  = useRef<HTMLElement>(null);
-  const carRef      = useRef<HTMLDivElement>(null);
-  const textRef     = useRef<HTMLDivElement>(null);
-  const road1Ref    = useRef<HTMLDivElement>(null);
-  const road2Ref    = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+  const carRef     = useRef<HTMLDivElement>(null);
+  const textRef    = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     registerGsapPlugins();
@@ -19,60 +17,49 @@ export function FrizeLivraison() {
 
       const carEl  = carRef.current;
       const textEl = textRef.current;
-      const r1El   = road1Ref.current;
-      const r2El   = road2Ref.current;
 
       const containerW = sectionRef.current!.getBoundingClientRect().width;
-
-      // Largeur voiture (même que dans le JSX)
       const carW = window.innerWidth < 768 ? 120 : 180;
 
-      // Position de départ (hors cadre gauche) et d'arrivée (près du bord droit)
-      const startX  = -carW - 20;
-      const landX   = containerW * 0.62 - carW / 2;  // s'arrête à ~60% de la largeur
+      // Texte positionné au début de la route (left fixe dans le JSX)
+      // Le texte fait ~260px de large → la voiture le dépasse quand car.x ≈ textLeft + textWidth
+      const textLeft  = window.innerWidth < 768 ? 12 : 20;   // padding left du texte
+      const textWidth = window.innerWidth < 768 ? 180 : 280;  // largeur approx du texte
+      const passX     = textLeft + textWidth; // x où la voiture a dépassé le texte
 
-      // États initiaux
+      // Voiture : démarre hors cadre gauche, traverse tout l'écran
+      const startX = -carW - 20;
+      const endX   = containerW + carW;               // sort hors cadre droit
+      const range  = endX - startX;
+
+      // Progression à laquelle la voiture dépasse le texte
+      const passProgress = (passX - startX) / range;  // ≈ 0.15–0.20
+
       gsap.set(carEl,  { x: startX });
-      gsap.set(textEl, { opacity: 0, x: 30 });
-      if (r1El) gsap.set(r1El, { x: 0 });
-      if (r2El) gsap.set(r2El, { x: '100%' });
+      gsap.set(textEl, { opacity: 0 });
 
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
-          start: 'top 85%',
-          end:   'bottom 15%',
+          start: 'top bottom',
+          end:   'bottom top',
           scrub: 1.4,
         },
       });
 
-      // Bandes de route qui défilent (illusion de mouvement)
-      if (r1El) tl.to(r1El, { x: '-100%', ease: 'none', duration: 1 }, 0);
-      if (r2El) tl.to(r2El, { x: '0%',    ease: 'none', duration: 1 }, 0);
-
-      // Voiture avance
+      // Voiture traverse toute la bande
       tl.to(carEl, {
-        x: landX,
-        ease: 'power1.inOut',
+        x: endX,
+        ease: 'none',
         duration: 1,
       }, 0);
 
-      // Légère oscillation verticale pendant le roulage (simulée via scrub)
-      tl.to(carEl, {
-        y: -4,
-        duration: 0.12,
-        yoyo: true,
-        repeat: 5,
-        ease: 'sine.inOut',
-      }, 0.05);
-
-      // Texte arrive quand la voiture est ~60% du chemin
+      // Texte apparaît juste après que la voiture l'a dépassé
       tl.to(textEl, {
         opacity: 1,
-        x: 0,
-        ease: 'power3.out',
-        duration: 0.35,
-      }, 0.62);
+        duration: 0.12,
+        ease: 'power2.out',
+      }, passProgress);
     });
 
     return () => ctx.revert();
@@ -85,34 +72,53 @@ export function FrizeLivraison() {
       className="relative w-full overflow-hidden"
       style={{ background: 'linear-gradient(180deg, #e8f4ea 0%, #f5efe0 100%)' }}
     >
-      {/* Bande de route */}
       <div className="relative w-full h-[140px] md:h-[180px] overflow-hidden">
 
-        {/* Ciel léger */}
-        <div className="absolute inset-0" />
-
-        {/* Route — couche asphaltée */}
+        {/* Route asphaltée */}
         <div className="absolute bottom-0 left-0 right-0 h-[44px] md:h-[56px] bg-ink/15 rounded-t-sm" />
 
-        {/* Marquages au sol — deux tuiles qui défilent */}
-        <div className="absolute bottom-[14px] md:bottom-[18px] left-0 right-0 h-[6px] overflow-hidden pointer-events-none">
-          <div ref={road1Ref} className="absolute top-0 left-0 w-full flex gap-[48px]">
-            {Array.from({ length: 24 }).map((_, i) => (
-              <div key={i} className="h-[6px] w-10 bg-white/70 rounded-full shrink-0" />
-            ))}
-          </div>
-          <div ref={road2Ref} className="absolute top-0 left-0 w-full flex gap-[48px]">
-            {Array.from({ length: 24 }).map((_, i) => (
-              <div key={i} className="h-[6px] w-10 bg-white/70 rounded-full shrink-0" />
-            ))}
-          </div>
+        {/* Pointillés route */}
+        <div className="absolute bottom-[14px] md:bottom-[18px] left-0 right-0 h-[6px] flex gap-[48px] px-4 pointer-events-none">
+          {Array.from({ length: 28 }).map((_, i) => (
+            <div key={i} className="h-[6px] w-10 bg-white/70 rounded-full shrink-0" />
+          ))}
         </div>
 
-        {/* Voiture */}
+        {/* Texte — position fixe au début de la route */}
+        <div
+          ref={textRef}
+          className="absolute left-3 md:left-5 top-[18%] md:top-[20%] z-10"
+        >
+          <p className="title-chunky-light text-xl md:text-3xl lg:text-4xl leading-tight text-ink whitespace-nowrap">
+            Ou gagn out komand an 72h
+          </p>
+          <p className="text-ink/55 text-[10px] md:text-xs font-semibold uppercase tracking-widest mt-0.5">
+            Livraison à La Réunion
+          </p>
+        </div>
+
+        {/* Voiture + fumée */}
         <div
           ref={carRef}
           className="absolute bottom-[38px] md:bottom-[48px] left-0 z-20 w-[120px] md:w-[180px]"
         >
+          {/* Fumée d'échappement — 3 bouffées décalées */}
+          {[0, 0.35, 0.7].map((delay, i) => (
+            <div
+              key={i}
+              className="smoke-puff"
+              style={{
+                position: 'absolute',
+                left: '4%',
+                bottom: '48%',
+                width: 14,
+                height: 14,
+                borderRadius: '50%',
+                background: 'rgba(80,80,80,0.55)',
+                animationDelay: `${delay}s`,
+              }}
+            />
+          ))}
           <Image
             src="/images/sections/camion-taxi.png"
             alt="Camion taxi péi"
@@ -124,18 +130,17 @@ export function FrizeLivraison() {
           />
         </div>
 
-        {/* Texte "Livraison en 72h" */}
-        <div
-          ref={textRef}
-          className="absolute inset-x-0 top-1/2 -translate-y-1/2 z-10 flex flex-col items-center text-center"
-        >
-          <p className="title-chunky-light text-2xl md:text-4xl lg:text-5xl leading-tight text-ink">
-            Livraison en 72h
-          </p>
-          <p className="text-ink/60 text-xs md:text-sm font-semibold uppercase tracking-widest mt-1">
-            à La Réunion
-          </p>
-        </div>
+        <style>{`
+          @keyframes smoke {
+            0%   { transform: translate(0, 0)       scale(0.4); opacity: 0.7; }
+            100% { transform: translate(-28px, -38px) scale(2.2); opacity: 0; }
+          }
+          .smoke-puff {
+            animation: smoke 1.1s ease-out infinite;
+            pointer-events: none;
+          }
+        `}</style>
+
       </div>
     </section>
   );

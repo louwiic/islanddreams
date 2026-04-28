@@ -214,12 +214,12 @@ export function Hero() {
       {/* Titre */}
       <div className="absolute bottom-14 md:bottom-24 left-0 right-0 z-10 text-center px-4">
         <h1 className="title-chunky-light text-[2.8rem] leading-[0.9] md:text-7xl lg:text-8xl">
-          UNE HISTOIRE,
+          IN ZISTOIR,
           <br />
-          UN SOUVENIR…
+          IN SOUVNIR…
         </h1>
         <p className="mt-3 md:mt-4 text-cream text-base md:text-xl italic font-light drop-shadow-lg">
-          On vous offre bien plus qu&apos;un souvenir.
+          Un bout de péi à garder, à offrir.
         </p>
         <p className="mt-1 md:mt-2 text-cream/60 text-[10px] md:text-xs uppercase tracking-[0.3em]">
           Island Dreams · 974

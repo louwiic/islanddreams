@@ -1,34 +1,11 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { mapMagnets } from '@/lib/data/communes';
-import { gsap, ScrollTrigger, registerGsapPlugins } from '@/lib/animations/gsap-setup';
+import { BubbleDesktop } from './BubbleDesktop';
+import { BubbleMobile } from './BubbleMobile';
 
 export function FridgeCollection() {
-  const bubbleRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    registerGsapPlugins();
-    if (!bubbleRef.current) return;
-
-    gsap.set(bubbleRef.current, { scale: 0, opacity: 0 });
-
-    const ctx = gsap.context(() => {
-      ScrollTrigger.create({
-        trigger: '#fridge-door',
-        start: 'top 70%',
-        once: true,
-        onEnter: () => {
-          gsap.timeline({ delay: 2 })
-            .to(bubbleRef.current, { scale: 1.3, opacity: 1, duration: 0.15, ease: 'power4.out' })
-            .to(bubbleRef.current, { scale: 1, duration: 0.3, ease: 'back.out(3)' });
-        },
-      });
-    });
-
-    return () => ctx.revert();
-  }, []);
 
   const handleCommuneClick = () => {
     const carousel = document.getElementById('product-carousel');
@@ -107,25 +84,13 @@ export function FridgeCollection() {
             ))}
           </div>
 
-          {/* Bulle BD */}
-          <div
-            ref={bubbleRef}
-            onClick={handleCommuneClick}
-            className="absolute -right-2 md:-right-[170px] top-[22%] cursor-pointer hover:scale-105 transition-transform z-50"
-          >
-            <div className="relative bg-white rounded-2xl px-3 py-2 md:px-5 md:py-3 shadow-xl border-2 border-ink max-w-[130px] md:max-w-[210px]">
-              <p className="text-ink font-bold text-[11px] md:text-sm leading-snug text-center">
-                Hey, clique sur ta commune&nbsp;! 😉
-              </p>
-              <div
-                className="absolute top-1/2 -left-3 -translate-y-1/2 w-6 h-6 bg-white border-b-2 border-l-2 border-ink"
-                style={{ transform: 'rotate(45deg)' }}
-              />
-            </div>
-          </div>
+          <BubbleDesktop onClick={handleCommuneClick} />
         </div>
 
-        <p className="text-center mt-8 text-ink/50 text-xs md:text-sm italic">
+        <BubbleMobile onClick={handleCommuneClick} />
+
+        {/* "Scrolle" — Desktop seulement */}
+        <p className="hidden md:block text-center mt-8 text-ink/50 text-xs md:text-sm italic">
           Scrolle pour voir la collection se composer sur la carte
         </p>
       </div>
