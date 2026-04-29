@@ -10,7 +10,7 @@ export function IdeeBlock() {
           Le concept
         </p>
 
-        <h2 className="title-chunky-light text-3xl md:text-5xl text-center text-cream mb-6">
+        <h2 className="apropos-title title-chunky-light text-3xl md:text-5xl text-center text-cream mb-6">
           3 CHIFFRES,
           <br />
           UNE IDENTITÉ
@@ -21,29 +21,29 @@ export function IdeeBlock() {
         </p>
 
         {/* Grille de codes postaux animée */}
-        <div className="flex flex-wrap justify-center gap-3 mb-14">
+        <div id="apropos-magnets" className="flex flex-wrap justify-center gap-3 mb-14">
           {COMMUNES.map((code) => (
             <div
               key={code}
-              className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-sun-400 flex items-center justify-center shadow-lg"
+              className="magnet-badge w-14 h-14 md:w-16 md:h-16 rounded-full bg-sun-400 flex items-center justify-center shadow-lg"
             >
               <span className="font-black text-ink text-sm md:text-base">{code}</span>
             </div>
           ))}
-          <div className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-coral-500 flex items-center justify-center shadow-lg">
+          <div className="magnet-badge w-14 h-14 md:w-16 md:h-16 rounded-full bg-coral-500 flex items-center justify-center shadow-lg">
             <span className="font-black text-white text-xs md:text-sm text-center leading-tight">974</span>
           </div>
         </div>
 
         {/* Chiffres clés */}
-        <div className="grid grid-cols-3 gap-6 text-center">
+        <div id="apropos-stats" className="grid grid-cols-3 gap-6 text-center">
           {[
-            { value: '30', label: 'designs exclusifs' },
-            { value: '28', label: 'communes représentées' },
-            { value: '2 ans', label: 'de recherche & création' },
-          ].map(({ value, label }) => (
+            { value: 30, label: 'designs exclusifs', suffix: '' },
+            { value: 28, label: 'communes représentées', suffix: '' },
+            { value: 2, label: 'de recherche & création', suffix: ' ans' },
+          ].map(({ value, label, suffix }) => (
             <div key={label}>
-              <p className="title-chunky-light text-4xl md:text-6xl text-sun-400">{value}</p>
+              <p className="stat-number title-chunky-light text-4xl md:text-6xl text-sun-400" data-target={value} data-suffix={suffix}>0{suffix}</p>
               <p className="text-cream/60 text-xs md:text-sm mt-1 leading-snug">{label}</p>
             </div>
           ))}

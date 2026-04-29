@@ -6,6 +6,7 @@ import { PiliersBlock } from '@/components/sections/apropos/PiliersBlock';
 import { FondateurBlock } from '@/components/sections/apropos/FondateurBlock';
 import { CollectifBlock } from '@/components/sections/apropos/CollectifBlock';
 import { CtaBlock } from '@/components/sections/apropos/CtaBlock';
+import { AProposAnimations } from '@/components/sections/apropos/AProposAnimations';
 
 export const metadata: Metadata = {
   title: 'Notre histoire — Island Dreams 974',
@@ -15,6 +16,7 @@ export const metadata: Metadata = {
 export default function AProposPage() {
   return (
     <>
+      <AProposAnimations />
       <HeroAPropos />
       <EtincelleBlock />
       <IdeeBlock />

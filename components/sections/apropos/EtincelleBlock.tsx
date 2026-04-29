@@ -9,7 +9,7 @@ export function EtincelleBlock() {
         </p>
 
         {/* Titre */}
-        <h2 className="title-chunky-light text-3xl md:text-5xl text-center mb-10">
+        <h2 className="apropos-title title-chunky-light text-3xl md:text-5xl text-center mb-10">
           TOUT A COMMENCÉ
           <br />
           EN MÉTROPOLE
@@ -30,7 +30,7 @@ export function EtincelleBlock() {
         </div>
 
         {/* Pull quote */}
-        <blockquote className="my-12 border-l-4 border-sun-400 pl-6 md:pl-8">
+        <blockquote id="apropos-quote" className="my-12 border-l-4 border-sun-400 pl-6 md:pl-8">
           <p className="text-ink text-xl md:text-2xl font-bold italic leading-snug">
             "Presque aucun produit ne mettait en valeur l'identité des villes réunionnaises."
           </p>

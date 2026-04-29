@@ -100,23 +100,23 @@ export function ProductCarousel({ products }: { products: CarouselProduct[] }) {
   return (
     <section
       id="product-carousel"
-      className="relative w-full min-h-[80svh] flex flex-col justify-center overflow-visible py-8 md:py-12 pb-48 md:pb-56"
+      className="relative w-full min-h-[80svh] flex flex-col justify-center overflow-visible py-4 md:py-6 pb-48 md:pb-56"
     >
       <div className="absolute inset-0 bg-cream" />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 w-full">
         {/* Titre */}
-        <div className="text-center mb-4 md:mb-6">
+        <div className="text-center mb-3 md:mb-4">
           <h2 className="title-chunky text-2xl md:text-4xl lg:text-6xl">
             {selectedVille ? `LES SOUVENIRS DE ${selectedVille.toUpperCase()}` : 'NOUT BOUTIK'}
           </h2>
-          <p className="mt-2 text-ink/70 text-xs md:text-base italic max-w-2xl mx-auto">
+          <p className="mt-1.5 text-ink/70 text-xs md:text-sm italic max-w-2xl mx-auto">
             Stickers, magnets, serviettes de bain, plaques décoratives — il existe plusieurs façons de mettre en valeur vos communes préférées avec les produits Island Dreams aux designs exclusifs&nbsp;! Gardez ou offrez des souvenirs de la Réunion.
           </p>
         </div>
 
         {/* Onglets catégories */}
-        <nav className="flex justify-center items-center gap-2 md:gap-6 mb-4 md:mb-6 flex-wrap">
+        <nav className="flex justify-center items-center gap-2 md:gap-6 mb-3 md:mb-4 flex-wrap">
           {availableCategories.map((cat) => (
             <button
               key={cat}

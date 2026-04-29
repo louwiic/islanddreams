@@ -19,24 +19,29 @@ export function FrizeLivraison() {
       const textEl = textRef.current;
 
       const containerW = sectionRef.current!.getBoundingClientRect().width;
-      const carW = window.innerWidth < 768 ? 120 : 180;
+      const isMobile   = window.innerWidth < 768;
+      const carW       = isMobile ? 120 : 180;
 
       // Texte positionné au début de la route (left fixe dans le JSX)
-      // Le texte fait ~260px de large → la voiture le dépasse quand car.x ≈ textLeft + textWidth
-      const textLeft  = window.innerWidth < 768 ? 12 : 20;   // padding left du texte
-      const textWidth = window.innerWidth < 768 ? 180 : 280;  // largeur approx du texte
-      const passX     = textLeft + textWidth; // x où la voiture a dépassé le texte
+      const textLeft  = isMobile ? 12 : 20;
+      const textWidth = textEl.getBoundingClientRect().width || (isMobile ? 200 : 380);
+      const passX     = textLeft + textWidth;
 
       // Voiture : démarre hors cadre gauche, traverse tout l'écran
       const startX = -carW - 20;
-      const endX   = containerW + carW;               // sort hors cadre droit
+      const endX   = containerW + carW;
       const range  = endX - startX;
 
-      // Progression à laquelle la voiture dépasse le texte
-      const passProgress = (passX - startX) / range;  // ≈ 0.15–0.20
+      // Progression où la voiture dépasse le texte
+      const passProgress = (passX - startX) / range;
+
+      // Décalage x pour centrer le texte (desktop uniquement)
+      const centerOffset = !isMobile
+        ? (containerW / 2) - (textWidth / 2) - textLeft
+        : 0;
 
       gsap.set(carEl,  { x: startX });
-      gsap.set(textEl, { opacity: 0 });
+      gsap.set(textEl, { opacity: 0, x: 0 });
 
       const tl = gsap.timeline({
         scrollTrigger: {
@@ -48,18 +53,19 @@ export function FrizeLivraison() {
       });
 
       // Voiture traverse toute la bande
-      tl.to(carEl, {
-        x: endX,
-        ease: 'none',
-        duration: 1,
-      }, 0);
+      tl.to(carEl, { x: endX, ease: 'none', duration: 1 }, 0);
 
-      // Texte apparaît juste après que la voiture l'a dépassé
-      tl.to(textEl, {
-        opacity: 1,
-        duration: 0.12,
-        ease: 'power2.out',
-      }, passProgress);
+      // Texte apparaît quand la voiture le dépasse
+      tl.to(textEl, { opacity: 1, duration: 0.08, ease: 'none' }, passProgress);
+
+      // Effet remorque : glisse vers le centre (desktop uniquement)
+      if (!isMobile && centerOffset > 0) {
+        tl.to(textEl, {
+          x: centerOffset,
+          ease: 'power2.out',
+          duration: 0.35,
+        }, passProgress + 0.04);
+      }
     });
 
     return () => ctx.revert();

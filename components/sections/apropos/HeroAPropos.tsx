@@ -12,11 +12,11 @@ export function HeroAPropos() {
       />
       <div className="absolute inset-0 bg-gradient-to-t from-jungle-900/85 via-jungle-900/30 to-transparent" />
 
-      <div className="relative z-10 w-full text-center px-4 pb-16 md:pb-24">
+      <div id="apropos-hero-text" className="relative z-10 w-full text-center px-4 pb-16 md:pb-24">
         <p className="text-sun-300 text-xs md:text-sm uppercase tracking-[0.35em] font-semibold mb-3">
           Island Dreams · 974
         </p>
-        <h1 className="title-chunky-light text-[3rem] leading-[0.9] md:text-7xl lg:text-8xl">
+        <h1 className="apropos-title title-chunky-light text-[3rem] leading-[0.9] md:text-7xl lg:text-8xl">
           NOUT
           <br />
           ZISTOIR
