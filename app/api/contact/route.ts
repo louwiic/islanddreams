@@ -1,0 +1,30 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+
+const admin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+);
+
+export async function POST(req: NextRequest) {
+  const { nom, telephone, email, objet, message } = await req.json();
+
+  if (!nom || !email || !message) {
+    return NextResponse.json({ error: 'Champs obligatoires manquants.' }, { status: 400 });
+  }
+
+  const { error } = await admin.from('contact_messages').insert({
+    nom,
+    telephone: telephone || null,
+    email,
+    objet: objet || null,
+    message,
+  });
+
+  if (error) {
+    console.error('contact insert error:', error);
+    return NextResponse.json({ error: 'Erreur serveur.' }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true });
+}

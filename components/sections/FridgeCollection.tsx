@@ -27,7 +27,7 @@ export function FridgeCollection() {
         className="object-cover"
         aria-hidden="true"
       />
-      <div className="absolute inset-0 bg-cream/50" />
+      <div className="absolute inset-0 bg-cream/20" />
 
       <div className="relative z-10 max-w-6xl mx-auto">
         <div className="text-center mb-10 md:mb-14">

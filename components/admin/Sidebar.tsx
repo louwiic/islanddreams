@@ -17,6 +17,7 @@ import {
   Tag,
   Search,
   Truck,
+  MessageSquare,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -26,6 +27,7 @@ const navigation = [
   { name: 'Catégories', href: '/admin/categories', icon: Tag },
   { name: 'Commandes', href: '/admin/commandes', icon: ShoppingCart },
   { name: 'Clients', href: '/admin/clients', icon: Users },
+  { name: 'Messages', href: '/admin/messages', icon: MessageSquare },
   { name: 'Livraison', href: '/admin/livraison', icon: Truck },
   { name: 'SEO', href: '/admin/seo', icon: Search },
   { name: 'Paramètres', href: '/admin/parametres', icon: Settings },

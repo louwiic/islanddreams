@@ -7,12 +7,39 @@ import { useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { gsap, ScrollTrigger, registerGsapPlugins } from '@/lib/animations/gsap-setup';
 
+const BIRDS = [
+  { id: 'b1', size: 130, top: '6%',  right: '6%',  delay: 0,   duration: 3.8, rotRange: 4 },
+  { id: 'b2', size: 95,  top: '14%', right: '18%', delay: 0.9, duration: 4.4, rotRange: 5 },
+  { id: 'b3', size: 65,  top: '4%',  right: '26%', delay: 1.7, duration: 3.2, rotRange: 6 },
+];
+
 export function Hero() {
-  const heroRef = useRef<HTMLElement>(null);
+  const heroRef   = useRef<HTMLElement>(null);
   const magnetRef = useRef<HTMLDivElement>(null);
+  const birdsRef  = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
     registerGsapPlugins();
+
+    // Oiseaux — vol ondulant
+    birdsRef.current.forEach((el, i) => {
+      if (!el) return;
+      const b = BIRDS[i];
+      gsap.fromTo(el,
+        { opacity: 0, x: 20 },
+        { opacity: 1, x: 0, duration: 1, delay: b.delay + 0.5, ease: 'power2.out' }
+      );
+      gsap.to(el, {
+        y: '+=12',
+        x: '+=6',
+        rotation: b.rotRange,
+        duration: b.duration,
+        ease: 'sine.inOut',
+        yoyo: true,
+        repeat: -1,
+        delay: b.delay + 0.5,
+      });
+    });
 
     if (!magnetRef.current || !heroRef.current) return;
 
@@ -182,10 +209,30 @@ export function Hero() {
       {/* Overlay pour lisibilité */}
       <div className="absolute inset-0 bg-gradient-to-t from-jungle-900/80 via-transparent to-jungle-900/20" />
 
+      {/* Oiseaux — paille-en-queue en troupe haut-gauche */}
+      {BIRDS.map((b, i) => (
+        <div
+          key={b.id}
+          ref={el => { birdsRef.current[i] = el; }}
+          className="absolute z-10 opacity-0 pointer-events-none"
+          style={{ top: b.top, right: b.right, width: b.size }}
+        >
+          <Image
+            src="/images/sections/paille-en-queue.png"
+            alt=""
+            width={400}
+            height={400}
+            className="w-full h-auto"
+            style={{ mixBlendMode: 'multiply' }}
+            aria-hidden
+          />
+        </div>
+      ))}
+
       {/* Gros magnet 974 — centré */}
       <div
         ref={magnetRef}
-        className="absolute left-1/2 top-[35%] md:top-[40%] -translate-x-1/2 -translate-y-1/2 z-20"
+        className="absolute left-1/2 top-[22%] md:top-[28%] -translate-x-1/2 -translate-y-1/2 z-20"
         id="hero-magnet-974"
         aria-label="Magnet principal 974 Île de la Réunion"
       >

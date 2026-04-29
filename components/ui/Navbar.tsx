@@ -19,9 +19,13 @@ const leftLinks = [
 
 const rightLinks = [
   { label: 'À propos', href: '/a-propos' },
-  { label: 'Découvrir la Réunion', href: '/decouvrir' },
   { label: 'Contact', href: '/contact' },
   { label: 'Mon compte', href: '/compte' },
+];
+
+// Visible dans le menu mobile uniquement
+const mobileOnlyLinks = [
+  { label: 'Découvrir la Réunion', href: '/decouvrir', color: null, featured: false },
 ];
 
 export function Navbar({
@@ -55,6 +59,7 @@ export function Navbar({
   const allMobileLinks = [
     ...leftNav,
     ...rightLinks.map((l) => ({ ...l, color: null, featured: false })),
+    ...mobileOnlyLinks,
   ];
 
   return (
@@ -68,15 +73,15 @@ export function Navbar({
     >
       <div className="max-w-7xl mx-auto px-4 md:px-6 flex items-center justify-between">
         {/* Liens gauche — desktop */}
-        <div className="hidden lg:flex items-center gap-10 flex-1">
+        <div className="hidden lg:flex items-center gap-7 flex-1">
           {leftNav.map((link) => (
             <Link
               key={link.label}
               href={link.href}
-              className={`text-[13px] font-bold uppercase tracking-[0.25em] transition-colors duration-300 relative group ${
+              className={`text-[12px] font-bold uppercase tracking-[0.18em] whitespace-nowrap transition-colors duration-300 relative group ${
                 link.featured
                   ? 'text-white'
-                  : 'nav-link text-cream/90 hover:text-sun-400'
+                  : 'nav-link text-sun-450 hover:text-sun-300'
               }`}
             >
               {link.featured ? (
@@ -113,12 +118,12 @@ export function Navbar({
         </Link>
 
         {/* Liens droite — desktop */}
-        <div className="hidden lg:flex items-center justify-end gap-10 flex-1">
+        <div className="hidden lg:flex items-center justify-end gap-7 flex-1">
           {rightLinks.map((link) => (
             <Link
               key={link.label}
               href={link.href}
-              className="nav-link text-cream/90 hover:text-sun-400 text-[13px] font-bold uppercase tracking-[0.25em] transition-colors duration-300 relative group"
+              className="nav-link text-sun-450 hover:text-sun-300 text-[12px] font-bold uppercase tracking-[0.18em] whitespace-nowrap transition-colors duration-300 relative group"
             >
               {link.label}
               <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-sun-400 transition-all duration-300 group-hover:w-full" />
@@ -168,7 +173,7 @@ export function Navbar({
               className={`text-sm font-bold uppercase tracking-[0.25em] transition-colors duration-300 py-1 ${
                 link.featured
                   ? 'text-white'
-                  : 'text-cream/90 hover:text-sun-400'
+                  : 'text-sun-450 hover:text-sun-300'
               }`}
               onClick={() => setMobileOpen(false)}
             >
