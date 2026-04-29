@@ -1,6 +1,5 @@
 const PILIERS = [
   {
-    emoji: '🏝️',
     titre: 'Identité péi',
     texte: 'Valoriser chaque commune dans sa singularité — ses couleurs, son histoire, sa fierté.',
     bg: 'bg-jungle-50',
@@ -8,7 +7,6 @@ const PILIERS = [
     accent: 'text-jungle-700',
   },
   {
-    emoji: '📚',
     titre: 'Éducatif',
     texte: 'Développer la connaissance géographique et culturelle de La Réunion, accessibles à tous.',
     bg: 'bg-sun-50',
@@ -16,7 +14,6 @@ const PILIERS = [
     accent: 'text-sun-600',
   },
   {
-    emoji: '🤝',
     titre: '100 % local',
     texte: 'Graphiste, imprimeur, développeur — chaque maillon de la chaîne est réunionnais.',
     bg: 'bg-coral-50',
@@ -40,12 +37,13 @@ export function PiliersBlock() {
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {PILIERS.map(({ emoji, titre, texte, bg, border, accent }) => (
+          {PILIERS.map(({ titre, texte, bg, border, accent }) => (
             <div
               key={titre}
               className={`${bg} border-2 ${border} rounded-3xl px-6 py-8 flex flex-col items-center text-center gap-4`}
             >
-              <span className="text-5xl">{emoji}</span>
+              {/* Image placeholder — à remplacer */}
+              <div className="w-16 h-16 rounded-2xl bg-white/60 border border-ink/10" />
               <h3 className={`font-black text-xl ${accent}`}>{titre}</h3>
               <p className="text-ink/65 text-sm leading-relaxed">{texte}</p>
             </div>

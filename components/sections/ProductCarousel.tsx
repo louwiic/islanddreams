@@ -111,7 +111,7 @@ export function ProductCarousel({ products }: { products: CarouselProduct[] }) {
             {selectedVille ? `LES SOUVENIRS DE ${selectedVille.toUpperCase()}` : 'NOUT BOUTIK'}
           </h2>
           <p className="mt-2 text-ink/70 text-xs md:text-base italic max-w-2xl mx-auto">
-            Des souvenirs pensés, dessinés et imprimés à La Réunion.
+            Stickers, magnets, serviettes de bain, plaques décoratives — il existe plusieurs façons de mettre en valeur vos communes préférées avec les produits Island Dreams aux designs exclusifs&nbsp;! Gardez ou offrez des souvenirs de la Réunion.
           </p>
         </div>
 

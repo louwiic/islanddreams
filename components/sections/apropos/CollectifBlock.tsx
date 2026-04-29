@@ -1,7 +1,7 @@
 const ETAPES = [
-  { icon: '✏️', label: 'Dessiné', detail: 'à La Réunion' },
-  { icon: '🖨️', label: 'Imprimé', detail: 'par des artisans péi' },
-  { icon: '📦', label: 'Expédié', detail: 'depuis La Réunion' },
+  { label: 'Dessiné', detail: 'à La Réunion' },
+  { label: 'Imprimé', detail: 'par des artisans péi' },
+  { label: 'Expédié', detail: 'depuis La Réunion' },
 ];
 
 export function CollectifBlock() {
@@ -22,10 +22,10 @@ export function CollectifBlock() {
         </p>
 
         <div className="grid grid-cols-3 gap-6 md:gap-10 max-w-2xl mx-auto mb-14">
-          {ETAPES.map(({ icon, label, detail }) => (
+          {ETAPES.map(({ label, detail }) => (
             <div key={label} className="flex flex-col items-center gap-2">
-              <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-white shadow-md border border-jungle-100 flex items-center justify-center text-3xl md:text-4xl">
-                {icon}
+              <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-white shadow-md border border-jungle-100 flex items-center justify-center">
+                {/* Image à venir */}
               </div>
               <p className="font-black text-ink text-sm md:text-base">{label}</p>
               <p className="text-ink/45 text-xs">{detail}</p>

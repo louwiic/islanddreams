@@ -12,7 +12,7 @@ export function FondateurBlock() {
           {/* Avatar placeholder — à remplacer par une photo */}
           <div className="shrink-0">
             <div className="w-32 h-32 md:w-44 md:h-44 rounded-full bg-jungle-700 border-4 border-sun-400 flex items-center justify-center overflow-hidden">
-              <span className="text-6xl md:text-7xl select-none">🤙</span>
+              {/* Photo à venir */}
             </div>
             <p className="text-center text-cream font-bold mt-3 text-sm">Rodophe Smith</p>
             <p className="text-center text-cream/40 text-xs mt-0.5">Fondateur · Island Dreams</p>
