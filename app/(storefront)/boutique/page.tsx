@@ -82,18 +82,18 @@ export default async function BoutiquePage({ searchParams }: Props) {
 
   return (
     <main>
-      {/* Bandeau navbar + breadcrumb */}
-      <div className="bg-jungle-800 pt-24 pb-6 px-4">
-        <nav className="max-w-7xl mx-auto flex items-center gap-2 text-sm">
-          <Link href="/" className="text-cream/60 hover:text-cream transition-colors">
+      {/* Espace pour la navbar fixe */}
+      <div className="bg-jungle-800 pt-24 pb-4" />
+
+      <div className="pb-16 px-4 pt-6 bg-cream">
+        {/* Breadcrumb */}
+        <nav className="max-w-7xl mx-auto flex items-center gap-2 text-sm mb-6">
+          <Link href="/" className="text-ink/40 hover:text-ink transition-colors">
             Accueil
           </Link>
-          <ChevronRight size={14} className="text-cream/30" />
-          <span className="text-cream font-medium">Boutique</span>
+          <ChevronRight size={14} className="text-ink/25" />
+          <span className="text-ink font-medium">Boutique</span>
         </nav>
-      </div>
-
-      <div className="pb-16 px-4 pt-8 bg-cream">
       <div className="max-w-7xl mx-auto">
         <h1 className="title-chunky text-3xl md:text-5xl text-center mb-8">
           NOUT BOUTIK
