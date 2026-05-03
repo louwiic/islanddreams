@@ -37,6 +37,7 @@ const barlow = Barlow_Semi_Condensed({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://www.islanddreams.re'),
   title: "Island Dreams — L'île en souvenirs",
   description:
     'Des objets qui racontent La Réunion. Magnets, stickers, textile, décoration — un bout de péi à garder, à offrir.',
@@ -45,6 +46,7 @@ export const metadata: Metadata = {
     description: 'Un bout de péi à garder, à offrir.',
     locale: 'fr_RE',
     type: 'website',
+    siteName: 'Island Dreams',
   },
 };
 
@@ -59,6 +61,28 @@ export default function RootLayout({
       className={`${fraunces.variable} ${inter.variable} ${oswald.variable} ${londrina.variable} ${barlow.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Organization',
+              name: 'Island Dreams',
+              url: 'https://www.islanddreams.re',
+              logo: 'https://www.islanddreams.re/images/logo.png',
+              description: 'Souvenirs illustrés de La Réunion — magnets, stickers, textile, décoration.',
+              address: {
+                '@type': 'PostalAddress',
+                addressLocality: 'La Réunion',
+                addressCountry: 'FR',
+              },
+              sameAs: [
+                'https://www.instagram.com/islanddreams.re/',
+                'https://www.facebook.com/islanddreams974/',
+              ],
+            }),
+          }}
+        />
         {children}
       </body>
     </html>

@@ -1,3 +1,5 @@
+import Image from 'next/image';
+
 export function FondateurBlock() {
   return (
     <section className="bg-ink py-20 md:py-32 px-4">
@@ -9,10 +11,15 @@ export function FondateurBlock() {
 
         <div className="flex flex-col md:flex-row items-center gap-10 md:gap-16">
 
-          {/* Avatar placeholder — à remplacer par une photo */}
           <div className="shrink-0">
-            <div className="w-32 h-32 md:w-44 md:h-44 rounded-full bg-jungle-700 border-4 border-sun-400 flex items-center justify-center overflow-hidden">
-              {/* Photo à venir */}
+            <div className="w-32 h-32 md:w-44 md:h-44 rounded-full bg-jungle-700 border-4 border-sun-400 overflow-hidden">
+              <Image
+                src="/images/sections/fondateur.jpeg"
+                alt="Rodophe Smith — Fondateur Island Dreams"
+                width={400}
+                height={400}
+                className="w-full h-full object-cover"
+              />
             </div>
             <p className="text-center text-cream font-bold mt-3 text-sm">Rodophe Smith</p>
             <p className="text-center text-cream/40 text-xs mt-0.5">Fondateur · Island Dreams</p>

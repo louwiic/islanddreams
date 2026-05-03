@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/admin', '/api'],
+        disallow: ['/admin', '/api', '/compte', '/checkout', '/panier'],
       },
     ],
     sitemap: 'https://www.islanddreams.re/sitemap.xml',

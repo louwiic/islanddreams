@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { sendEmail } from '@/lib/email/send';
+import { contactNotification } from '@/lib/email/templates';
 
 const admin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -25,6 +27,10 @@ export async function POST(req: NextRequest) {
     console.error('contact insert error:', error);
     return NextResponse.json({ error: 'Erreur serveur.' }, { status: 500 });
   }
+
+  // Notification email à l'admin
+  const tpl = contactNotification({ nom, email, telephone, objet: objet || 'Sans objet', message });
+  await sendEmail({ to: 'contact@islanddreams.re', ...tpl, replyTo: email });
 
   return NextResponse.json({ success: true });
 }

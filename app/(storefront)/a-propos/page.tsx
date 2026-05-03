@@ -1,11 +1,5 @@
 import type { Metadata } from 'next';
-import { HeroAPropos } from '@/components/sections/apropos/HeroAPropos';
-import { EtincelleBlock } from '@/components/sections/apropos/EtincelleBlock';
-import { IdeeBlock } from '@/components/sections/apropos/IdeeBlock';
-import { PiliersBlock } from '@/components/sections/apropos/PiliersBlock';
-import { FondateurBlock } from '@/components/sections/apropos/FondateurBlock';
-import { CollectifBlock } from '@/components/sections/apropos/CollectifBlock';
-import { CtaBlock } from '@/components/sections/apropos/CtaBlock';
+import { TimelineAPropos } from '@/components/sections/apropos/TimelineAPropos';
 import { AProposAnimations } from '@/components/sections/apropos/AProposAnimations';
 
 export const metadata: Metadata = {
@@ -17,13 +11,7 @@ export default function AProposPage() {
   return (
     <>
       <AProposAnimations />
-      <HeroAPropos />
-      <EtincelleBlock />
-      <IdeeBlock />
-      <PiliersBlock />
-      <FondateurBlock />
-      <CollectifBlock />
-      <CtaBlock />
+      <TimelineAPropos />
     </>
   );
 }

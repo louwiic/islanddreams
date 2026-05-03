@@ -9,6 +9,13 @@ export const metadata: Metadata = {
   title: 'Boutique — Island Dreams | Souvenirs de La Réunion',
   description:
     'Découvrez notre collection de souvenirs illustrés de La Réunion : magnets, stickers, textile, décoration. Dessinés et imprimés à La Réunion.',
+  alternates: { canonical: '/boutique' },
+  openGraph: {
+    title: 'Boutique — Island Dreams',
+    description: 'Magnets, stickers, textile, décoration — tous nos souvenirs illustrés de La Réunion.',
+    locale: 'fr_RE',
+    type: 'website',
+  },
 };
 
 const CATEGORY_LABELS: Record<string, string> = {

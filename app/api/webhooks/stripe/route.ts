@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getStripeClient } from '@/lib/stripe/client';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { sendEmail } from '@/lib/email/send';
+import { orderConfirmation, orderNotificationAdmin } from '@/lib/email/templates';
 import type Stripe from 'stripe';
 
 export async function POST(req: NextRequest) {
@@ -161,4 +163,33 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   }
 
   console.log(`✓ Commande créée: ${order.id} — ${total}€`);
+
+  // ── Emails ──────────────────────────────────────────────────────
+  const customerName = session.customer_details?.name || 'Client';
+  const customerEmail = session.customer_details?.email;
+  const shippingStr = shipping
+    ? `${shipping.line1}${shipping.line2 ? ', ' + shipping.line2 : ''}, ${shipping.postal_code} ${shipping.city}`
+    : undefined;
+
+  const emailOrderData = {
+    orderNumber: order.id.slice(0, 8).toUpperCase(),
+    customerName,
+    items: orderItems.map((i) => ({
+      name: i.product_name,
+      quantity: i.quantity,
+      price: i.unit_price,
+    })),
+    total,
+    shippingAddress: shippingStr,
+  };
+
+  // Email confirmation au client
+  if (customerEmail) {
+    const tpl = orderConfirmation(emailOrderData);
+    await sendEmail({ to: customerEmail, ...tpl });
+  }
+
+  // Notification à l'admin
+  const adminTpl = orderNotificationAdmin(emailOrderData);
+  await sendEmail({ to: 'contact@islanddreams.re', ...adminTpl });
 }

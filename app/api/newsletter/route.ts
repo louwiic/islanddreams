@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { sendEmail } from '@/lib/email/send';
+import { newsletterWelcome } from '@/lib/email/templates';
 
 const PROMO_CODE = 'BIENVENUE10'; // À créer dans Stripe dashboard (10% off)
 
@@ -22,12 +24,17 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (error) {
-    // Email déjà inscrit
     if (error.code === '23505') {
       return NextResponse.json({ code: PROMO_CODE, already: true });
     }
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
+
+  // Email de bienvenue avec code promo
+  const tpl = newsletterWelcome(email);
+  console.log(`[NEWSLETTER] Envoi email bienvenue à ${email}...`);
+  const result = await sendEmail({ to: email, ...tpl });
+  console.log(`[NEWSLETTER] Résultat:`, result);
 
   return NextResponse.json({ code: PROMO_CODE });
 }

@@ -28,11 +28,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title,
     description,
+    alternates: { canonical: `/boutique/${slug}` },
     openGraph: {
       title: product.meta_title || `${product.name} | Island Dreams`,
       description,
       locale: 'fr_RE',
-      type: 'website',
+      type: 'article',
       images: mainImage ? [{ url: mainImage.url, alt: mainImage.alt || product.name }] : undefined,
     },
     twitter: {
@@ -185,26 +186,39 @@ export default async function ProductPage({ params }: PageProps) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'Product',
-            name: product.name,
-            description: product.meta_description || product.short_description || '',
-            image: mainImage?.url,
-            sku: product.sku,
-            offers: {
-              '@type': 'Offer',
-              price: product.sale_price || product.price,
-              priceCurrency: 'EUR',
-              availability: product.in_stock
-                ? 'https://schema.org/InStock'
-                : 'https://schema.org/OutOfStock',
-              seller: {
-                '@type': 'Organization',
-                name: 'Island Dreams',
+          __html: JSON.stringify([
+            {
+              '@context': 'https://schema.org',
+              '@type': 'Product',
+              name: product.name,
+              description: product.meta_description || product.short_description || '',
+              image: mainImage?.url,
+              sku: product.sku,
+              offers: {
+                '@type': 'Offer',
+                url: `https://www.islanddreams.re/boutique/${product.slug}`,
+                price: product.sale_price || product.price,
+                priceCurrency: 'EUR',
+                availability: product.in_stock
+                  ? 'https://schema.org/InStock'
+                  : 'https://schema.org/OutOfStock',
+                seller: {
+                  '@type': 'Organization',
+                  name: 'Island Dreams',
+                },
               },
             },
-          }),
+            {
+              '@context': 'https://schema.org',
+              '@type': 'BreadcrumbList',
+              itemListElement: [
+                { '@type': 'ListItem', position: 1, name: 'Accueil', item: 'https://www.islanddreams.re' },
+                { '@type': 'ListItem', position: 2, name: 'Boutique', item: 'https://www.islanddreams.re/boutique' },
+                { '@type': 'ListItem', position: 3, name: categoryLabel, item: `https://www.islanddreams.re/boutique?categorie=${product.category}` },
+                { '@type': 'ListItem', position: 4, name: product.name },
+              ],
+            },
+          ]),
         }}
       />
     </main>

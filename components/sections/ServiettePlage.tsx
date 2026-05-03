@@ -1,8 +1,40 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { TextileMobileCarousel } from './TextileMobileCarousel';
 
-export function ServiettePlage() {
+type TextileItem = {
+  id: string;
+  product_name: string;
+  image_url: string;
+  product_link: string;
+};
+
+const FALLBACK: TextileItem[] = [
+  { id: '1', product_name: 'Serviette Plage', image_url: '/images/sections/textile-1.png', product_link: '/boutique' },
+  { id: '2', product_name: 'Tapis de Plage', image_url: '/images/sections/textile-2.png', product_link: '/boutique' },
+  { id: '3', product_name: 'Pareo Péi', image_url: '/images/sections/textile-3.png', product_link: '/boutique' },
+];
+
+async function getTextileItems(): Promise<TextileItem[]> {
+  try {
+    const supabase = createAdminClient();
+    const { data } = await supabase
+      .from('textile_highlights' as never)
+      .select('id, product_name, image_url, product_link')
+      .eq('is_active', true)
+      .order('position', { ascending: true });
+
+    if (data && data.length > 0) return data as unknown as TextileItem[];
+  } catch {
+    // table pas encore créée → fallback
+  }
+  return FALLBACK;
+}
+
+export async function ServiettePlage() {
+  const items = await getTextileItems();
+
   return (
     <section
       id="serviette-section"
@@ -10,7 +42,7 @@ export function ServiettePlage() {
       style={{ minHeight: '100vh' }}
     >
       {/* BG plage */}
-      <Image src="/images/sections/plage-bg.png" alt="" fill className="object-cover object-center" aria-hidden />
+      <Image src="/images/sections/plage-sunset.png" alt="" fill className="object-cover object-bottom" aria-hidden />
       <div className="absolute inset-0 bg-gradient-to-t from-ink/40 via-transparent to-transparent" />
 
       {/* Contenu */}
@@ -69,7 +101,7 @@ export function ServiettePlage() {
                 Attend, on a quelque chose pour toi&nbsp;!
               </p>
               <p id="bubble-msg-2" className="absolute inset-0 flex items-center justify-center text-ink font-bold text-[12px] md:text-sm leading-snug text-center opacity-0 px-4">
-                Découvre nos articles pour aller à la playa&nbsp;😍
+                Découvre nos articles pour aller à la playa&nbsp;!
               </p>
               <div
                 className="absolute top-1/2 -left-3 w-5 h-5 bg-white border-b-2 border-l-2 border-ink"
@@ -78,24 +110,24 @@ export function ServiettePlage() {
             </div>
           </div>
 
-          {/* ── Desktop : 3 cards côte à côte ── */}
+          {/* ── Desktop : cards dynamiques ── */}
           <div className="hidden md:flex absolute inset-0 items-center justify-center gap-5 px-2">
-            {[1, 2, 3].map((n) => (
+            {items.slice(0, 3).map((item, i) => (
               <div
-                key={n}
-                id={`textile-card-${n}`}
+                key={item.id}
+                id={`textile-card-${i + 1}`}
                 className="opacity-0 flex-1 max-w-[240px] lg:max-w-[280px] flex flex-col items-center gap-3"
               >
                 <div className="rounded-2xl overflow-hidden shadow-xl w-full">
                   <Image
-                    src={`/images/sections/textile-${n}.png`}
-                    alt={`Article plage ${n}`}
+                    src={item.image_url}
+                    alt={item.product_name}
                     width={800} height={800}
                     className="w-full h-auto"
                   />
                 </div>
                 <Link
-                  href="/boutique"
+                  href={item.product_link}
                   className="inline-flex items-center gap-2 px-5 py-2 bg-sun-400 hover:bg-sun-300 text-ink text-xs font-bold uppercase tracking-wider rounded-full shadow transition-colors"
                 >
                   Découvrir
@@ -104,13 +136,13 @@ export function ServiettePlage() {
             ))}
           </div>
 
-          {/* ── Mobile : carousel plein écran ── */}
+          {/* ── Mobile : carousel dynamique ── */}
           <div
             id="textile-carousel-mobile"
             className="md:hidden absolute inset-0 flex items-center justify-center opacity-0 px-2"
           >
             <div className="w-full">
-              <TextileMobileCarousel />
+              <TextileMobileCarousel items={items} />
             </div>
           </div>
 
