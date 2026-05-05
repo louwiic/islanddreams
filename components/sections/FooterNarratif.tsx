@@ -221,15 +221,61 @@ export function FooterNarratif() {
           </div>
         </div>
 
-        {/* ── Ligne légale ── */}
-        <div className="max-w-6xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-2 text-xs text-cream/30 border-t border-cream/10">
-          <div className="flex flex-wrap justify-center md:justify-start gap-4">
-            {LEGAL_LINKS.map((l) => (
-              <Link key={l.href} href={l.href} className="hover:text-cream transition-colors">
-                {l.label}
-              </Link>
-            ))}
+        {/* ── Liens utiles + Financements ── */}
+        <div className="max-w-6xl mx-auto px-6 py-10 grid grid-cols-1 md:grid-cols-2 gap-10 border-t border-cream/10">
+          {/* Liens utiles */}
+          <div>
+            <h3
+              className="text-cream font-black text-lg uppercase tracking-wide mb-4"
+              style={{ fontFamily: 'var(--font-heading, serif)' }}
+            >
+              Liens utiles
+            </h3>
+            <ul className="flex flex-col gap-2">
+              {LEGAL_LINKS.map((l) => (
+                <li key={l.href}>
+                  <Link href={l.href} className="text-cream/60 text-sm hover:text-cream transition-colors">
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
+
+          {/* Financements */}
+          <div>
+            <h3
+              className="text-cream font-black text-lg uppercase tracking-wide mb-4"
+              style={{ fontFamily: 'var(--font-heading, serif)' }}
+            >
+              Financements
+            </h3>
+            <p className="text-cream/60 text-sm leading-relaxed mb-4">
+              Ce site a été financé par l&apos;Union Européenne dans le cadre du programme FEDER-FSE+
+              Réunion dont l&apos;Autorité de gestion est la Région Réunion. L&apos;Europe s&apos;engage
+              à La Réunion avec le fonds FEDER
+            </p>
+            <div className="flex items-center gap-6">
+              <Image
+                src="/images/logo/union-europeenne.png"
+                alt="Union Européenne"
+                width={120}
+                height={80}
+                className="h-16 w-auto object-contain"
+              />
+              <Image
+                src="/images/logo/region-reunion.jpg"
+                alt="Région Réunion"
+                width={120}
+                height={80}
+                className="h-16 w-auto object-contain"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* ── Ligne copyright ── */}
+        <div className="max-w-6xl mx-auto px-6 py-4 text-center text-xs text-cream/30 border-t border-cream/10">
           <p>Un site fait à La Réunion (974). 2025 Island Dreams.</p>
         </div>
       </div>
