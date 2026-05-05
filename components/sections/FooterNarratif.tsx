@@ -14,9 +14,10 @@ const NAV_LINKS = [
 ];
 
 const LEGAL_LINKS = [
-  { label: 'Mentions légales',             href: 'https://www.islanddreams.re/mentions-legales/' },
-  { label: 'Politique de confidentialité', href: 'https://www.islanddreams.re/politique-de-cookies-ue/' },
-  { label: 'CGV',                          href: 'https://www.islanddreams.re/wp-content/uploads/2025/12/CGV-ISLAND-DREAMS.pdf' },
+  { label: 'Mentions légales',             href: '/mentions-legales' },
+  { label: 'Politique de confidentialité', href: '/politique-de-confidentialite' },
+  { label: 'Politique de cookies',         href: '/politique-de-cookies' },
+  { label: 'CGV',                          href: '/cgv' },
 ];
 
 function SocialBtn({ href, label, children }: { href: string; label: string; children: React.ReactNode }) {
@@ -224,9 +225,9 @@ export function FooterNarratif() {
         <div className="max-w-6xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-2 text-xs text-cream/30 border-t border-cream/10">
           <div className="flex flex-wrap justify-center md:justify-start gap-4">
             {LEGAL_LINKS.map((l) => (
-              <a key={l.href} href={l.href} className="hover:text-cream transition-colors">
+              <Link key={l.href} href={l.href} className="hover:text-cream transition-colors">
                 {l.label}
-              </a>
+              </Link>
             ))}
           </div>
           <p>Un site fait à La Réunion (974). 2025 Island Dreams.</p>
