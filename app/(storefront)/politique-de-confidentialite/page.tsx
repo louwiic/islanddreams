@@ -17,7 +17,7 @@ export default function PolitiqueConfidentialitePage() {
         </h1>
       </div>
 
-      <div className="max-w-3xl mx-auto px-6 py-12 prose prose-sm prose-ink">
+      <div className="max-w-3xl mx-auto px-6 py-12 prose prose-sm prose-ink legal-prose">
         <p className="text-ink/60 italic">Dernière mise à jour : mai 2026</p>
 
         <h2>1. Responsable du traitement</h2>

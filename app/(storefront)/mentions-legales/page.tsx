@@ -17,7 +17,7 @@ export default function MentionsLegalesPage() {
         </h1>
       </div>
 
-      <div className="max-w-3xl mx-auto px-6 py-12 prose prose-sm prose-ink">
+      <div className="max-w-3xl mx-auto px-6 py-12 prose prose-sm prose-ink legal-prose">
         <p>
           L&apos;utilisation du présent site implique de respecter les termes des présentes mentions
           légales. En accédant au site, tout internaute déclare avoir lu et accepté les présentes

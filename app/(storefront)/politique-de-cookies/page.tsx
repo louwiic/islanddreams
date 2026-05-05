@@ -17,7 +17,7 @@ export default function PolitiqueCookiesPage() {
         </h1>
       </div>
 
-      <div className="max-w-3xl mx-auto px-6 py-12 prose prose-sm prose-ink">
+      <div className="max-w-3xl mx-auto px-6 py-12 prose prose-sm prose-ink legal-prose">
         <p className="text-ink/60 italic">
           Cette politique de cookies a été mise à jour pour la dernière fois le 29 janvier 2026 et
           s&apos;applique aux citoyens et aux résidents permanents légaux de l&apos;Espace Économique
