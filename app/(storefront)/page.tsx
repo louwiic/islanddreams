@@ -11,6 +11,7 @@ import { FemmePlage } from '@/components/sections/FemmePlage';
 import { VillesBlock } from '@/components/sections/VillesBlock';
 import { FooterNarratif } from '@/components/sections/FooterNarratif';
 import { CarteCollection } from '@/components/sections/CarteCollection';
+import { UspBanner } from '@/components/sections/UspBanner';
 import { SmoothScroll } from '@/components/ui/SmoothScroll';
 import { getPublishedProducts } from '@/lib/queries/products';
 
@@ -35,7 +36,7 @@ export default async function Home() {
       <ProductCarousel products={products} />
       <ServiettePlage />
       <FemmePlage />
-
+      <UspBanner />
       <CarteCollection />
 
       <VillesBlock products={products} />
