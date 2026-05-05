@@ -28,9 +28,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Erreur serveur.' }, { status: 500 });
   }
 
-  // Notification email à l'admin
+  // Notification email à l'admin (configurable via ADMIN_EMAIL)
+  const adminEmail = process.env.ADMIN_EMAIL || 'contact@islanddreams.re';
   const tpl = contactNotification({ nom, email, telephone, objet: objet || 'Sans objet', message });
-  await sendEmail({ to: 'contact@islanddreams.re', ...tpl, replyTo: email });
+  await sendEmail({ to: adminEmail, ...tpl, replyTo: email });
 
   return NextResponse.json({ success: true });
 }

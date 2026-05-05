@@ -189,7 +189,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     await sendEmail({ to: customerEmail, ...tpl });
   }
 
-  // Notification à l'admin
+  // Notification à l'admin (configurable via ADMIN_EMAIL)
+  const adminEmail = process.env.ADMIN_EMAIL || 'contact@islanddreams.re';
   const adminTpl = orderNotificationAdmin(emailOrderData);
-  await sendEmail({ to: 'contact@islanddreams.re', ...adminTpl });
+  await sendEmail({ to: adminEmail, ...adminTpl });
 }
