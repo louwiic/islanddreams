@@ -21,6 +21,7 @@ export default function ConnexionPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(hasError ? 'Lien invalide ou expiré.' : null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [wooCustomer, setWooCustomer] = useState(false);
 
   const supabase = createClient();
 
@@ -34,11 +35,27 @@ export default function ConnexionPage() {
       if (mode === 'login') {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) {
-          setError(
-            error.message.includes('Invalid login credentials')
-              ? 'Email ou mot de passe incorrect.'
-              : error.message
-          );
+          if (error.message.includes('Invalid login credentials')) {
+            // Vérifier si c'est un ancien client WooCommerce
+            try {
+              const res = await fetch('/api/check-customer', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email }),
+              });
+              const data = await res.json();
+              if (data.exists && !data.hasAuth) {
+                setWooCustomer(true);
+                setError(null);
+              } else {
+                setError('Email ou mot de passe incorrect.');
+              }
+            } catch {
+              setError('Email ou mot de passe incorrect.');
+            }
+          } else {
+            setError(error.message);
+          }
         } else {
           router.push(redirect);
           router.refresh();
@@ -131,6 +148,20 @@ export default function ConnexionPage() {
           )}
           {success && (
             <p className="text-sm text-jungle-700 bg-jungle-50 rounded-xl px-4 py-3">{success}</p>
+          )}
+          {wooCustomer && (
+            <div className="text-sm bg-sun-50 border border-sun-200 rounded-xl px-4 py-3">
+              <p className="font-semibold text-ink mb-1">Ancien client Island Dreams ?</p>
+              <p className="text-ink/70">
+                Notre site a changé ! Pour accéder à votre compte, créez un nouveau mot de passe.
+              </p>
+              <Link
+                href={`/compte/mot-de-passe-oublie?email=${encodeURIComponent(email)}`}
+                className="inline-block mt-2 text-jungle-700 font-bold underline hover:text-jungle-800 transition-colors"
+              >
+                Créer mon nouveau mot de passe →
+              </Link>
+            </div>
           )}
 
           <button

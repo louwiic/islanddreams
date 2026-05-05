@@ -1,5 +1,8 @@
 // FooterNarratif — style Candia, couleurs Island Dreams
 
+'use client';
+
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -41,6 +44,61 @@ function TornEdge({ fromColor, toColor }: { fromColor: string; toColor: string }
         />
       </svg>
     </div>
+  );
+}
+
+function NewsletterForm() {
+  const [email, setEmail] = useState('');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'ok' | 'error'>('idle');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) return;
+    setStatus('loading');
+
+    try {
+      const res = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      if (res.ok) {
+        setStatus('ok');
+        setEmail('');
+      } else {
+        setStatus('error');
+      }
+    } catch {
+      setStatus('error');
+    }
+  };
+
+  if (status === 'ok') {
+    return (
+      <p className="text-sm text-sun-400 font-semibold text-center">
+        Merci ! Vérifie ta boîte mail 🌴
+      </p>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="flex gap-2 w-full max-w-xs mx-auto">
+      <input
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="ton@email.re"
+        required
+        className="flex-1 px-3 py-2 rounded-lg text-sm bg-white/10 border border-cream/20 text-cream placeholder:text-cream/40 focus:outline-none focus:border-sun-400 transition-colors"
+      />
+      <button
+        type="submit"
+        disabled={status === 'loading'}
+        className="px-4 py-2 bg-sun-400 text-ink text-sm font-bold rounded-lg hover:bg-sun-300 transition-colors disabled:opacity-50 shrink-0"
+      >
+        {status === 'loading' ? '…' : 'OK'}
+      </button>
+    </form>
   );
 }
 
@@ -90,19 +148,35 @@ export function FooterNarratif() {
             </a>
           </div>
 
-          {/* ── Centre : navigation ── */}
-          <nav className="flex flex-col items-center gap-5" aria-label="Footer navigation">
-            {NAV_LINKS.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                className="text-cream font-black text-xl md:text-2xl uppercase tracking-wide hover:text-sun-400 transition-colors leading-none"
+          {/* ── Centre : newsletter + navigation ── */}
+          <div className="flex flex-col items-center gap-8">
+            {/* Newsletter signup */}
+            <div className="text-center">
+              <p
+                className="text-cream font-black text-lg uppercase tracking-wide mb-2"
                 style={{ fontFamily: 'var(--font-heading, serif)' }}
               >
-                {link.label}
-              </a>
-            ))}
-          </nav>
+                Kréol Mail
+              </p>
+              <p className="text-cream/60 text-xs mb-3">
+                -10% sur ta première commande + nos nouveautés
+              </p>
+              <NewsletterForm />
+            </div>
+
+            <nav className="flex flex-col items-center gap-5" aria-label="Footer navigation">
+              {NAV_LINKS.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  className="text-cream font-black text-xl md:text-2xl uppercase tracking-wide hover:text-sun-400 transition-colors leading-none"
+                  style={{ fontFamily: 'var(--font-heading, serif)' }}
+                >
+                  {link.label}
+                </a>
+              ))}
+            </nav>
+          </div>
 
           {/* ── Droite : badge + socials + CTA ── */}
           <div className="flex flex-col items-center gap-5">

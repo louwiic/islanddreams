@@ -10,6 +10,7 @@ import { ServiettePlage } from '@/components/sections/ServiettePlage';
 import { FemmePlage } from '@/components/sections/FemmePlage';
 import { VillesBlock } from '@/components/sections/VillesBlock';
 import { FooterNarratif } from '@/components/sections/FooterNarratif';
+import { CarteCollection } from '@/components/sections/CarteCollection';
 import { SmoothScroll } from '@/components/ui/SmoothScroll';
 import { getPublishedProducts } from '@/lib/queries/products';
 
@@ -35,12 +36,7 @@ export default async function Home() {
       <ServiettePlage />
       <FemmePlage />
 
-      {/* Sections suivantes (à venir) */}
-      <section className="min-h-[40vh] md:min-h-[60vh] bg-jungle-50 flex items-center justify-center px-4">
-        <p className="text-ink/40 italic text-sm md:text-base text-center">
-          Bloc 4 — Fait ici à La Réunion (à venir)
-        </p>
-      </section>
+      <CarteCollection />
 
       <VillesBlock products={products} />
       <FooterNarratif />

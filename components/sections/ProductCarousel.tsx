@@ -172,7 +172,7 @@ export function ProductCarousel({ products }: { products: CarouselProduct[] }) {
                 >
                   <Link
                     href={`/boutique/${product.slug}`}
-                    className="flex flex-col items-center group"
+                    className="flex flex-col items-center group h-full"
                   >
                     {/* Image produit */}
                     <div className="relative aspect-square w-full">
@@ -196,33 +196,33 @@ export function ProductCarousel({ products }: { products: CarouselProduct[] }) {
                       )}
                     </div>
 
-                    {/* Nom */}
-                    <h3 className="mt-3 font-bold text-ink text-sm md:text-base text-center leading-tight group-hover:text-jungle-700 transition-colors">
-                      {product.name}
-                    </h3>
+                    {/* Nom + prix + bouton — hauteur égale */}
+                    <div className="flex flex-col items-center flex-1">
+                      <h3 className="mt-3 font-bold text-ink text-sm md:text-base text-center leading-tight group-hover:text-jungle-700 transition-colors">
+                        {product.name}
+                      </h3>
 
-                    {/* Prix */}
-                    <div className="mt-1 flex items-center gap-2">
-                      {product.sale_price ? (
-                        <>
-                          <span className="text-coral-500 font-black text-lg md:text-xl">
-                            {product.sale_price.toFixed(2)} €
-                          </span>
-                          <span className="text-gray-400 line-through text-sm">
+                      <div className="mt-1 flex items-center gap-2">
+                        {product.sale_price ? (
+                          <>
+                            <span className="text-coral-500 font-black text-lg md:text-xl">
+                              {product.sale_price.toFixed(2)} €
+                            </span>
+                            <span className="text-gray-400 line-through text-sm">
+                              {product.price.toFixed(2)} €
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-jungle-700 font-black text-lg md:text-xl">
                             {product.price.toFixed(2)} €
                           </span>
-                        </>
-                      ) : (
-                        <span className="text-jungle-700 font-black text-lg md:text-xl">
-                          {product.price.toFixed(2)} €
-                        </span>
-                      )}
-                    </div>
+                        )}
+                      </div>
 
-                    {/* Bouton */}
-                    <span className="mt-2 px-4 py-2 md:px-5 md:py-2.5 bg-jungle-700 group-hover:bg-jungle-800 text-cream text-xs md:text-sm font-bold uppercase tracking-wider rounded-full transition-colors">
-                      Découvrir
-                    </span>
+                      <span className="mt-auto px-4 py-2 md:px-5 md:py-2.5 bg-jungle-700 group-hover:bg-jungle-800 text-cream text-xs md:text-sm font-bold uppercase tracking-wider rounded-full transition-colors">
+                        Découvrir
+                      </span>
+                    </div>
                   </Link>
                 </div>
               ))}

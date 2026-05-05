@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 
 export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState('');
+  const searchParams = useSearchParams();
+  const [email, setEmail] = useState(searchParams.get('email') ?? '');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);

@@ -20,6 +20,7 @@ import {
   MessageSquare,
   Megaphone,
   Shirt,
+  Mail,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -30,6 +31,7 @@ const navigation = [
   { name: 'Commandes', href: '/admin/commandes', icon: ShoppingCart },
   { name: 'Clients', href: '/admin/clients', icon: Users },
   { name: 'Messages', href: '/admin/messages', icon: MessageSquare },
+  { name: 'Newsletter', href: '/admin/newsletter', icon: Mail },
   { name: 'Bannières', href: '/admin/banners', icon: Megaphone },
   { name: 'Textile', href: '/admin/textile', icon: Shirt },
   { name: 'Livraison', href: '/admin/livraison', icon: Truck },

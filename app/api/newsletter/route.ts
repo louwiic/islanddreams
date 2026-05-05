@@ -17,17 +17,35 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Email invalide' }, { status: 400 });
   }
 
-  const { error } = await admin
+  // Si déjà inscrit mais désinscrit → réinscrire
+  const { data: existing } = await admin
     .from('newsletter_subscribers')
-    .insert({ email, promo_sent: true })
-    .select()
+    .select('id, unsubscribed_at')
+    .eq('email', email.toLowerCase())
     .single();
 
-  if (error) {
-    if (error.code === '23505') {
+  if (existing) {
+    if (existing.unsubscribed_at) {
+      await admin
+        .from('newsletter_subscribers')
+        .update({ unsubscribed_at: null } as never)
+        .eq('id', existing.id);
+    } else {
       return NextResponse.json({ code: PROMO_CODE, already: true });
     }
-    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
+  } else {
+    const { error } = await admin
+      .from('newsletter_subscribers')
+      .insert({ email: email.toLowerCase(), promo_sent: true } as never)
+      .select()
+      .single();
+
+    if (error) {
+      if (error.code === '23505') {
+        return NextResponse.json({ code: PROMO_CODE, already: true });
+      }
+      return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
+    }
   }
 
   // Email de bienvenue avec code promo

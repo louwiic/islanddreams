@@ -1,3 +1,5 @@
+import { unsubscribeUrl } from '@/lib/newsletter/token';
+
 const HEADER = `
 <div style="background:#2a5a3a;padding:24px;text-align:center;">
   <h1 style="color:#f5efe0;font-size:24px;margin:0;font-family:Georgia,serif;">Island Dreams · 974</h1>
@@ -10,7 +12,18 @@ const FOOTER = `
   <p style="margin:4px 0 0;">contact@islanddreams.re · islanddreams.re</p>
 </div>`;
 
-function wrap(content: string) {
+function footerWithUnsubscribe(email: string) {
+  return `
+<div style="background:#f5efe0;padding:20px;text-align:center;font-size:12px;color:#1a2e3b99;">
+  <p style="margin:0;">Island Dreams — Souvenirs illustrés de La Réunion</p>
+  <p style="margin:4px 0 0;">contact@islanddreams.re · islanddreams.re</p>
+  <p style="margin:12px 0 0;font-size:11px;">
+    <a href="${unsubscribeUrl(email)}" style="color:#1a2e3b99;text-decoration:underline;">Se désinscrire de la newsletter</a>
+  </p>
+</div>`;
+}
+
+function wrap(content: string, footer = FOOTER) {
   return `
 <!DOCTYPE html>
 <html lang="fr">
@@ -21,7 +34,7 @@ ${HEADER}
 <div style="padding:28px 24px;">
 ${content}
 </div>
-${FOOTER}
+${footer}
 </div>
 </body>
 </html>`;
@@ -50,7 +63,7 @@ export function newsletterWelcome(email: string) {
       <p style="color:#999;font-size:12px;margin-top:20px;">
         Tu reçois cet email car ${email} a été inscrit à notre newsletter.
       </p>
-    `),
+    `, footerWithUnsubscribe(email)),
   };
 }
 
@@ -141,6 +154,15 @@ export function contactNotification(contact: ContactData) {
         Voir dans l'admin
       </a>
     `),
+  };
+}
+
+// ─── Email de campagne newsletter ─────────────────────────────────
+
+export function campaignEmail(subject: string, content: string, recipientEmail: string) {
+  return {
+    subject,
+    html: wrap(content, footerWithUnsubscribe(recipientEmail)),
   };
 }
 
