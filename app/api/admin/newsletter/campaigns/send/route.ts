@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { sendEmail } from '@/lib/email/send';
+import { sendResendEmail } from '@/lib/email/resend';
 import { campaignEmail } from '@/lib/email/templates';
 
 const admin = createClient(
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
   let sent = 0;
   for (const sub of activeSubscribers) {
     const tpl = campaignEmail(campaign.subject, campaign.content, sub.email);
-    const result = await sendEmail({ to: sub.email, ...tpl });
+    const result = await sendResendEmail({ to: sub.email, ...tpl });
     if (result.ok) sent++;
   }
 
