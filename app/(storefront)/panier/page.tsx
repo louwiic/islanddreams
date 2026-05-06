@@ -37,6 +37,9 @@ export default function PanierPage() {
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
   const [loadingShipping, setLoadingShipping] = useState(false);
   const [checkingOut, setCheckingOut] = useState(false);
+  const [promoCode, setPromoCode] = useState('');
+  const [promoStatus, setPromoStatus] = useState<'idle' | 'valid' | 'invalid' | 'loading'>('idle');
+  const [promoLabel, setPromoLabel] = useState('');
 
   const shippingCost =
     shipping?.methods.find((m) => m.id === selectedMethod)?.cost ?? 0;
@@ -72,13 +75,39 @@ export default function PanierPage() {
     }
   };
 
+  const validatePromo = async () => {
+    if (!promoCode.trim()) return;
+    setPromoStatus('loading');
+    try {
+      const res = await fetch('/api/promo/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: promoCode.trim().toUpperCase() }),
+      });
+      const data = await res.json();
+      if (data.valid) {
+        setPromoStatus('valid');
+        setPromoLabel(data.label);
+      } else {
+        setPromoStatus('invalid');
+        setPromoLabel('');
+      }
+    } catch {
+      setPromoStatus('invalid');
+    }
+  };
+
   const handleCheckout = async () => {
     setCheckingOut(true);
     try {
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items, shippingMethodId: selectedMethod }),
+        body: JSON.stringify({
+          items,
+          shippingMethodId: selectedMethod,
+          promoCode: promoStatus === 'valid' ? promoCode.trim().toUpperCase() : undefined,
+        }),
       });
       const data = await res.json();
       if (data.url) {
@@ -329,12 +358,53 @@ export default function PanierPage() {
               </div>
             </div>
 
+            {/* Code promo */}
+            <div className="bg-white rounded-xl border border-gray-200 p-5">
+              <h3 className="font-semibold text-ink text-sm mb-3">Code promo</h3>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={promoCode}
+                  onChange={(e) => {
+                    setPromoCode(e.target.value.toUpperCase());
+                    if (promoStatus !== 'idle') setPromoStatus('idle');
+                  }}
+                  onKeyDown={(e) => e.key === 'Enter' && validatePromo()}
+                  placeholder="Ex : BIENVENUE10"
+                  className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm uppercase tracking-wide focus:outline-none focus:ring-1 focus:ring-jungle-500/30"
+                />
+                <button
+                  onClick={validatePromo}
+                  disabled={promoStatus === 'loading' || !promoCode.trim()}
+                  className="px-4 py-2 bg-jungle-700 text-cream text-sm font-bold rounded-lg hover:bg-jungle-800 transition-colors disabled:opacity-40"
+                >
+                  {promoStatus === 'loading' ? <Loader2 size={14} className="animate-spin" /> : 'OK'}
+                </button>
+              </div>
+              {promoStatus === 'valid' && (
+                <p className="text-xs text-green-600 mt-2 font-medium">
+                  {promoLabel}
+                </p>
+              )}
+              {promoStatus === 'invalid' && (
+                <p className="text-xs text-coral-500 mt-2">
+                  Code invalide ou expiré
+                </p>
+              )}
+            </div>
+
             {/* Total */}
             <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
               <div className="flex justify-between text-sm text-gray-500">
                 <span>Sous-total</span>
                 <span>{total.toFixed(2)} €</span>
               </div>
+              {promoStatus === 'valid' && (
+                <div className="flex justify-between text-sm text-green-600">
+                  <span>Code promo</span>
+                  <span>{promoLabel}</span>
+                </div>
+              )}
               <div className="flex justify-between text-sm text-gray-500">
                 <span>Livraison</span>
                 <span>

@@ -6,11 +6,12 @@ import type { CartItem } from '@/lib/cart/types';
 type CheckoutBody = {
   items: CartItem[];
   shippingMethodId?: string;
+  promoCode?: string;
 };
 
 export async function POST(req: NextRequest) {
   try {
-    const { items, shippingMethodId } = (await req.json()) as CheckoutBody;
+    const { items, shippingMethodId, promoCode } = (await req.json()) as CheckoutBody;
 
     if (!items || items.length === 0) {
       return NextResponse.json({ error: 'Panier vide' }, { status: 400 });
@@ -108,10 +109,25 @@ export async function POST(req: NextRequest) {
     const origin = req.headers.get('origin') || 'https://www.islanddreams.re';
 
     const stripe = getStripeClient();
+
+    // ── Code promo Stripe ──────────────────────────────────────────────
+    let discounts: { promotion_code: string }[] | undefined;
+    if (promoCode) {
+      const promoCodes = await stripe.promotionCodes.list({
+        code: promoCode.toUpperCase(),
+        active: true,
+        limit: 1,
+      });
+      if (promoCodes.data.length > 0) {
+        discounts = [{ promotion_code: promoCodes.data[0].id }];
+      }
+    }
+
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       payment_method_types: ['card'],
       line_items: lineItems,
+      ...(discounts ? { discounts } : {}),
       shipping_address_collection: {
         allowed_countries: ['FR', 'RE'],
       },
