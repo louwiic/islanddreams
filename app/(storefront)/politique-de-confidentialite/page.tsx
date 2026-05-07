@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Politique de confidentialité — Island Dreams 974',
   description: 'Politique de confidentialité du site Island Dreams.',
+  alternates: { canonical: '/politique-de-confidentialite' },
 };
 
 export default function PolitiqueConfidentialitePage() {

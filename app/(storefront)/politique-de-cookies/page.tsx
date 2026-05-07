@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Politique de cookies — Island Dreams 974',
   description: 'Politique de cookies du site Island Dreams.',
+  alternates: { canonical: '/politique-de-cookies' },
 };
 
 export default function PolitiqueCookiesPage() {

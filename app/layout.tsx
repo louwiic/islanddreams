@@ -47,6 +47,17 @@ export const metadata: Metadata = {
     locale: 'fr_RE',
     type: 'website',
     siteName: 'Island Dreams',
+    images: [
+      {
+        url: '/images/og-default.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Island Dreams — Souvenirs illustrés de La Réunion',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
   },
 };
 
@@ -69,7 +80,7 @@ export default function RootLayout({
               '@type': 'Organization',
               name: 'Island Dreams',
               url: 'https://www.islanddreams.re',
-              logo: 'https://www.islanddreams.re/images/logo.png',
+              logo: 'https://www.islanddreams.re/images/logo/logo-horizontal-hd.png',
               description: 'Souvenirs illustrés de La Réunion — magnets, stickers, textile, décoration.',
               address: {
                 '@type': 'PostalAddress',

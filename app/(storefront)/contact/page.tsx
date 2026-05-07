@@ -5,6 +5,7 @@ import { Mail, Phone, MapPin, ExternalLink } from 'lucide-react';
 export const metadata: Metadata = {
   title: 'Contact — Island Dreams 974',
   description: 'Contactez Island Dreams pour toute question sur nos souvenirs péi : magnets, stickers, textiles et plus.',
+  alternates: { canonical: '/contact' },
 };
 
 const INFOS = [

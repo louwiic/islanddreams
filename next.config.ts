@@ -1,6 +1,27 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      // Anciennes URLs WordPress → nouvelles routes
+      {
+        source: '/produit/:slug*',
+        destination: '/boutique/:slug*',
+        permanent: true,
+      },
+      {
+        source: '/categorie-produit/:slug*',
+        destination: '/boutique',
+        permanent: true,
+      },
+      // Anciennes pages légales WordPress
+      {
+        source: '/politique-de-cookies-ue',
+        destination: '/politique-de-cookies',
+        permanent: true,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {

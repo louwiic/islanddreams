@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Mentions légales — Island Dreams 974',
   description: 'Mentions légales du site Island Dreams, souvenirs illustrés de La Réunion.',
+  alternates: { canonical: '/mentions-legales' },
 };
 
 export default function MentionsLegalesPage() {

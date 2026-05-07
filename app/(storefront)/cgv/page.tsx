@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Conditions Générales de Vente — Island Dreams 974',
   description: 'Conditions générales de vente du site Island Dreams, souvenirs illustrés de La Réunion.',
+  alternates: { canonical: '/cgv' },
 };
 
 export default function CGVPage() {

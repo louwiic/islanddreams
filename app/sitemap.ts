@@ -32,6 +32,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
+  const staticPages = [
+    { path: '/a-propos', priority: 0.5 },
+    { path: '/contact', priority: 0.5 },
+    { path: '/mentions-legales', priority: 0.3 },
+    { path: '/politique-de-confidentialite', priority: 0.3 },
+    { path: '/politique-de-cookies', priority: 0.3 },
+    { path: '/cgv', priority: 0.3 },
+  ].map((p) => ({
+    url: `${BASE_URL}${p.path}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly' as const,
+    priority: p.priority,
+  }));
+
   return [
     {
       url: BASE_URL,
@@ -47,5 +61,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     ...productUrls,
     ...categoryUrls,
+    ...staticPages,
   ];
 }
