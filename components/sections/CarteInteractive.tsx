@@ -38,7 +38,7 @@ const COMMUNES: CommuneDot[] = [
   { id: 'plaine-des-palmistes', name: 'Plaine des Palmistes', x: 51.4, y: 49.1, labelSide: 'right' },
   { id: 'sainte-rose',          name: 'Sainte-Rose',          x: 65,   y: 52.3, labelSide: 'right' },
   { id: 'saint-leu',            name: 'Saint-Leu',            x: 29.5, y: 57.9, labelSide: 'left'  },
-  { id: 'cilaos',               name: 'Cilaos',               x: 42.1, y: 65.2, labelSide: 'right' },
+  { id: 'cilaos',               name: 'Cilaos',               x: 42.3, y: 54.6, labelSide: 'right' },
   { id: 'les-avirons',          name: 'Les Avirons',          x: 32.8, y: 61.8, labelSide: 'left'  },
   { id: 'entre-deux',           name: 'Entre-Deux',           x: 41.2, y: 65.5, labelSide: 'right' },
   { id: 'etang-sale',           name: 'Étang-Salé',           x: 32,   y: 66,   labelSide: 'left'  },
