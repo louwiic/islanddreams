@@ -38,12 +38,24 @@ export default function PanierPage() {
   const [loadingShipping, setLoadingShipping] = useState(false);
   const [checkingOut, setCheckingOut] = useState(false);
   const [promoCode, setPromoCode] = useState('');
-  const [promoStatus, setPromoStatus] = useState<'idle' | 'valid' | 'invalid' | 'loading'>('idle');
+  const [promoEmail, setPromoEmail] = useState('');
+  const [promoStatus, setPromoStatus] = useState<'idle' | 'valid' | 'invalid' | 'already_used' | 'not_subscribed' | 'loading'>('idle');
   const [promoLabel, setPromoLabel] = useState('');
+  const [promoDiscount, setPromoDiscount] = useState<{ percentOff?: number; amountOff?: number } | null>(null);
 
   const shippingCost =
     shipping?.methods.find((m) => m.id === selectedMethod)?.cost ?? 0;
-  const grandTotal = total + shippingCost;
+
+  // Calcul de la réduction
+  let discountAmount = 0;
+  if (promoStatus === 'valid' && promoDiscount) {
+    if (promoDiscount.percentOff) {
+      discountAmount = total * (promoDiscount.percentOff / 100);
+    } else if (promoDiscount.amountOff) {
+      discountAmount = Math.min(promoDiscount.amountOff, total);
+    }
+  }
+  const grandTotal = total - discountAmount + shippingCost;
 
   const calculateShipping = async () => {
     if (!postalCode.trim()) return;
@@ -76,21 +88,31 @@ export default function PanierPage() {
   };
 
   const validatePromo = async () => {
-    if (!promoCode.trim()) return;
+    if (!promoCode.trim() || !promoEmail.trim()) return;
     setPromoStatus('loading');
     try {
       const res = await fetch('/api/promo/validate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: promoCode.trim().toUpperCase() }),
+        body: JSON.stringify({ code: promoCode.trim().toUpperCase(), email: promoEmail.trim() }),
       });
       const data = await res.json();
       if (data.valid) {
         setPromoStatus('valid');
         setPromoLabel(data.label);
+        setPromoDiscount(data.discount || null);
+      } else if (data.reason === 'already_used') {
+        setPromoStatus('already_used');
+        setPromoLabel('');
+        setPromoDiscount(null);
+      } else if (data.reason === 'not_subscribed') {
+        setPromoStatus('not_subscribed');
+        setPromoLabel('');
+        setPromoDiscount(null);
       } else {
         setPromoStatus('invalid');
         setPromoLabel('');
+        setPromoDiscount(null);
       }
     } catch {
       setPromoStatus('invalid');
@@ -361,25 +383,38 @@ export default function PanierPage() {
             {/* Code promo */}
             <div className="bg-white rounded-xl border border-gray-200 p-5">
               <h3 className="font-semibold text-ink text-sm mb-3">Code promo</h3>
-              <div className="flex gap-2">
+              <div className="space-y-2">
                 <input
-                  type="text"
-                  value={promoCode}
+                  type="email"
+                  value={promoEmail}
                   onChange={(e) => {
-                    setPromoCode(e.target.value.toUpperCase());
+                    setPromoEmail(e.target.value);
                     if (promoStatus !== 'idle') setPromoStatus('idle');
                   }}
                   onKeyDown={(e) => e.key === 'Enter' && validatePromo()}
-                  placeholder="Ex : BIENVENUE10"
-                  className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm uppercase tracking-wide focus:outline-none focus:ring-1 focus:ring-jungle-500/30"
+                  placeholder="Votre email"
+                  className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-jungle-500/30"
                 />
-                <button
-                  onClick={validatePromo}
-                  disabled={promoStatus === 'loading' || !promoCode.trim()}
-                  className="px-4 py-2 bg-jungle-700 text-cream text-sm font-bold rounded-lg hover:bg-jungle-800 transition-colors disabled:opacity-40"
-                >
-                  {promoStatus === 'loading' ? <Loader2 size={14} className="animate-spin" /> : 'OK'}
-                </button>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={promoCode}
+                    onChange={(e) => {
+                      setPromoCode(e.target.value.toUpperCase());
+                      if (promoStatus !== 'idle') setPromoStatus('idle');
+                    }}
+                    onKeyDown={(e) => e.key === 'Enter' && validatePromo()}
+                    placeholder="Ex : BIENVENUE10"
+                    className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm uppercase tracking-wide focus:outline-none focus:ring-1 focus:ring-jungle-500/30"
+                  />
+                  <button
+                    onClick={validatePromo}
+                    disabled={promoStatus === 'loading' || !promoCode.trim() || !promoEmail.trim()}
+                    className="px-4 py-2 bg-jungle-700 text-cream text-sm font-bold rounded-lg hover:bg-jungle-800 transition-colors disabled:opacity-40"
+                  >
+                    {promoStatus === 'loading' ? <Loader2 size={14} className="animate-spin" /> : 'OK'}
+                  </button>
+                </div>
               </div>
               {promoStatus === 'valid' && (
                 <p className="text-xs text-green-600 mt-2 font-medium">
@@ -391,6 +426,16 @@ export default function PanierPage() {
                   Code invalide ou expiré
                 </p>
               )}
+              {promoStatus === 'already_used' && (
+                <p className="text-xs text-coral-500 mt-2">
+                  Ce code a déjà été utilisé avec cet email
+                </p>
+              )}
+              {promoStatus === 'not_subscribed' && (
+                <p className="text-xs text-coral-500 mt-2">
+                  Ce code est réservé aux abonnés newsletter
+                </p>
+              )}
             </div>
 
             {/* Total */}
@@ -399,10 +444,10 @@ export default function PanierPage() {
                 <span>Sous-total</span>
                 <span>{total.toFixed(2)} €</span>
               </div>
-              {promoStatus === 'valid' && (
+              {promoStatus === 'valid' && discountAmount > 0 && (
                 <div className="flex justify-between text-sm text-green-600">
-                  <span>Code promo</span>
-                  <span>{promoLabel}</span>
+                  <span>Code promo ({promoLabel})</span>
+                  <span>-{discountAmount.toFixed(2)} €</span>
                 </div>
               )}
               <div className="flex justify-between text-sm text-gray-500">

@@ -128,6 +128,7 @@ export async function POST(req: NextRequest) {
       payment_method_types: ['card'],
       line_items: lineItems,
       ...(discounts ? { discounts } : {}),
+      customer_creation: 'always',
       shipping_address_collection: {
         allowed_countries: ['FR', 'RE'],
       },
@@ -137,6 +138,7 @@ export async function POST(req: NextRequest) {
       metadata: {
         source: 'island-dreams-web',
         shippingMethodId: shippingMethodId || '',
+        promoCode: promoCode ? promoCode.toUpperCase() : '',
       },
     });
 

@@ -11,8 +11,8 @@ export function DeleteCampaignButton({ id }: { id: string }) {
 
   const handleDelete = async () => {
     setLoading(true);
-    await fetch('/api/admin/newsletter/campaigns/delete', {
-      method: 'POST',
+    await fetch('/api/admin/newsletter/broadcasts', {
+      method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id }),
     });
@@ -52,7 +52,7 @@ export function SendCampaignButton({ id, activeCount }: { id: string; activeCoun
 
   const handleSend = async () => {
     setLoading(true);
-    const res = await fetch('/api/admin/newsletter/campaigns/send', {
+    const res = await fetch('/api/admin/newsletter/broadcasts/send', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id }),
@@ -60,7 +60,7 @@ export function SendCampaignButton({ id, activeCount }: { id: string; activeCoun
     const data = await res.json();
 
     if (res.ok) {
-      setResult(`Envoyé à ${data.sent} abonné${data.sent > 1 ? 's' : ''}`);
+      setResult('Envoyée !');
       setTimeout(() => router.refresh(), 2000);
     } else {
       setResult(data.error || 'Erreur');

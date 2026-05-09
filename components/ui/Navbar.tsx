@@ -15,6 +15,7 @@ type NavFeaturedCategory = {
 const leftLinks = [
   { label: 'Accueil', href: '/' },
   { label: 'Boutique', href: '/boutique' },
+  { label: 'Découvrir La Réunion', href: '/decouvrir-la-reunion' },
 ];
 
 const rightLinks = [

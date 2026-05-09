@@ -594,6 +594,17 @@ export function ProductForm({ mode, initialData }: Props) {
               <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-2">
                 Aperçu Google
               </p>
+              {(() => {
+                const mainImg = form.images.find(i => i.isMain) ?? form.images[0];
+                return mainImg ? (
+                  <div className="mb-3 rounded-lg overflow-hidden border border-gray-200 aspect-[1200/630] relative bg-gray-100">
+                    <img src={mainImg.preview} alt="" className="w-full h-full object-cover" />
+                    <div className="absolute bottom-0 left-0 right-0 bg-black/50 px-2 py-1">
+                      <p className="text-white text-[10px] truncate">islanddreams.re</p>
+                    </div>
+                  </div>
+                ) : null;
+              })()}
               <div className="space-y-0.5">
                 <p className="text-[#1a0dab] text-base leading-tight truncate">
                   {form.metaTitle || `${form.name || 'Nom du produit'} | Island Dreams`}

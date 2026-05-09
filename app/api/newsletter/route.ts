@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { sendResendEmail } from '@/lib/email/resend';
+import { sendResendEmail, addContactToAudience } from '@/lib/email/resend';
 import { newsletterWelcome } from '@/lib/email/templates';
 
 const PROMO_CODE = 'BIENVENUE10'; // À créer dans Stripe dashboard (10% off)
@@ -24,16 +24,21 @@ export async function POST(req: NextRequest) {
     .eq('email', email.toLowerCase())
     .single();
 
+  console.log(`[NEWSLETTER] Email reçu: ${email.toLowerCase()}, existant:`, existing);
+
   if (existing) {
     if (existing.unsubscribed_at) {
+      console.log(`[NEWSLETTER] Réinscription (était désinscrit)`);
       await admin
         .from('newsletter_subscribers')
         .update({ unsubscribed_at: null } as never)
         .eq('id', existing.id);
     } else {
+      console.log(`[NEWSLETTER] Déjà inscrit, pas d'envoi`);
       return NextResponse.json({ code: PROMO_CODE, already: true });
     }
   } else {
+    console.log(`[NEWSLETTER] Nouvel abonné, insertion en base...`);
     const { error } = await admin
       .from('newsletter_subscribers')
       .insert({ email: email.toLowerCase(), promo_sent: true } as never)
@@ -41,12 +46,16 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (error) {
+      console.error(`[NEWSLETTER] Erreur insertion:`, error);
       if (error.code === '23505') {
         return NextResponse.json({ code: PROMO_CODE, already: true });
       }
       return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
     }
   }
+
+  // Ajouter dans Resend Audiences
+  await addContactToAudience(email);
 
   // Email de bienvenue avec code promo (via Resend)
   const tpl = newsletterWelcome(email);

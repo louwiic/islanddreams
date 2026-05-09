@@ -1,12 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { CampaignForm } from '../CampaignForm';
-
-const admin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-);
+import { getBroadcast } from '@/lib/email/resend';
 
 export default async function EditCampaignPage({
   params,
@@ -15,15 +9,16 @@ export default async function EditCampaignPage({
 }) {
   const { id } = await params;
 
-  const { data: campaign } = await admin
-    .from('newsletter_campaigns')
-    .select('*')
-    .eq('id', id)
-    .single();
+  let broadcast;
+  try {
+    broadcast = await getBroadcast(id);
+  } catch {
+    notFound();
+  }
 
-  if (!campaign) notFound();
+  if (!broadcast) notFound();
 
-  if (campaign.status === 'sent') {
+  if (broadcast.status === 'sent' || broadcast.status === 'queued') {
     return (
       <div>
         <div className="mb-6">
@@ -38,14 +33,19 @@ export default async function EditCampaignPage({
             <span className="text-gray-300">/</span>
             <span className="text-sm font-semibold text-gray-700">Détails</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">{campaign.subject}</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Envoyée le {new Date(campaign.sent_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-            {' '}à {campaign.recipients_count} destinataire{campaign.recipients_count > 1 ? 's' : ''}
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900">{broadcast.name}</h1>
+          {broadcast.sent_at && (
+            <p className="text-sm text-gray-500 mt-1">
+              Envoyée le {new Date(broadcast.sent_at).toLocaleDateString('fr-FR', {
+                day: 'numeric', month: 'long', year: 'numeric',
+              })}
+            </p>
+          )}
         </div>
         <div className="bg-white rounded-2xl border border-gray-200 p-6">
-          <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: campaign.content }} />
+          <p className="text-sm text-gray-500 italic">
+            Les campagnes envoyées ne peuvent pas être modifiées.
+          </p>
         </div>
       </div>
     );
@@ -69,8 +69,20 @@ export default async function EditCampaignPage({
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-200 p-6">
-        <CampaignForm initial={{ id: campaign.id, subject: campaign.subject, content: campaign.content }} />
+        {/* Resend ne retourne pas le HTML du brouillon — on repart de zéro */}
+        <p className="text-xs text-gray-400 mb-4 bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2">
+          Le contenu HTML n&apos;est pas récupérable depuis Resend. Re-saisi le contenu ci-dessous — l&apos;ancien brouillon sera remplacé.
+        </p>
+        {/* Import dynamique pour éviter le problème de SSR */}
+        <CampaignFormWrapper id={broadcast.id} name={broadcast.name} />
       </div>
     </div>
   );
+}
+
+// Import client-side
+import { CampaignForm } from '../CampaignForm';
+
+function CampaignFormWrapper({ id, name }: { id: string; name: string }) {
+  return <CampaignForm initial={{ id, name }} />;
 }

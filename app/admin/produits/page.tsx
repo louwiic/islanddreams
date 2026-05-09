@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   Plus,
   Search,
@@ -116,8 +117,16 @@ export default async function ProduitsPage() {
                           href={`/admin/produits/${product.id}`}
                           className="flex items-center gap-3 group/link"
                         >
-                          <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-                            <Package size={16} className="text-gray-400" />
+                          <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0 overflow-hidden relative">
+                            {(() => {
+                              const imgs = (product as any).product_images ?? [];
+                              const main = imgs.find((i: any) => i.is_main) ?? imgs.sort((a: any, b: any) => a.position - b.position)[0];
+                              return main ? (
+                                <Image src={main.url} alt={product.name} fill className="object-cover" sizes="40px" />
+                              ) : (
+                                <Package size={16} className="text-gray-400" />
+                              );
+                            })()}
                           </div>
                           <div>
                             <span className="text-sm font-medium text-ink group-hover/link:text-jungle-600 transition-colors">

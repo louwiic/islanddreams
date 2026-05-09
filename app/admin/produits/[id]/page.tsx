@@ -32,7 +32,12 @@ export default async function EditProduitPage({ params }: PageProps) {
     metaTitle: product.meta_title ?? '',
     metaDescription: product.meta_description ?? '',
     focusKeyword: product.focus_keyword ?? '',
-    images: [],
+    images: product.images.map((img, i) => ({
+      id: img.id,
+      preview: img.url,
+      alt: img.alt ?? '',
+      isMain: img.is_main ?? i === 0,
+    })),
     attributes: product.attributes.map((a) => ({
       id: a.id,
       name: a.name,

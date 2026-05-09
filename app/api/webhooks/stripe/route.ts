@@ -164,6 +164,29 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   console.log(`✓ Commande créée: ${order.id} — ${total}€`);
 
+  // ── Enregistrer l'usage du code promo ───────────────────────────
+  const promoCodeUsed = session.metadata?.promoCode;
+  console.log(`[PROMO-WEBHOOK] metadata.promoCode="${promoCodeUsed}", email="${email}"`);
+  if (promoCodeUsed && email) {
+    const { error: promoErr } = await supabase
+      .from('promo_usage')
+      .insert({
+        email: email.toLowerCase(),
+        promo_code: promoCodeUsed.toUpperCase(),
+        stripe_session_id: session.id,
+      });
+    if (promoErr) {
+      // Doublon = déjà enregistré, pas grave
+      if (promoErr.code === '23505') {
+        console.log(`[PROMO-WEBHOOK] Déjà enregistré, ignoré`);
+      } else {
+        console.error('[PROMO-WEBHOOK] Erreur insert:', promoErr.message);
+      }
+    } else {
+      console.log(`[PROMO-WEBHOOK] ✓ Promo ${promoCodeUsed} enregistré pour ${email}`);
+    }
+  }
+
   // ── Emails ──────────────────────────────────────────────────────
   const customerName = session.customer_details?.name || 'Client';
   const customerEmail = session.customer_details?.email;

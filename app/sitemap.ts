@@ -33,6 +33,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   const staticPages = [
+    { path: '/decouvrir-la-reunion', priority: 0.7 },
     { path: '/a-propos', priority: 0.5 },
     { path: '/contact', priority: 0.5 },
     { path: '/mentions-legales', priority: 0.3 },

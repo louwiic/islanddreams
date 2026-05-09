@@ -2,34 +2,52 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Save, Eye, EyeOff } from 'lucide-react';
+import { Save, Eye, EyeOff, Loader2 } from 'lucide-react';
 
 type Props = {
-  initial?: { id: string; subject: string; content: string };
+  initial?: { id: string; name: string };
 };
 
 export function CampaignForm({ initial }: Props) {
   const router = useRouter();
-  const [subject, setSubject] = useState(initial?.subject ?? '');
-  const [content, setContent] = useState(initial?.content ?? '');
+  const [subject, setSubject] = useState(initial?.name ?? '');
+  const [content, setContent] = useState('');
   const [preview, setPreview] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSave = async () => {
     if (!subject.trim() || !content.trim()) return;
     setSaving(true);
+    setError('');
+    try {
+      // Si édition : supprimer l'ancien brouillon puis recréer
+      if (initial?.id) {
+        await fetch('/api/admin/newsletter/broadcasts', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: initial.id }),
+        });
+      }
 
-    const res = await fetch('/api/admin/newsletter/campaigns/save', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: initial?.id, subject, content }),
-    });
+      const res = await fetch('/api/admin/newsletter/broadcasts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subject, html: content }),
+      });
 
-    if (res.ok) {
-      router.push('/admin/newsletter/campagnes');
-      router.refresh();
+      if (res.ok) {
+        router.push('/admin/newsletter/campagnes');
+        router.refresh();
+      } else {
+        const data = await res.json();
+        setError(data.error || 'Erreur lors de la sauvegarde');
+      }
+    } catch {
+      setError('Erreur de connexion');
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   return (
@@ -73,15 +91,17 @@ export function CampaignForm({ initial }: Props) {
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            rows={14}
-            placeholder={`<h2>Titre de votre campagne</h2>\n<p>Votre contenu ici...</p>\n<a href="https://islanddreams.re/boutique">Voir la boutique</a>`}
+            rows={16}
+            placeholder={`<h2>Titre de votre campagne</h2>\n<p>Votre contenu ici...</p>\n<a href="https://www.islanddreams.re/boutique">Voir la boutique →</a>`}
             className="w-full px-4 py-3 border border-gray-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-jungle-500 focus:border-jungle-500 outline-none resize-y"
           />
         )}
         <p className="text-xs text-gray-400 mt-1">
-          Le header Island Dreams et le lien de désinscription sont ajoutés automatiquement.
+          Resend ajoute automatiquement le lien de désinscription en pied de mail.
         </p>
       </div>
+
+      {error && <p className="text-sm text-red-500">{error}</p>}
 
       {/* Actions */}
       <div className="flex items-center gap-3 pt-2">
@@ -90,8 +110,8 @@ export function CampaignForm({ initial }: Props) {
           disabled={saving || !subject.trim() || !content.trim()}
           className="flex items-center gap-2 px-5 py-2.5 bg-jungle-600 text-white rounded-lg text-sm font-semibold hover:bg-jungle-700 transition-colors disabled:opacity-50"
         >
-          <Save size={16} />
-          {saving ? 'Enregistrement…' : initial ? 'Mettre à jour' : 'Enregistrer le brouillon'}
+          {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+          {saving ? 'Enregistrement…' : 'Enregistrer le brouillon'}
         </button>
         <button
           onClick={() => router.push('/admin/newsletter/campagnes')}

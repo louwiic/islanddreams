@@ -13,7 +13,7 @@ export async function getProducts() {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from('products')
-    .select('*')
+    .select('*, product_images(url, is_main, position)')
     .order('created_at', { ascending: false });
 
   if (error) throw new Error(error.message);
