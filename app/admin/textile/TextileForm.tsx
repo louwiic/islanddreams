@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Save } from 'lucide-react';
+import { Save, Upload, X } from 'lucide-react';
+import { uploadTextileImage } from '@/lib/actions/images';
 
 type TextileData = {
   id?: string;
@@ -25,9 +26,39 @@ export function TextileForm({ initialData }: { initialData?: TextileData }) {
   const router = useRouter();
   const [form, setForm] = useState<TextileData>(initialData ?? defaults);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [preview, setPreview] = useState<string>(initialData?.image_url ?? '');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const update = (field: keyof TextileData, value: string | number | boolean) =>
     setForm((prev) => ({ ...prev, [field]: value }));
+
+  const handleFile = useCallback(async (file: File) => {
+    if (!file.type.startsWith('image/')) return;
+
+    setPreview(URL.createObjectURL(file));
+    setUploading(true);
+
+    const fd = new FormData();
+    fd.append('file', file);
+    const result = await uploadTextileImage(fd);
+
+    setUploading(false);
+
+    if (result.error) {
+      alert(`Erreur upload : ${result.error}`);
+      setPreview(form.image_url);
+      return;
+    }
+
+    setForm((prev) => ({ ...prev, image_url: result.url }));
+  }, [form.image_url]);
+
+  const onDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file) handleFile(file);
+  }, [handleFile]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,20 +89,68 @@ export function TextileForm({ initialData }: { initialData?: TextileData }) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-ink mb-1">Image (URL) *</label>
-        <input
-          type="text"
-          value={form.image_url}
-          onChange={(e) => update('image_url', e.target.value)}
-          placeholder="/images/products/textile/serviette.png ou https://..."
-          required
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-jungle-500 focus:border-jungle-500"
-        />
-        {form.image_url && (
-          <div className="mt-2 w-24 h-24 rounded-lg overflow-hidden bg-gray-100 border">
-            <img src={form.image_url} alt="Aperçu" className="w-full h-full object-cover" />
+        <label className="block text-sm font-medium text-ink mb-2">Image *</label>
+
+        {preview ? (
+          <div className="relative w-40 h-40 rounded-xl overflow-hidden border border-gray-200 group">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={preview} alt="Aperçu" className="w-full h-full object-cover" />
+            {uploading && (
+              <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                <span className="text-white text-xs font-medium">Upload...</span>
+              </div>
+            )}
+            {!uploading && (
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="p-1.5 rounded-lg bg-white/90 text-gray-700 hover:bg-white transition-colors"
+                  title="Changer l'image"
+                >
+                  <Upload size={14} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setPreview(''); update('image_url', ''); }}
+                  className="p-1.5 rounded-lg bg-white/90 text-gray-700 hover:bg-coral-500 hover:text-white transition-colors"
+                  title="Supprimer"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={onDrop}
+            onClick={() => fileInputRef.current?.click()}
+            className="border-2 border-dashed border-gray-300 hover:border-jungle-500 rounded-xl p-8 text-center cursor-pointer transition-colors hover:bg-jungle-50/30"
+          >
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center">
+                <Upload size={20} className="text-gray-400" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-ink">Glisser ou cliquer pour uploader</p>
+                <p className="text-xs text-gray-400 mt-1">PNG, JPG, WebP</p>
+              </div>
+            </div>
           </div>
         )}
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) handleFile(file);
+            e.target.value = '';
+          }}
+        />
       </div>
 
       <div>
@@ -112,7 +191,7 @@ export function TextileForm({ initialData }: { initialData?: TextileData }) {
       <div className="flex items-center gap-3 pt-2">
         <button
           type="submit"
-          disabled={saving || !form.product_name || !form.image_url}
+          disabled={saving || uploading || !form.product_name || !form.image_url}
           className="inline-flex items-center gap-2 px-5 py-2.5 bg-jungle-600 hover:bg-jungle-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
         >
           <Save size={16} />

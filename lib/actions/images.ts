@@ -29,6 +29,32 @@ export async function uploadProductImage(
   return { url: data.publicUrl };
 }
 
+export async function uploadTextileImage(
+  formData: FormData
+): Promise<{ url: string; error?: string }> {
+  const file = formData.get('file') as File | null;
+  if (!file) return { url: '', error: 'Aucun fichier' };
+
+  const supabase = createAdminClient();
+
+  const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+  const path = `textile/${Date.now()}.${ext}`;
+
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  const { error } = await supabase.storage
+    .from('product-images')
+    .upload(path, buffer, {
+      contentType: file.type,
+      upsert: true,
+    });
+
+  if (error) return { url: '', error: error.message };
+
+  const { data } = supabase.storage.from('product-images').getPublicUrl(path);
+  return { url: data.publicUrl };
+}
+
 export async function saveProductImages(
   productId: string,
   images: { url: string; alt: string; isMain: boolean; position: number }[]
