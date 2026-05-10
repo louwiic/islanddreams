@@ -2,8 +2,8 @@
 
 import useEmblaCarousel from 'embla-carousel-react';
 import { useCallback } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
+import { StampFrame } from '@/components/ui/StampFrame';
 
 type TextileItem = {
   id: string;
@@ -34,16 +34,8 @@ export function TextileMobileCarousel({ items }: { items: TextileItem[] }) {
       <div className="overflow-hidden rounded-2xl" ref={emblaRef}>
         <div className="flex">
           {items.map((item) => (
-            <div key={item.id} className="flex-[0_0_100%] min-w-0 flex flex-col items-center gap-3 pb-2">
-              <div className="rounded-2xl overflow-hidden shadow-xl bg-white w-full">
-                <Image
-                  src={item.image_url}
-                  alt={item.product_name}
-                  width={800}
-                  height={800}
-                  className="w-full h-auto"
-                />
-              </div>
+            <div key={item.id} className="flex-[0_0_100%] min-w-0 flex flex-col items-center gap-4 pb-2 px-6">
+              <StampFrame src={item.image_url} alt={item.product_name} className="w-full max-w-[260px]" />
               <Link
                 href={item.product_link}
                 className="inline-flex items-center gap-2 px-6 py-2.5 bg-sun-400 hover:bg-sun-300 text-ink text-xs font-bold uppercase tracking-wider rounded-full shadow transition-colors"

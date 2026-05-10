@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { TextileMobileCarousel } from './TextileMobileCarousel';
+import { StampFrame } from '@/components/ui/StampFrame';
 
 type TextileItem = {
   id: string;
@@ -116,16 +117,9 @@ export async function ServiettePlage() {
               <div
                 key={item.id}
                 id={`textile-card-${i + 1}`}
-                className="opacity-0 flex-1 max-w-[240px] lg:max-w-[280px] flex flex-col items-center gap-3"
+                className="opacity-0 flex-1 max-w-[200px] lg:max-w-[240px] flex flex-col items-center gap-4"
               >
-                <div className="rounded-2xl overflow-hidden shadow-xl w-full">
-                  <Image
-                    src={item.image_url}
-                    alt={item.product_name}
-                    width={800} height={800}
-                    className="w-full h-auto"
-                  />
-                </div>
+                <StampFrame src={item.image_url} alt={item.product_name} className="w-full" />
                 <Link
                   href={item.product_link}
                   className="inline-flex items-center gap-2 px-5 py-2 bg-sun-400 hover:bg-sun-300 text-ink text-xs font-bold uppercase tracking-wider rounded-full shadow transition-colors"
