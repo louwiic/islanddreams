@@ -28,7 +28,7 @@ export default async function CheckoutSuccessPage({
   const { data: { user } } = await supabase.auth.getUser();
   const isLoggedIn = !!user;
 
-  const shipping = (session)?.shipping_details;
+  const shipping = (session as Record<string, unknown>)?.shipping_details as { address?: { line1?: string; city?: string; postal_code?: string; country?: string }; name?: string } | undefined;
   const lineItems = session?.line_items?.data ?? [];
   const total = session?.amount_total ? (session.amount_total / 100).toFixed(2) : null;
 
