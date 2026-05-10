@@ -41,7 +41,7 @@ export function StampFrame({ src, alt, className = '' }: Props) {
           alt={alt}
           fill
           className="object-cover"
-          sizes="(max-width: 768px) 80vw, 280px"
+          sizes="(max-width: 640px) 90vw, (max-width: 1024px) 33vw, 440px"
         />
       </div>
     </div>
