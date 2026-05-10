@@ -3,6 +3,8 @@ import { CheckCircle, ShoppingBag, ArrowRight, MapPin } from 'lucide-react';
 import { getStripeClient } from '@/lib/stripe/client';
 import { createClient } from '@/lib/supabase/server';
 import { CartClearer } from './CartClearer';
+import type Stripe from 'stripe';
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function fetchSession(sessionId: string): Promise<any | null> {
   try {
@@ -62,7 +64,7 @@ export default async function CheckoutSuccessPage({
               </h2>
             </div>
             <ul className="divide-y divide-ink/6">
-              {lineItems.map((li) => {
+              {lineItems.map((li: Record<string, unknown>) => {
                 const product = li.price?.product as Stripe.Product | undefined;
                 const variantLabel = product?.metadata?.variantLabel;
                 return (
