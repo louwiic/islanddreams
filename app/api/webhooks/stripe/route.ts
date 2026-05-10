@@ -112,7 +112,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       shipping_address: shippingAddress,
       stripe_session_id: session.id,
       stripe_payment_intent: typeof session.payment_intent === 'string' ? session.payment_intent : null,
-    })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any)
     .select('id')
     .single();
 

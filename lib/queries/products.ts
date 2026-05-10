@@ -39,7 +39,7 @@ export async function getProductsByCategory(categorySlug: string) {
     .from('products')
     .select('id, slug, name, category, price, sale_price, featured')
     .eq('status', 'publish')
-    .eq('category', categorySlug)
+    .eq('category', categorySlug as 'magnets' | 'stickers' | 'textile' | 'goodies' | 'decoration' | 'uncategorized')
     .order('featured', { ascending: false })
     .order('created_at', { ascending: false });
 
