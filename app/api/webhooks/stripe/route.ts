@@ -169,7 +169,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   console.log(`[PROMO-WEBHOOK] metadata.promoCode="${promoCodeUsed}", email="${email}"`);
   if (promoCodeUsed && email) {
     const { error: promoErr } = await supabase
-      .from('promo_usage')
+      .from('promo_usage' as any)
       .insert({
         email: email.toLowerCase(),
         promo_code: promoCodeUsed.toUpperCase(),

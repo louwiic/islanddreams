@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
       // Vérifier si abonné newsletter (requis pour BIENVENUE10)
       if (upperCode === 'BIENVENUE10') {
         const { data: subscriber } = await supabase
-          .from('newsletter_subscribers')
+          .from('newsletter_subscribers' as any)
           .select('id')
           .ilike('email', email.trim())
           .is('unsubscribed_at', null)
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
 
       // Vérifier si ce code a déjà été utilisé par cet email
       const { data: existing } = await supabase
-        .from('promo_usage')
+        .from('promo_usage' as any)
         .select('id')
         .ilike('email', email.trim())
         .eq('promo_code', upperCode)

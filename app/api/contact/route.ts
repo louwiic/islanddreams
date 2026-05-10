@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Champs obligatoires manquants.' }, { status: 400 });
   }
 
-  const { error } = await admin.from('contact_messages').insert({
+  const { error } = await admin.from('contact_messages' as any).insert({
     nom,
     telephone: telephone || null,
     email,
