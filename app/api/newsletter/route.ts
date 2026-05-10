@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
 
   // Si déjà inscrit mais désinscrit → réinscrire
   const { data: existing } = await admin
-    .from('newsletter_subscribers' as any)
+    .from('newsletter_subscribers')
     .select('id, unsubscribed_at')
     .eq('email', email.toLowerCase())
     .single();
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     if (existing.unsubscribed_at) {
       console.log(`[NEWSLETTER] Réinscription (était désinscrit)`);
       await admin
-        .from('newsletter_subscribers' as any)
+        .from('newsletter_subscribers')
         .update({ unsubscribed_at: null } as never)
         .eq('id', existing.id);
     } else {
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
   } else {
     console.log(`[NEWSLETTER] Nouvel abonné, insertion en base...`);
     const { error } = await admin
-      .from('newsletter_subscribers' as any)
+      .from('newsletter_subscribers')
       .insert({ email: email.toLowerCase(), promo_sent: true } as never)
       .select()
       .single();

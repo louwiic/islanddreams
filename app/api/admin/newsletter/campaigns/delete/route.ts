@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
   }
 
   const { error } = await admin
-    .from('newsletter_campaigns' as any)
+    .from('newsletter_campaigns')
     .delete()
     .eq('id', id);
 

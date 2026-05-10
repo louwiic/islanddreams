@@ -21,7 +21,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Blog
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: blogPosts } = await supabase
-    .from('blog_posts' as any)
+    .from('blog_posts')
     .select('slug, updated_at')
     .eq('status', 'publish')
     .order('published_at', { ascending: false });

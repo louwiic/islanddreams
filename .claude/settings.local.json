@@ -95,7 +95,8 @@
       "Bash(sips --cropToHeightWidth 630 1200 /tmp/og-resized.jpg --out /Users/loic/IT/islanddreams/public/images/og-default.jpg)",
       "Bash(sips:*)",
       "Bash(mkdir -p \"/Users/loic/IT/islanddreams/app/admin/blog/[id]\")",
-      "Bash(mkdir -p \"/Users/loic/IT/islanddreams/app/\\(storefront\\)/blog/[slug]\")"
+      "Bash(mkdir -p \"/Users/loic/IT/islanddreams/app/\\(storefront\\)/blog/[slug]\")",
+      "Bash(supabase gen:*)"
     ]
   }
 }

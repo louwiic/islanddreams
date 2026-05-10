@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   if (id) {
     // Mise à jour d'un brouillon existant
     const { data, error } = await admin
-      .from('newsletter_campaigns' as any)
+      .from('newsletter_campaigns')
       .update({ subject, content } as never)
       .eq('id', id)
       .eq('status', 'draft')
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
 
   // Création d'un nouveau brouillon
   const { data, error } = await admin
-    .from('newsletter_campaigns' as any)
+    .from('newsletter_campaigns')
     .insert({ subject, content, status: 'draft' } as never)
     .select()
     .single();

@@ -119,7 +119,7 @@ export default async function ProduitsPage() {
                         >
                           <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0 overflow-hidden relative">
                             {(() => {
-                              const imgs = (product as any).product_images ?? [];
+                              const imgs = (product).product_images ?? [];
                               const main = imgs.find((i: any) => i.is_main) ?? imgs.sort((a: any, b: any) => a.position - b.position)[0];
                               return main ? (
                                 <Image src={main.url} alt={product.name} fill className="object-cover" sizes="40px" />

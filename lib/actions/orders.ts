@@ -11,7 +11,7 @@ export async function getOrders(status?: string) {
     .order('created_at', { ascending: false });
 
   if (status && status !== 'all') {
-    query = query.eq('status', status as any);
+    query = query.eq('status', status);
   }
 
   const { data, error } = await query;

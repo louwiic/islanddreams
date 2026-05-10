@@ -10,7 +10,7 @@ const admin = createClient(
 
 export default async function NewsletterPage() {
   const { data: subscribers } = await admin
-    .from('newsletter_subscribers' as any)
+    .from('newsletter_subscribers')
     .select('*')
     .order('created_at', { ascending: false });
 
