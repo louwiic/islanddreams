@@ -16,6 +16,7 @@ const leftLinks = [
   { label: 'Accueil', href: '/' },
   { label: 'Boutique', href: '/boutique' },
   { label: 'Découvrir La Réunion', href: '/decouvrir-la-reunion' },
+  { label: 'Blog', href: '/blog' },
 ];
 
 const rightLinks = [

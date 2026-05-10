@@ -18,6 +18,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .from('categories')
     .select('slug, updated_at');
 
+  // Blog
+  const { data: blogPosts } = await supabase
+    .from('blog_posts')
+    .select('slug, updated_at')
+    .eq('status', 'publish')
+    .order('published_at', { ascending: false });
+
   const productUrls = (products ?? []).map((p) => ({
     url: `${BASE_URL}/boutique/${p.slug}`,
     lastModified: p.updated_at ? new Date(p.updated_at) : new Date(),
@@ -32,7 +39,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
+  const blogUrls = (blogPosts ?? []).map((p) => ({
+    url: `${BASE_URL}/blog/${p.slug}`,
+    lastModified: p.updated_at ? new Date(p.updated_at) : new Date(),
+    changeFrequency: 'weekly' as const,
+    priority: 0.7,
+  }));
+
   const staticPages = [
+    { path: '/blog', priority: 0.8 },
     { path: '/decouvrir-la-reunion', priority: 0.7 },
     { path: '/a-propos', priority: 0.5 },
     { path: '/contact', priority: 0.5 },
@@ -62,6 +77,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     ...productUrls,
     ...categoryUrls,
+    ...blogUrls,
     ...staticPages,
   ];
 }
