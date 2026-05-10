@@ -112,17 +112,17 @@ export async function ServiettePlage() {
           </div>
 
           {/* ── Desktop : cards dynamiques ── */}
-          <div className="hidden md:flex absolute inset-0 items-center justify-center gap-5 px-2">
+          <div className="hidden md:flex absolute inset-0 items-center justify-center gap-6 lg:gap-10 px-4">
             {items.slice(0, 3).map((item, i) => (
               <div
                 key={item.id}
                 id={`textile-card-${i + 1}`}
-                className="opacity-0 flex-1 max-w-[200px] lg:max-w-[240px] flex flex-col items-center gap-4"
+                className="opacity-0 flex-1 max-w-[260px] lg:max-w-[320px] xl:max-w-[360px] flex flex-col items-center gap-5"
               >
                 <StampFrame src={item.image_url} alt={item.product_name} className="w-full" />
                 <Link
                   href={item.product_link}
-                  className="inline-flex items-center gap-2 px-5 py-2 bg-sun-400 hover:bg-sun-300 text-ink text-xs font-bold uppercase tracking-wider rounded-full shadow transition-colors"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-sun-400 hover:bg-sun-300 text-ink text-sm font-bold uppercase tracking-wider rounded-full shadow transition-colors"
                 >
                   Découvrir
                 </Link>

@@ -34,8 +34,8 @@ export function TextileMobileCarousel({ items }: { items: TextileItem[] }) {
       <div className="overflow-hidden rounded-2xl" ref={emblaRef}>
         <div className="flex">
           {items.map((item) => (
-            <div key={item.id} className="flex-[0_0_100%] min-w-0 flex flex-col items-center gap-4 pb-2 px-6">
-              <StampFrame src={item.image_url} alt={item.product_name} className="w-full max-w-[260px]" />
+            <div key={item.id} className="flex-[0_0_100%] min-w-0 flex flex-col items-center gap-4 pb-2 px-4">
+              <StampFrame src={item.image_url} alt={item.product_name} className="w-full max-w-[320px]" />
               <Link
                 href={item.product_link}
                 className="inline-flex items-center gap-2 px-6 py-2.5 bg-sun-400 hover:bg-sun-300 text-ink text-xs font-bold uppercase tracking-wider rounded-full shadow transition-colors"
