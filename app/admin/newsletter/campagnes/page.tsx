@@ -10,7 +10,7 @@ export default async function CampaignsPage() {
   const [broadcasts, { count: activeCount }] = await Promise.all([
     listBroadcasts().catch(() => []),
     supabase
-      .from('newsletter_subscribers' as any)
+      .from('newsletter_subscribers')
       .select('*', { count: 'exact', head: true })
       .is('unsubscribed_at', null),
   ]);

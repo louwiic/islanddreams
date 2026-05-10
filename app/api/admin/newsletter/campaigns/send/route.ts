@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
 
   // Récupérer la campagne
   const { data: campaign, error: campErr } = await admin
-    .from('newsletter_campaigns' as any)
+    .from('newsletter_campaigns')
     .select('*')
     .eq('id', id)
     .eq('status', 'draft')
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
 
   // Récupérer les abonnés actifs
   const { data: subscribers } = await admin
-    .from('newsletter_subscribers' as any)
+    .from('newsletter_subscribers')
     .select('email')
     .is('unsubscribed_at', null);
 
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
 
   // Mettre à jour la campagne
   await admin
-    .from('newsletter_campaigns' as any)
+    .from('newsletter_campaigns')
     .update({
       status: 'sent',
       sent_at: new Date().toISOString(),

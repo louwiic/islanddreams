@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
   }
 
   const { error } = await admin
-    .from('newsletter_subscribers' as any)
+    .from('newsletter_subscribers')
     .update({ unsubscribed_at: new Date().toISOString() } as never)
     .eq('email', email.toLowerCase())
     .is('unsubscribed_at', null);

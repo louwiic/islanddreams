@@ -9,7 +9,7 @@ const admin = createClient(
 
 export default async function MessagesPage() {
   const { data: messages } = await admin
-    .from('contact_messages' as any)
+    .from('contact_messages')
     .select('*')
     .order('created_at', { ascending: false });
 

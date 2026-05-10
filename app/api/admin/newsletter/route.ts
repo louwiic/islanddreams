@@ -9,7 +9,7 @@ const admin = createClient(
 // GET — liste des abonnés
 export async function GET() {
   const { data, error } = await admin
-    .from('newsletter_subscribers' as any)
+    .from('newsletter_subscribers')
     .select('*')
     .order('created_at', { ascending: false });
 
@@ -29,7 +29,7 @@ export async function DELETE(req: NextRequest) {
   }
 
   const { error } = await admin
-    .from('newsletter_subscribers' as any)
+    .from('newsletter_subscribers')
     .delete()
     .eq('id', id);
 

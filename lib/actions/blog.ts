@@ -39,7 +39,7 @@ export type BlogCategory = {
 export async function getBlogPosts(): Promise<(BlogPost & { blog_categories: BlogCategory | null })[]> {
   const supabase = createAdminClient();
   const { data, error } = await supabase
-    .from('blog_posts' as any)
+    .from('blog_posts')
     .select('*, blog_categories(name, slug)')
     .order('created_at', { ascending: false });
 
@@ -52,7 +52,7 @@ export async function getBlogPosts(): Promise<(BlogPost & { blog_categories: Blo
 export async function getBlogPostById(id: string): Promise<BlogPost | null> {
   const supabase = createAdminClient();
   const { data, error } = await supabase
-    .from('blog_posts' as any)
+    .from('blog_posts')
     .select('*')
     .eq('id', id)
     .single();
@@ -66,7 +66,7 @@ export async function getBlogPostById(id: string): Promise<BlogPost | null> {
 export async function getPublishedPosts(categorySlug?: string): Promise<(BlogPost & { blog_categories: BlogCategory | null })[]> {
   const supabase = createAdminClient();
   let query = supabase
-    .from('blog_posts' as any)
+    .from('blog_posts')
     .select('*, blog_categories(name, slug)')
     .eq('status', 'publish')
     .lte('published_at', new Date().toISOString())
@@ -74,12 +74,12 @@ export async function getPublishedPosts(categorySlug?: string): Promise<(BlogPos
 
   if (categorySlug) {
     const { data: cat } = await supabase
-      .from('blog_categories' as any)
+      .from('blog_categories')
       .select('id')
       .eq('slug', categorySlug)
       .single();
     if (cat) {
-      query = query.eq('category_id', (cat as any).id);
+      query = query.eq('category_id', (cat).id);
     }
   }
 
@@ -93,7 +93,7 @@ export async function getPublishedPosts(categorySlug?: string): Promise<(BlogPos
 export async function getPublishedPostBySlug(slug: string): Promise<(BlogPost & { blog_categories: BlogCategory | null }) | null> {
   const supabase = createAdminClient();
   const { data, error } = await supabase
-    .from('blog_posts' as any)
+    .from('blog_posts')
     .select('*, blog_categories(name, slug)')
     .eq('slug', slug)
     .eq('status', 'publish')
@@ -109,14 +109,14 @@ export async function getPublishedPostBySlug(slug: string): Promise<(BlogPost & 
 export async function getRecentPosts(limit = 3): Promise<Pick<BlogPost, 'title' | 'slug' | 'cover_image_url' | 'published_at' | 'excerpt'>[]> {
   const supabase = createAdminClient();
   const { data } = await supabase
-    .from('blog_posts' as any)
+    .from('blog_posts')
     .select('title, slug, cover_image_url, published_at, excerpt')
     .eq('status', 'publish')
     .lte('published_at', new Date().toISOString())
     .order('published_at', { ascending: false })
     .limit(limit);
 
-  return (data as any) ?? [];
+  return (data) ?? [];
 }
 
 /* ── Catégories ──────────────────────────────────────────── */
@@ -124,10 +124,10 @@ export async function getRecentPosts(limit = 3): Promise<Pick<BlogPost, 'title' 
 export async function getBlogCategories(): Promise<BlogCategory[]> {
   const supabase = createAdminClient();
   const { data } = await supabase
-    .from('blog_categories' as any)
+    .from('blog_categories')
     .select('*')
     .order('sort_order');
-  return (data as any) ?? [];
+  return (data) ?? [];
 }
 
 /* ── Créer un article ────────────────────────────────────── */
@@ -153,13 +153,13 @@ type CreateBlogInput = {
 export async function createBlogPost(input: CreateBlogInput) {
   const supabase = createAdminClient();
   const { data, error } = await supabase
-    .from('blog_posts' as any)
+    .from('blog_posts')
     .insert({
       ...input,
       published_at: input.status === 'publish' && !input.published_at
         ? new Date().toISOString()
         : input.published_at || null,
-    } as any)
+    })
     .select('id')
     .single();
 
@@ -174,8 +174,8 @@ export async function createBlogPost(input: CreateBlogInput) {
 export async function updateBlogPost(id: string, input: Partial<CreateBlogInput>) {
   const supabase = createAdminClient();
   const { error } = await supabase
-    .from('blog_posts' as any)
-    .update({ ...input, updated_at: new Date().toISOString() } as any)
+    .from('blog_posts')
+    .update({ ...input, updated_at: new Date().toISOString() })
     .eq('id', id);
 
   if (error) throw new Error(error.message);
@@ -188,7 +188,7 @@ export async function updateBlogPost(id: string, input: Partial<CreateBlogInput>
 export async function deleteBlogPost(id: string) {
   const supabase = createAdminClient();
   const { error } = await supabase
-    .from('blog_posts' as any)
+    .from('blog_posts')
     .delete()
     .eq('id', id);
 

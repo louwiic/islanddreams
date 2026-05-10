@@ -8,7 +8,7 @@ const admin = createClient(
 
 export async function GET() {
   const { data, error } = await admin
-    .from('newsletter_subscribers' as any)
+    .from('newsletter_subscribers')
     .select('email, created_at, unsubscribed_at')
     .order('created_at', { ascending: false });
 
