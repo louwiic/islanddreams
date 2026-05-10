@@ -117,7 +117,7 @@ export async function ServiettePlage() {
               <div
                 key={item.id}
                 id={`textile-card-${i + 1}`}
-                className="opacity-0 flex-1 max-w-[260px] lg:max-w-[320px] xl:max-w-[360px] flex flex-col items-center gap-5"
+                className="opacity-0 flex-1 max-w-[320px] lg:max-w-[400px] xl:max-w-[440px] flex flex-col items-center gap-5"
               >
                 <StampFrame src={item.image_url} alt={item.product_name} className="w-full" />
                 <Link
