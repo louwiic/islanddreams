@@ -32,39 +32,41 @@ export type BlogCategory = {
   slug: string;
 };
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 /* ── Lire tous les articles (admin — inclut brouillons) ── */
 
-export async function getBlogPosts() {
+export async function getBlogPosts(): Promise<(BlogPost & { blog_categories: BlogCategory | null })[]> {
   const supabase = createAdminClient();
   const { data, error } = await supabase
-    .from('blog_posts')
+    .from('blog_posts' as any)
     .select('*, blog_categories(name, slug)')
     .order('created_at', { ascending: false });
 
   if (error) throw new Error(error.message);
-  return data;
+  return data as any;
 }
 
 /* ── Lire un article par ID ──────────────────────────────── */
 
-export async function getBlogPostById(id: string) {
+export async function getBlogPostById(id: string): Promise<BlogPost | null> {
   const supabase = createAdminClient();
   const { data, error } = await supabase
-    .from('blog_posts')
+    .from('blog_posts' as any)
     .select('*')
     .eq('id', id)
     .single();
 
   if (error) return null;
-  return data;
+  return data as any;
 }
 
 /* ── Lire les articles publiés (storefront) ──────────────── */
 
-export async function getPublishedPosts(categorySlug?: string) {
+export async function getPublishedPosts(categorySlug?: string): Promise<(BlogPost & { blog_categories: BlogCategory | null })[]> {
   const supabase = createAdminClient();
   let query = supabase
-    .from('blog_posts')
+    .from('blog_posts' as any)
     .select('*, blog_categories(name, slug)')
     .eq('status', 'publish')
     .lte('published_at', new Date().toISOString())
@@ -72,26 +74,26 @@ export async function getPublishedPosts(categorySlug?: string) {
 
   if (categorySlug) {
     const { data: cat } = await supabase
-      .from('blog_categories')
+      .from('blog_categories' as any)
       .select('id')
       .eq('slug', categorySlug)
       .single();
     if (cat) {
-      query = query.eq('category_id', cat.id);
+      query = query.eq('category_id', (cat as any).id);
     }
   }
 
   const { data, error } = await query;
   if (error) throw new Error(error.message);
-  return data;
+  return data as any;
 }
 
 /* ── Lire un article publié par slug ─────────────────────── */
 
-export async function getPublishedPostBySlug(slug: string) {
+export async function getPublishedPostBySlug(slug: string): Promise<(BlogPost & { blog_categories: BlogCategory | null }) | null> {
   const supabase = createAdminClient();
   const { data, error } = await supabase
-    .from('blog_posts')
+    .from('blog_posts' as any)
     .select('*, blog_categories(name, slug)')
     .eq('slug', slug)
     .eq('status', 'publish')
@@ -99,33 +101,33 @@ export async function getPublishedPostBySlug(slug: string) {
     .single();
 
   if (error) return null;
-  return data;
+  return data as any;
 }
 
 /* ── Articles récents ────────────────────────────────────── */
 
-export async function getRecentPosts(limit = 3) {
+export async function getRecentPosts(limit = 3): Promise<Pick<BlogPost, 'title' | 'slug' | 'cover_image_url' | 'published_at' | 'excerpt'>[]> {
   const supabase = createAdminClient();
   const { data } = await supabase
-    .from('blog_posts')
+    .from('blog_posts' as any)
     .select('title, slug, cover_image_url, published_at, excerpt')
     .eq('status', 'publish')
     .lte('published_at', new Date().toISOString())
     .order('published_at', { ascending: false })
     .limit(limit);
 
-  return data ?? [];
+  return (data as any) ?? [];
 }
 
 /* ── Catégories ──────────────────────────────────────────── */
 
-export async function getBlogCategories() {
+export async function getBlogCategories(): Promise<BlogCategory[]> {
   const supabase = createAdminClient();
   const { data } = await supabase
-    .from('blog_categories')
+    .from('blog_categories' as any)
     .select('*')
     .order('sort_order');
-  return data ?? [];
+  return (data as any) ?? [];
 }
 
 /* ── Créer un article ────────────────────────────────────── */
@@ -151,13 +153,13 @@ type CreateBlogInput = {
 export async function createBlogPost(input: CreateBlogInput) {
   const supabase = createAdminClient();
   const { data, error } = await supabase
-    .from('blog_posts')
+    .from('blog_posts' as any)
     .insert({
       ...input,
       published_at: input.status === 'publish' && !input.published_at
         ? new Date().toISOString()
         : input.published_at || null,
-    } as never)
+    } as any)
     .select('id')
     .single();
 
@@ -172,8 +174,8 @@ export async function createBlogPost(input: CreateBlogInput) {
 export async function updateBlogPost(id: string, input: Partial<CreateBlogInput>) {
   const supabase = createAdminClient();
   const { error } = await supabase
-    .from('blog_posts')
-    .update({ ...input, updated_at: new Date().toISOString() } as never)
+    .from('blog_posts' as any)
+    .update({ ...input, updated_at: new Date().toISOString() } as any)
     .eq('id', id);
 
   if (error) throw new Error(error.message);
@@ -186,7 +188,7 @@ export async function updateBlogPost(id: string, input: Partial<CreateBlogInput>
 export async function deleteBlogPost(id: string) {
   const supabase = createAdminClient();
   const { error } = await supabase
-    .from('blog_posts')
+    .from('blog_posts' as any)
     .delete()
     .eq('id', id);
 
