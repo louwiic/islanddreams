@@ -3,9 +3,8 @@ import { CheckCircle, ShoppingBag, ArrowRight, MapPin } from 'lucide-react';
 import { getStripeClient } from '@/lib/stripe/client';
 import { createClient } from '@/lib/supabase/server';
 import { CartClearer } from './CartClearer';
-import type Stripe from 'stripe';
-
-async function fetchSession(sessionId: string) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function fetchSession(sessionId: string): Promise<any | null> {
   try {
     const stripe = getStripeClient();
     return await stripe.checkout.sessions.retrieve(sessionId, {
@@ -28,7 +27,7 @@ export default async function CheckoutSuccessPage({
   const { data: { user } } = await supabase.auth.getUser();
   const isLoggedIn = !!user;
 
-  const shipping = (session as Record<string, unknown>)?.shipping_details as { address?: { line1?: string; city?: string; postal_code?: string; country?: string }; name?: string } | undefined;
+  const shipping = session?.shipping_details;
   const lineItems = session?.line_items?.data ?? [];
   const total = session?.amount_total ? (session.amount_total / 100).toFixed(2) : null;
 
