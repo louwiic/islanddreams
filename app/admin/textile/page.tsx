@@ -7,11 +7,12 @@ type TextileHighlight = {
   id: string;
   position: number;
   is_active: boolean;
+  image_url: string | null;
   product: {
     id: string;
     name: string;
     slug: string;
-    image_url: string | null;
+    fallback_image: string | null;
   };
 };
 
@@ -20,10 +21,10 @@ async function getTextileItems(): Promise<TextileHighlight[]> {
   const { data } = await supabase
     .from('textile_highlights' as never)
     .select(`
-      id, position, is_active,
+      id, position, is_active, image_url,
       product:product_id (
         id, name, slug,
-        product_images!inner (url, is_main)
+        product_images (url, is_main)
       )
     `)
     .order('position', { ascending: true });
@@ -34,16 +35,18 @@ async function getTextileItems(): Promise<TextileHighlight[]> {
     id: string;
     position: number;
     is_active: boolean;
+    image_url: string | null;
     product: { id: string; name: string; slug: string; product_images: { url: string; is_main: boolean }[] };
   }>).map((row) => ({
     id: row.id,
     position: row.position,
     is_active: row.is_active,
+    image_url: row.image_url,
     product: {
       id: row.product.id,
       name: row.product.name,
       slug: row.product.slug,
-      image_url: row.product.product_images?.find((i) => i.is_main)?.url
+      fallback_image: row.product.product_images?.find((i) => i.is_main)?.url
         ?? row.product.product_images?.[0]?.url
         ?? null,
     },
@@ -85,12 +88,12 @@ export default async function TextileAdminPage() {
                 item.is_active ? 'border-gray-200' : 'border-gray-200 opacity-50'
               }`}
             >
-              {/* Image */}
+              {/* Image — priorité : photo choisie > image principale produit */}
               <div className="aspect-[3/4] bg-gray-50 relative">
-                {item.product.image_url ? (
+                {(item.image_url ?? item.product.fallback_image) ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={item.product.image_url}
+                    src={item.image_url ?? item.product.fallback_image!}
                     alt={item.product.name}
                     className="w-full h-full object-cover"
                   />
