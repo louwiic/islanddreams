@@ -38,6 +38,10 @@ const barlow = Barlow_Semi_Condensed({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.islanddreams.re'),
+  icons: {
+    icon: '/favicon.png',
+    apple: '/favicon.png',
+  },
   title: "Island Dreams — L'île en souvenirs",
   description:
     'Des objets qui racontent La Réunion. Magnets, stickers, textile, décoration — un bout de péi à garder, à offrir.',
