@@ -17,7 +17,7 @@ async function getTextileItems(): Promise<TextileItem[]> {
     const { data } = await supabase
       .from('textile_highlights' as never)
       .select(`
-        id,
+        id, image_url,
         product:product_id (
           name, slug,
           product_images (url, is_main)
@@ -30,6 +30,7 @@ async function getTextileItems(): Promise<TextileItem[]> {
 
     return (data as unknown as Array<{
       id: string;
+      image_url: string | null;
       product: {
         name: string;
         slug: string;
@@ -38,7 +39,9 @@ async function getTextileItems(): Promise<TextileItem[]> {
     }>).map((row) => ({
       id: row.id,
       product_name: row.product.name,
+      // Priorité : photo choisie dans admin > image principale > première image
       image_url:
+        row.image_url ??
         row.product.product_images?.find((i) => i.is_main)?.url ??
         row.product.product_images?.[0]?.url ??
         '/images/sections/textile-1.png',

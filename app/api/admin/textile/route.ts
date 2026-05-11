@@ -35,7 +35,12 @@ export async function POST(req: Request) {
 
     await supabase
       .from('textile_highlights' as never)
-      .insert({ product_id: body.product_id, position: nextPosition, is_active: true } as never);
+      .insert({
+        product_id: body.product_id,
+        image_url: body.image_url ?? null,
+        position: nextPosition,
+        is_active: true,
+      } as never);
   }
 
   return NextResponse.json({ ok: true });
