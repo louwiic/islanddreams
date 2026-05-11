@@ -10,7 +10,7 @@ export default async function EditTextilePage({ params }: Props) {
 
   const { data } = await supabase
     .from('textile_highlights' as never)
-    .select('id, position, is_active, product:product_id(name, slug)')
+    .select('id, position, is_active, image_url, product:product_id(name, slug, product_images(id, url, is_main, position, alt))')
     .eq('id', id)
     .single();
 
@@ -20,8 +20,19 @@ export default async function EditTextilePage({ params }: Props) {
     id: string;
     position: number;
     is_active: boolean;
-    product: { name: string; slug: string };
+    image_url: string | null;
+    product: {
+      name: string;
+      slug: string;
+      product_images: { id: string; url: string; is_main: boolean; position: number; alt: string | null }[];
+    };
   };
+
+  const images = (item.product.product_images ?? []).sort((a, b) => {
+    if (a.is_main) return -1;
+    if (b.is_main) return 1;
+    return a.position - b.position;
+  });
 
   return (
     <div>
@@ -31,6 +42,8 @@ export default async function EditTextilePage({ params }: Props) {
         id={item.id}
         position={item.position}
         isActive={item.is_active}
+        images={images}
+        currentImageUrl={item.image_url}
       />
     </div>
   );

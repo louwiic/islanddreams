@@ -16,10 +16,10 @@ export async function POST(req: Request) {
   const supabase = createAdminClient();
 
   if (body.id) {
-    // Mise à jour position/activation
+    // Mise à jour position/activation/image
     await supabase
       .from('textile_highlights' as never)
-      .update({ position: body.position, is_active: body.is_active } as never)
+      .update({ position: body.position, is_active: body.is_active, image_url: body.image_url ?? null } as never)
       .eq('id', body.id);
   } else {
     // Ajout d'un nouveau produit
