@@ -1,9 +1,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { Suspense } from 'react';
 import {
   Plus,
-  Search,
-  Filter,
   Package,
   Upload,
   MoreHorizontal,
@@ -11,10 +10,9 @@ import {
   Pencil,
   Copy,
   Trash2,
-  ChevronLeft,
-  ChevronRight,
 } from 'lucide-react';
 import { getProducts } from '@/lib/actions/products';
+import { ProductsFilter } from '@/components/admin/ProductsFilter';
 
 const CATEGORY_LABELS: Record<string, string> = {
   magnets: 'Magnets',
@@ -25,30 +23,28 @@ const CATEGORY_LABELS: Record<string, string> = {
   uncategorized: 'Non classé',
 };
 
-export default async function ProduitsPage() {
-  const products = await getProducts();
+type Props = {
+  searchParams: Promise<{ category?: string; q?: string }>;
+};
+
+export default async function ProduitsPage({ searchParams }: Props) {
+  const { category, q } = await searchParams;
+  const allProducts = await getProducts();
+
+  const products = allProducts.filter((p) => {
+    const matchCat = !category || p.category === category;
+    const matchQ = !q || p.name.toLowerCase().includes(q.toLowerCase()) || (p.sku ?? '').toLowerCase().includes(q.toLowerCase());
+    return matchCat && matchQ;
+  });
 
   return (
     <div className="space-y-6">
       {/* Barre d'actions */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <div className="relative flex-1 sm:w-72">
-            <Search
-              size={16}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-            />
-            <input
-              type="text"
-              placeholder="Rechercher un produit..."
-              className="w-full pl-9 pr-4 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-jungle-500/20 focus:border-jungle-500 bg-white"
-            />
-          </div>
-          <button className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
-            <Filter size={16} className="text-gray-500" />
-          </button>
-        </div>
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+        <Suspense fallback={<div className="h-9 w-64 bg-gray-100 rounded-lg animate-pulse" />}>
+          <ProductsFilter />
+        </Suspense>
+        <div className="flex items-center gap-2 shrink-0">
           <Link
             href="/admin/produits/import"
             className="flex items-center gap-2 px-4 py-2 border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
@@ -226,6 +222,7 @@ export default async function ProduitsPage() {
             <div className="px-5 py-3 border-t border-gray-100">
               <p className="text-xs text-gray-500">
                 {products.length} produit{products.length > 1 ? 's' : ''}
+                {(category || q) && ` · filtré${products.length > 1 ? 's' : ''}`}
               </p>
             </div>
           </>
