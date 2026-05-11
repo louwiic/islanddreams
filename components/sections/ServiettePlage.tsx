@@ -11,26 +11,42 @@ type TextileItem = {
   product_link: string;
 };
 
-const FALLBACK: TextileItem[] = [
-  { id: '1', product_name: 'Serviette Plage', image_url: '/images/sections/textile-1.png', product_link: '/boutique' },
-  { id: '2', product_name: 'Tapis de Plage', image_url: '/images/sections/textile-2.png', product_link: '/boutique' },
-  { id: '3', product_name: 'Pareo Péi', image_url: '/images/sections/textile-3.png', product_link: '/boutique' },
-];
-
 async function getTextileItems(): Promise<TextileItem[]> {
   try {
     const supabase = createAdminClient();
     const { data } = await supabase
       .from('textile_highlights' as never)
-      .select('id, product_name, image_url, product_link')
+      .select(`
+        id,
+        product:product_id (
+          name, slug,
+          product_images (url, is_main)
+        )
+      `)
       .eq('is_active', true)
       .order('position', { ascending: true });
 
-    if (data && data.length > 0) return data as unknown as TextileItem[];
+    if (!data || (data as unknown[]).length === 0) return [];
+
+    return (data as unknown as Array<{
+      id: string;
+      product: {
+        name: string;
+        slug: string;
+        product_images: { url: string; is_main: boolean }[];
+      };
+    }>).map((row) => ({
+      id: row.id,
+      product_name: row.product.name,
+      image_url:
+        row.product.product_images?.find((i) => i.is_main)?.url ??
+        row.product.product_images?.[0]?.url ??
+        '/images/sections/textile-1.png',
+      product_link: `/boutique/${row.product.slug}`,
+    }));
   } catch {
-    // table pas encore créée → fallback
+    return [];
   }
-  return FALLBACK;
 }
 
 export async function ServiettePlage() {

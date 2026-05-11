@@ -218,8 +218,8 @@ export function ProductForm({ mode, initialData }: Props) {
         productId = result.product?.id;
       }
 
-      // Upload images si des fichiers locaux existent
-      if (productId && form.images.length > 0) {
+      // Upload + sauvegarde de toutes les images (principale + galerie)
+      if (productId) {
         const uploadedImages: { url: string; alt: string; isMain: boolean; position: number }[] = [];
 
         for (let i = 0; i < form.images.length; i++) {
@@ -243,13 +243,18 @@ export function ProductForm({ mode, initialData }: Props) {
           }
         }
 
-        await saveProductImages(productId, uploadedImages);
+        const saveImagesResult = await saveProductImages(productId, uploadedImages);
+        if (saveImagesResult.error) {
+          setError(saveImagesResult.error);
+          setSaving(false);
+          return;
+        }
       }
 
       if (mode === 'create' && productId) {
         router.push(`/admin/produits/${productId}`);
       }
-    } catch (e) {
+    } catch {
       setError('Erreur inattendue. Réessayez.');
     } finally {
       setSaving(false);
@@ -391,6 +396,9 @@ export function ProductForm({ mode, initialData }: Props) {
               images={form.images}
               onChange={(images) => update('images', images)}
             />
+            <p className="text-xs text-gray-500">
+              Ajoutez plusieurs images : la principale sert de couverture, les autres sont affichées dans la galerie de la fiche produit.
+            </p>
           </Section>
 
           {/* Tarification */}

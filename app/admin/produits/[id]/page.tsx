@@ -11,6 +11,7 @@ export default async function EditProduitPage({ params }: PageProps) {
   const product = await getProductById(id);
 
   if (!product) notFound();
+  const mainImageIndex = product.images.findIndex((img) => img.is_main);
 
   const initialData = {
     id: product.id,
@@ -36,7 +37,7 @@ export default async function EditProduitPage({ params }: PageProps) {
       id: img.id,
       preview: img.url,
       alt: img.alt ?? '',
-      isMain: img.is_main ?? i === 0,
+      isMain: i === (mainImageIndex >= 0 ? mainImageIndex : 0),
     })),
     attributes: product.attributes.map((a) => ({
       id: a.id,
