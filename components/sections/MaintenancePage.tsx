@@ -52,7 +52,7 @@ export function MaintenancePage() {
     <div className="relative min-h-screen flex flex-col items-center justify-start overflow-hidden">
       {/* Background hero */}
       <Image
-        src="/images/hero/hero-illustration.jpg"
+        src="/images/hero/hero3.png"
         alt=""
         fill
         className="object-cover object-center"
@@ -89,7 +89,7 @@ export function MaintenancePage() {
             On prépare quelque chose de beau pour toi. On revient très vite&nbsp;!
           </p>
           <p className="text-cream/50 text-sm mt-2 italic">
-            Un bout de péi à garder, à offrir.
+            Zot vil, zot fierté péi.
           </p>
         </div>
 
