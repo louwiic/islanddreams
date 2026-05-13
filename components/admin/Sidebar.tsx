@@ -22,6 +22,7 @@ import {
   Shirt,
   Mail,
   FileText,
+  Bot,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -34,6 +35,7 @@ const navigation = [
   { name: 'Messages', href: '/admin/messages', icon: MessageSquare },
   { name: 'Blog', href: '/admin/blog', icon: FileText },
   { name: 'Newsletter', href: '/admin/newsletter', icon: Mail },
+  { name: 'Chatbot', href: '/admin/chatbot', icon: Bot },
   { name: 'Bannières', href: '/admin/banners', icon: Megaphone },
   { name: 'Textile', href: '/admin/textile', icon: Shirt },
   { name: 'Livraison', href: '/admin/livraison', icon: Truck },

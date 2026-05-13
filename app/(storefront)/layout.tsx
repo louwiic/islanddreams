@@ -6,6 +6,7 @@ import { getNavFeaturedCategory } from '@/lib/actions/categories';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { cookies } from 'next/headers';
 import { MaintenancePage } from '@/components/sections/MaintenancePage';
+import { ChatWidgetLoader } from '@/components/chatbot/ChatWidgetLoader';
 
 async function getMaintenanceSettings() {
   const supabase = createAdminClient();
@@ -47,6 +48,7 @@ export default async function StorefrontLayout({
       {children}
       <CartDrawer />
       <NewsletterPopup />
+      <ChatWidgetLoader />
     </CartProvider>
   );
 }
