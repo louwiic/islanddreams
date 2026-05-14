@@ -12,10 +12,8 @@ import { VillesBlock } from '@/components/sections/VillesBlock';
 import { FooterNarratif } from '@/components/sections/FooterNarratif';
 import { CarteCollection } from '@/components/sections/CarteCollection';
 import { UspBanner } from '@/components/sections/UspBanner';
-import { HomeFaq } from '@/components/sections/HomeFaq';
 import { SmoothScroll } from '@/components/ui/SmoothScroll';
 import { getPublishedProducts } from '@/lib/queries/products';
-import { createAdminClient } from '@/lib/supabase/admin';
 
 export const metadata: Metadata = {
   title: "Island Dreams — Souvenirs illustrés de La Réunion | Magnets, Stickers, Textile 974",
@@ -24,18 +22,8 @@ export const metadata: Metadata = {
   alternates: { canonical: '/' },
 };
 
-async function getSiteFaqs() {
-  const supabase = createAdminClient();
-  const { data } = await supabase
-    .from('site_faqs' as never)
-    .select('id, question, answer')
-    .eq('is_active', true)
-    .order('position');
-  return (data ?? []) as { id: string; question: string; answer: string }[];
-}
-
 export default async function Home() {
-  const [products, faqs] = await Promise.all([getPublishedProducts(), getSiteFaqs()]);
+  const products = await getPublishedProducts();
 
   return (
     <>
@@ -50,7 +38,6 @@ export default async function Home() {
       <FemmePlage />
       <UspBanner />
       <CarteCollection />
-      <HomeFaq items={faqs} />
       <VillesBlock products={products} />
       <FooterNarratif />
     </>
