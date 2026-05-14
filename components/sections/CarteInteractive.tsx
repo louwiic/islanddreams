@@ -178,13 +178,13 @@ export function CarteInteractive({ onSelect, activeId, activeCommune }: Props) {
             aria-label={commune.name}
           >
             <span className="relative flex items-center justify-center">
-              <span className="absolute inline-flex h-6 w-6 rounded-full bg-ink/50 animate-[ping_1.8s_ease-in-out_infinite]" />
+              <span className="absolute inline-flex h-4 w-4 md:h-6 md:w-6 rounded-full bg-ink/50 animate-[ping_1.8s_ease-in-out_infinite]" />
               {isHighlight && (
-                <span className="absolute inline-flex h-6 w-6 rounded-full bg-coral-400 opacity-50 animate-ping" />
+                <span className="absolute inline-flex h-4 w-4 md:h-6 md:w-6 rounded-full bg-coral-400 opacity-50 animate-ping" />
               )}
               <span
                 className={cn(
-                  'relative block w-4 h-4 md:w-3.5 md:h-3.5 rounded-full border-2 border-white shadow-md transition-all duration-150',
+                  'relative block w-2.5 h-2.5 md:w-3.5 md:h-3.5 rounded-full border-[1.5px] md:border-2 border-white shadow-md transition-all duration-150',
                   isHighlight
                     ? 'bg-coral-500 border-coral-300 scale-125'
                     : 'bg-ink/80 group-hover:bg-coral-400 group-hover:scale-110'
