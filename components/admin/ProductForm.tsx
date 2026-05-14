@@ -6,11 +6,12 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Save, Eye, Trash2, Copy, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { slugify, type ProductCategory, type ProductStatus } from '@/lib/types/product';
-import { createProduct, updateProduct, deleteProduct } from '@/lib/actions/products';
+import { createProduct, updateProduct, deleteProduct, saveProductFaqs } from '@/lib/actions/products';
 import { uploadProductImage, saveProductImages } from '@/lib/actions/images';
 import { ImageUploadZone, type ImageItem } from './ImageUploadZone';
 import { VariantManager, type Attribute, type Variant } from './VariantManager';
 import { RichTextEditor } from './RichTextEditor';
+import { FaqManager, type FaqItem } from './FaqManager';
 
 /* ── Types ───────────────────────────────────────────────── */
 
@@ -34,6 +35,7 @@ type ProductFormData = {
   images: ImageItem[];
   attributes: Attribute[];
   variants: Variant[];
+  faqs: FaqItem[];
   metaTitle: string;
   metaDescription: string;
   focusKeyword: string;
@@ -79,6 +81,7 @@ const DEFAULT: ProductFormData = {
   images: [],
   attributes: [],
   variants: [],
+  faqs: [],
   metaTitle: '',
   metaDescription: '',
   focusKeyword: '',
@@ -251,6 +254,10 @@ export function ProductForm({ mode, initialData }: Props) {
           setSaving(false);
           return;
         }
+
+        // Save FAQs
+        const validFaqs = form.faqs.filter((f) => f.question.trim() && f.answer.trim());
+        await saveProductFaqs(productId, validFaqs.map((f, i) => ({ question: f.question, answer: f.answer, position: i })));
       }
 
       if (mode === 'create' && productId) {
@@ -537,6 +544,17 @@ export function ProductForm({ mode, initialData }: Props) {
               variants={form.variants}
               onAttributesChange={(attrs) => update('attributes', attrs)}
               onVariantsChange={(vars) => update('variants', vars)}
+            />
+          </Section>
+
+          {/* FAQ */}
+          <Section title="FAQ" defaultOpen={false}>
+            <p className="text-xs text-gray-500 -mt-2 mb-2">
+              Questions fréquentes affichées sur la fiche produit.
+            </p>
+            <FaqManager
+              faqs={form.faqs}
+              onChange={(faqs) => update('faqs', faqs)}
             />
           </Section>
 

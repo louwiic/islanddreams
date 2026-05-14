@@ -33,8 +33,8 @@ export async function getProductBySlug(slug: string) {
 
   if (error) return null;
 
-  // Charger images, attributs, variantes en parallèle
-  const [images, attributes, variants] = await Promise.all([
+  // Charger images, attributs, variantes, FAQ en parallèle
+  const [images, attributes, variants, faqs] = await Promise.all([
     supabase
       .from('product_images')
       .select('*')
@@ -48,6 +48,11 @@ export async function getProductBySlug(slug: string) {
       .from('product_variants')
       .select('*')
       .eq('product_id', product.id),
+    supabase
+      .from('product_faqs' as never)
+      .select('id, question, answer, position')
+      .eq('product_id', product.id)
+      .order('position'),
   ]);
 
   return {
@@ -55,6 +60,7 @@ export async function getProductBySlug(slug: string) {
     images: images.data ?? [],
     attributes: attributes.data ?? [],
     variants: variants.data ?? [],
+    faqs: (faqs.data ?? []) as { id: string; question: string; answer: string; position: number }[],
   };
 }
 
@@ -71,7 +77,7 @@ export async function getProductById(id: string) {
 
   if (error) return null;
 
-  const [images, attributes, variants] = await Promise.all([
+  const [images, attributes, variants, faqs] = await Promise.all([
     supabase
       .from('product_images')
       .select('*')
@@ -85,6 +91,11 @@ export async function getProductById(id: string) {
       .from('product_variants')
       .select('*')
       .eq('product_id', product.id),
+    supabase
+      .from('product_faqs' as never)
+      .select('id, question, answer, position')
+      .eq('product_id', product.id)
+      .order('position'),
   ]);
 
   return {
@@ -92,6 +103,7 @@ export async function getProductById(id: string) {
     images: images.data ?? [],
     attributes: attributes.data ?? [],
     variants: variants.data ?? [],
+    faqs: (faqs.data ?? []) as { id: string; question: string; answer: string; position: number }[],
   };
 }
 
@@ -296,5 +308,33 @@ export async function deleteProduct(id: string) {
   if (error) return { error: error.message };
 
   revalidatePath('/admin/produits');
+  return { success: true };
+}
+
+/* ── Sauvegarder les FAQ d'un produit ──────────────────── */
+
+export async function saveProductFaqs(
+  productId: string,
+  faqs: { question: string; answer: string; position: number }[]
+) {
+  const supabase = createAdminClient();
+
+  // Supprimer les anciennes FAQ
+  await supabase.from('product_faqs' as never).delete().eq('product_id', productId);
+
+  // Insérer les nouvelles
+  if (faqs.length > 0) {
+    const rows = faqs.map((f) => ({
+      product_id: productId,
+      question: f.question,
+      answer: f.answer,
+      position: f.position,
+    }));
+
+    const { error } = await supabase.from('product_faqs' as never).insert(rows as never);
+    if (error) return { error: error.message };
+  }
+
+  revalidatePath(`/admin/produits/${productId}`);
   return { success: true };
 }

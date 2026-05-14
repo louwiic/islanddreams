@@ -6,6 +6,7 @@ import { ChevronRight } from 'lucide-react';
 import { getProductBySlug } from '@/lib/actions/products';
 import { ProductForm } from '@/components/ui/ProductForm';
 import { ProductGallery } from '@/components/ui/ProductGallery';
+import { ProductFaq } from '@/components/ui/ProductFaq';
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -177,6 +178,11 @@ export default async function ProductPage({ params }: PageProps) {
                 />
               </div>
             )}
+
+            {/* FAQ */}
+            {product.faqs && product.faqs.length > 0 && (
+              <ProductFaq items={product.faqs} />
+            )}
           </div>
         </div>
       </div>
@@ -208,6 +214,15 @@ export default async function ProductPage({ params }: PageProps) {
                 },
               },
             },
+            ...(product.faqs && product.faqs.length > 0 ? [{
+              '@context': 'https://schema.org',
+              '@type': 'FAQPage',
+              mainEntity: product.faqs.map((f: { question: string; answer: string }) => ({
+                '@type': 'Question',
+                name: f.question,
+                acceptedAnswer: { '@type': 'Answer', text: f.answer },
+              })),
+            }] : []),
             {
               '@context': 'https://schema.org',
               '@type': 'BreadcrumbList',

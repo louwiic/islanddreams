@@ -52,6 +52,11 @@ export default async function EditProduitPage({ params }: PageProps) {
       stock: v.stock_quantity?.toString() ?? '',
       enabled: v.enabled ?? true,
     })),
+    faqs: product.faqs.map((f) => ({
+      id: f.id,
+      question: f.question,
+      answer: f.answer,
+    })),
   };
 
   return <ProductForm mode="edit" initialData={initialData} />;
