@@ -136,8 +136,7 @@ export function CarteInteractive({ onSelect, activeId, activeCommune }: Props) {
   return (
     <div
       ref={containerRef}
-      className="relative w-full overflow-hidden"
-      style={{ aspectRatio: '1440 / 816' }}
+      className="relative w-full overflow-hidden aspect-[4/3] md:aspect-[16/9]"
     >
       {/* Fond océan */}
       <Image
