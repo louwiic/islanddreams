@@ -10,6 +10,7 @@ import { createProduct, updateProduct, deleteProduct } from '@/lib/actions/produ
 import { uploadProductImage, saveProductImages } from '@/lib/actions/images';
 import { ImageUploadZone, type ImageItem } from './ImageUploadZone';
 import { VariantManager, type Attribute, type Variant } from './VariantManager';
+import { RichTextEditor } from './RichTextEditor';
 
 /* ── Types ───────────────────────────────────────────────── */
 
@@ -49,6 +50,7 @@ const CATEGORIES: { value: ProductCategory; label: string }[] = [
   { value: 'textile', label: 'Textile' },
   { value: 'goodies', label: 'Goodies' },
   { value: 'decoration', label: 'Décoration' },
+  { value: 'accessoires', label: 'Accessoires' },
   { value: 'uncategorized', label: 'Non classé' },
 ];
 
@@ -364,16 +366,10 @@ export function ProductForm({ mode, initialData }: Props) {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Description
               </label>
-              <textarea
+              <RichTextEditor
                 value={form.description}
-                onChange={(e) => update('description', e.target.value)}
-                rows={5}
-                placeholder="Description détaillée du produit..."
-                className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-jungle-500/20 focus:border-jungle-500 resize-y"
+                onChange={(html) => update('description', html)}
               />
-              <p className="text-xs text-gray-400 mt-1">
-                Supporte le Markdown. Un éditeur riche sera ajouté bientôt.
-              </p>
             </div>
 
             <div>

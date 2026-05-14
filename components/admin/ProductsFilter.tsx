@@ -11,6 +11,7 @@ const CATEGORIES = [
   { value: 'textile', label: 'Textile' },
   { value: 'goodies', label: 'Goodies' },
   { value: 'decoration', label: 'Décoration' },
+  { value: 'accessoires', label: 'Accessoires' },
   { value: 'uncategorized', label: 'Non classé' },
 ];
 

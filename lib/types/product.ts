@@ -7,6 +7,7 @@ export type ProductCategory =
   | 'textile'
   | 'goodies'
   | 'decoration'
+  | 'accessoires'
   | 'uncategorized';
 
 export type ProductStatus = 'publish' | 'draft' | 'private';
