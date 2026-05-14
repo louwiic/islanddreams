@@ -184,7 +184,7 @@ export function CarteInteractive({ onSelect, activeId, activeCommune }: Props) {
               )}
               <span
                 className={cn(
-                  'relative block w-3.5 h-3.5 rounded-full border-2 border-white shadow-md transition-all duration-150',
+                  'relative block w-4 h-4 md:w-3.5 md:h-3.5 rounded-full border-2 border-white shadow-md transition-all duration-150',
                   isHighlight
                     ? 'bg-coral-500 border-coral-300 scale-125'
                     : 'bg-ink/80 group-hover:bg-coral-400 group-hover:scale-110'
@@ -193,7 +193,7 @@ export function CarteInteractive({ onSelect, activeId, activeCommune }: Props) {
             </span>
             <span
               className={cn(
-                'absolute top-1/2 -translate-y-1/2 text-sm md:text-base font-bold text-ink whitespace-nowrap transition-colors',
+                'absolute top-1/2 -translate-y-1/2 text-[9px] md:text-sm font-bold text-ink whitespace-nowrap transition-colors',
                 '[text-shadow:_-1px_-1px_0_#fff,_1px_-1px_0_#fff,_-1px_1px_0_#fff,_1px_1px_0_#fff,_0_0_6px_rgba(255,255,255,0.8)]',
                 isHighlight && 'text-coral-600',
                 commune.labelSide === 'left'
