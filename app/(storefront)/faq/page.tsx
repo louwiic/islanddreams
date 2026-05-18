@@ -3,7 +3,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { FaqFullList } from './FaqFullList';
 
 export const metadata: Metadata = {
-  title: 'FAQ — Island Dreams | Questions fréquentes',
+  title: 'FAQ — Island Dreams | Mi répon zot question',
   description:
     'Retrouvez les réponses aux questions les plus fréquentes sur Island Dreams : produits, commandes, livraison, paiement et retours.',
   alternates: { canonical: '/faq' },
@@ -27,7 +27,7 @@ export default async function FaqPage() {
       <div className="bg-jungle-800 pt-24 pb-12">
         <div className="max-w-3xl mx-auto px-6 text-center">
           <h1 className="font-[family-name:var(--font-oswald)] text-3xl md:text-4xl font-bold text-cream uppercase tracking-wide">
-            Questions fréquentes
+            Mi répon zot question
           </h1>
           <p className="text-jungle-200 text-sm mt-2">
             Tout ce que vous devez savoir sur Island Dreams

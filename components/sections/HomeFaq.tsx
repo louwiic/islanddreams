@@ -20,7 +20,7 @@ export function HomeFaq({ items }: { items: FaqItem[] }) {
     <section className="bg-cream py-16 px-6">
       <div className="max-w-3xl mx-auto">
         <h2 className="font-[family-name:var(--font-oswald)] text-3xl md:text-4xl font-bold text-ink text-center uppercase tracking-wide mb-3">
-          Questions fréquentes
+          Mi répon zot question
         </h2>
         <p className="text-center text-gray-500 text-sm mb-10 italic">
           Tout ce que vous devez savoir sur Island Dreams
