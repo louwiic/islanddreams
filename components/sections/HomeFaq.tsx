@@ -1,15 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
 type FaqItem = { id: string; question: string; answer: string };
+
+const HOME_LIMIT = 6;
 
 export function HomeFaq({ items }: { items: FaqItem[] }) {
   const [openId, setOpenId] = useState<string | null>(null);
 
   if (items.length === 0) return null;
+
+  const visible = items.slice(0, HOME_LIMIT);
 
   return (
     <section className="bg-cream py-16 px-6">
@@ -22,7 +27,7 @@ export function HomeFaq({ items }: { items: FaqItem[] }) {
         </p>
 
         <div className="space-y-3">
-          {items.map((faq) => {
+          {visible.map((faq) => {
             const isOpen = openId === faq.id;
             return (
               <div
@@ -60,6 +65,17 @@ export function HomeFaq({ items }: { items: FaqItem[] }) {
               </div>
             );
           })}
+
+          {/* CTA vers page FAQ complète */}
+          <Link
+            href="/faq"
+            className="flex items-center justify-between px-5 py-4 bg-jungle-600 hover:bg-jungle-700 text-white rounded-xl shadow-sm transition-colors"
+          >
+            <span className="text-sm md:text-base font-semibold">
+              Vous avez encore des questions ?
+            </span>
+            <ArrowRight size={18} className="shrink-0" />
+          </Link>
         </div>
       </div>
     </section>
