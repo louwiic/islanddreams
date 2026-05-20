@@ -9,10 +9,14 @@ import {
   ToggleLeft,
   ToggleRight,
   Pen,
+  Plus,
+  Trash2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   updateShippingMethod,
+  createShippingMethod,
+  deleteShippingMethod,
   toggleShippingZone,
   type ShippingZone,
 } from '@/lib/actions/shipping';
@@ -28,6 +32,9 @@ export function ShippingManager({
   const [editCost, setEditCost] = useState('');
   const [editName, setEditName] = useState('');
   const [saving, setSaving] = useState(false);
+  const [addingToZone, setAddingToZone] = useState<string | null>(null);
+  const [newName, setNewName] = useState('');
+  const [newCost, setNewCost] = useState('');
 
   const handleToggleZone = async (zoneId: string, enabled: boolean) => {
     await toggleShippingZone(zoneId, !enabled);
@@ -50,6 +57,26 @@ export function ShippingManager({
     });
     setSaving(false);
     setEditingMethod(null);
+    router.refresh();
+  };
+
+  const handleAddMethod = async (zoneId: string) => {
+    if (!newName.trim()) return;
+    setSaving(true);
+    await createShippingMethod(zoneId, {
+      name: newName.trim(),
+      cost: parseFloat(newCost) || 0,
+    });
+    setSaving(false);
+    setAddingToZone(null);
+    setNewName('');
+    setNewCost('');
+    router.refresh();
+  };
+
+  const handleDeleteMethod = async (methodId: string) => {
+    if (!confirm('Supprimer ce mode de livraison ?')) return;
+    await deleteShippingMethod(methodId);
     router.refresh();
   };
 
@@ -171,7 +198,7 @@ export function ShippingManager({
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                       <span className="text-sm font-bold text-ink">
                         {method.cost.toFixed(2)} €
                       </span>
@@ -181,11 +208,67 @@ export function ShippingManager({
                       >
                         <Pen size={12} className="text-gray-400" />
                       </button>
+                      <button
+                        onClick={() => handleDeleteMethod(method.id)}
+                        className="p-1.5 rounded-lg hover:bg-coral-50 transition-colors"
+                      >
+                        <Trash2 size={12} className="text-gray-300 hover:text-coral-500" />
+                      </button>
                     </div>
                   </>
                 )}
               </div>
             ))}
+
+            {/* Formulaire ajout */}
+            {addingToZone === zone.id ? (
+              <div className="px-5 py-3 border-t border-gray-100 bg-gray-50/50">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="text"
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    placeholder="Nom (ex: Colissimo)"
+                    className="px-2 py-1.5 rounded border border-gray-200 text-sm flex-1 max-w-[200px] focus:outline-none focus:ring-1 focus:ring-jungle-500/30"
+                  />
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="number"
+                      value={newCost}
+                      onChange={(e) => setNewCost(e.target.value)}
+                      step="0.01"
+                      placeholder="0.00"
+                      className="w-20 px-2 py-1.5 rounded border border-gray-200 text-sm text-right focus:outline-none focus:ring-1 focus:ring-jungle-500/30"
+                    />
+                    <span className="text-sm text-gray-400">€</span>
+                  </div>
+                  <button
+                    onClick={() => handleAddMethod(zone.id)}
+                    disabled={saving || !newName.trim()}
+                    className="flex items-center gap-1 px-3 py-1.5 bg-jungle-600 text-white rounded text-xs font-medium hover:bg-jungle-700 disabled:opacity-50"
+                  >
+                    <Save size={12} />
+                    Ajouter
+                  </button>
+                  <button
+                    onClick={() => { setAddingToZone(null); setNewName(''); setNewCost(''); }}
+                    className="text-xs text-gray-400 hover:text-gray-600"
+                  >
+                    Annuler
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="px-5 py-2 border-t border-gray-50">
+                <button
+                  onClick={() => setAddingToZone(zone.id)}
+                  className="flex items-center gap-1.5 text-xs text-ocean-600 hover:text-ocean-700 transition-colors py-1"
+                >
+                  <Plus size={14} />
+                  Ajouter un mode de livraison
+                </button>
+              </div>
+            )}
           </div>
         </div>
       ))}

@@ -157,6 +157,47 @@ export async function updateShippingMethod(
   return { success: true };
 }
 
+/* ── Créer une méthode de livraison ──────────────────────── */
+
+export async function createShippingMethod(
+  zoneId: string,
+  data: { name: string; cost: number; freeAbove?: number | null; requiresSignature?: boolean }
+) {
+  const supabase = createAdminClient();
+
+  const { error } = await supabase
+    .from('shipping_methods')
+    .insert({
+      zone_id: zoneId,
+      name: data.name,
+      cost: data.cost,
+      free_above: data.freeAbove ?? null,
+      requires_signature: data.requiresSignature ?? false,
+      enabled: true,
+    });
+
+  if (error) return { error: error.message };
+
+  revalidatePath('/admin/livraison');
+  return { success: true };
+}
+
+/* ── Supprimer une méthode de livraison ─────────────────── */
+
+export async function deleteShippingMethod(id: string) {
+  const supabase = createAdminClient();
+
+  const { error } = await supabase
+    .from('shipping_methods')
+    .delete()
+    .eq('id', id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath('/admin/livraison');
+  return { success: true };
+}
+
 /* ── Toggle zone ─────────────────────────────────────────── */
 
 export async function toggleShippingZone(id: string, enabled: boolean) {
