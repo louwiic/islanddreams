@@ -164,7 +164,7 @@ export default async function CheckoutSuccessPage({
             Continuer mes achats
           </Link>
           <Link
-            href="/mes-commandes"
+            href="/compte"
             className="flex items-center gap-2 px-6 py-3 text-sm text-ink/60 hover:text-ink transition-colors"
           >
             Voir mes commandes

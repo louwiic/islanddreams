@@ -96,7 +96,9 @@
       "Bash(sips:*)",
       "Bash(mkdir -p \"/Users/loic/IT/islanddreams/app/admin/blog/[id]\")",
       "Bash(mkdir -p \"/Users/loic/IT/islanddreams/app/\\(storefront\\)/blog/[slug]\")",
-      "Bash(supabase gen:*)"
+      "Bash(supabase gen:*)",
+      "Bash(supabase --version)",
+      "Bash(supabase sql:*)"
     ]
   }
 }
