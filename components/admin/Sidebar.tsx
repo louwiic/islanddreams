@@ -27,23 +27,54 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const navigation = [
+type NavItem = { name: string; href: string; icon: React.ComponentType<{ size?: number }> };
+type NavGroup = { label: string; items: NavItem[] };
+
+const navigation: (NavItem | NavGroup)[] = [
   { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-  { name: 'Produits', href: '/admin/produits', icon: Package },
-  { name: 'Catégories', href: '/admin/categories', icon: Tag },
-  { name: 'Commandes', href: '/admin/commandes', icon: ShoppingCart },
-  { name: 'Clients', href: '/admin/clients', icon: Users },
-  { name: 'Messages', href: '/admin/messages', icon: MessageSquare },
-  { name: 'Blog', href: '/admin/blog', icon: FileText },
-  { name: 'Newsletter', href: '/admin/newsletter', icon: Mail },
-  { name: 'Chatbot', href: '/admin/chatbot', icon: Bot },
-  { name: 'FAQ', href: '/admin/faq', icon: HelpCircle },
-  { name: 'Bannières', href: '/admin/banners', icon: Megaphone },
-  { name: 'Textile', href: '/admin/textile', icon: Shirt },
-  { name: 'Livraison', href: '/admin/livraison', icon: Truck },
-  { name: 'SEO', href: '/admin/seo', icon: Search },
-  { name: 'Paramètres', href: '/admin/parametres', icon: Settings },
+
+  {
+    label: 'Boutique',
+    items: [
+      { name: 'Produits', href: '/admin/produits', icon: Package },
+      { name: 'Catégories', href: '/admin/categories', icon: Tag },
+      { name: 'Textile', href: '/admin/textile', icon: Shirt },
+      { name: 'Commandes', href: '/admin/commandes', icon: ShoppingCart },
+      { name: 'Clients', href: '/admin/clients', icon: Users },
+      { name: 'Livraison', href: '/admin/livraison', icon: Truck },
+    ],
+  },
+
+  {
+    label: 'Contenu',
+    items: [
+      { name: 'Blog', href: '/admin/blog', icon: FileText },
+      { name: 'Bannières', href: '/admin/banners', icon: Megaphone },
+      { name: 'FAQ', href: '/admin/faq', icon: HelpCircle },
+    ],
+  },
+
+  {
+    label: 'Communication',
+    items: [
+      { name: 'Messages', href: '/admin/messages', icon: MessageSquare },
+      { name: 'Newsletter', href: '/admin/newsletter', icon: Mail },
+      { name: 'Chatbot', href: '/admin/chatbot', icon: Bot },
+    ],
+  },
+
+  {
+    label: 'Réglages',
+    items: [
+      { name: 'SEO', href: '/admin/seo', icon: Search },
+      { name: 'Paramètres', href: '/admin/parametres', icon: Settings },
+    ],
+  },
 ];
+
+function isGroup(item: NavItem | NavGroup): item is NavGroup {
+  return 'items' in item;
+}
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -55,6 +86,30 @@ export function Sidebar() {
     await supabase.auth.signOut();
     router.push('/admin/login');
     router.refresh();
+  };
+
+  const renderLink = (item: NavItem) => {
+    const isActive =
+      item.href === '/admin'
+        ? pathname === '/admin'
+        : pathname.startsWith(item.href);
+
+    return (
+      <Link
+        key={item.name}
+        href={item.href}
+        onClick={() => setMobileOpen(false)}
+        className={cn(
+          'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+          isActive
+            ? 'bg-jungle-600 text-white'
+            : 'text-gray-600 hover:bg-gray-50 hover:text-ink'
+        )}
+      >
+        <item.icon size={17} />
+        {item.name}
+      </Link>
+    );
   };
 
   return (
@@ -97,29 +152,21 @@ export function Sidebar() {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-1">
-          {navigation.map((item) => {
-            const isActive =
-              item.href === '/admin'
-                ? pathname === '/admin'
-                : pathname.startsWith(item.href);
-
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                onClick={() => setMobileOpen(false)}
-                className={cn(
-                  'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-                  isActive
-                    ? 'bg-jungle-600 text-white'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-ink'
-                )}
-              >
-                <item.icon size={18} />
-                {item.name}
-              </Link>
-            );
+        <nav className="flex-1 overflow-y-auto p-4 space-y-1">
+          {navigation.map((entry, i) => {
+            if (isGroup(entry)) {
+              return (
+                <div key={entry.label} className={cn(i > 0 && 'pt-4')}>
+                  <p className="px-3 mb-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                    {entry.label}
+                  </p>
+                  <div className="space-y-0.5">
+                    {entry.items.map(renderLink)}
+                  </div>
+                </div>
+              );
+            }
+            return renderLink(entry);
           })}
         </nav>
 
