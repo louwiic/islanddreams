@@ -1,36 +1,17 @@
 'use client';
 
-import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { X, Minus, Plus, Trash2, ShoppingBag, Loader2 } from 'lucide-react';
+import { X, Minus, Plus, Trash2, ShoppingBag } from 'lucide-react';
 import { useCart } from '@/lib/cart/CartProvider';
 import { cn } from '@/lib/utils';
 
 export function CartDrawer() {
   const { items, total, count, isOpen, closeCart, removeItem, updateQuantity } =
     useCart();
-  const [checkingOut, setCheckingOut] = useState(false);
-
-  const handleCheckout = async () => {
-    setCheckingOut(true);
-    try {
-      const res = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items }),
-      });
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        alert(data.error || 'Erreur lors de la création du paiement');
-        setCheckingOut(false);
-      }
-    } catch {
-      alert('Erreur de connexion');
-      setCheckingOut(false);
-    }
+  const handleCheckout = () => {
+    closeCart();
+    window.location.href = '/panier';
   };
 
   return (
@@ -195,17 +176,9 @@ export function CartDrawer() {
               </p>
               <button
                 onClick={handleCheckout}
-                disabled={checkingOut}
-                className="w-full py-3 bg-jungle-700 hover:bg-jungle-800 text-cream text-sm font-bold uppercase tracking-wider rounded-xl transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+                className="w-full py-3 bg-jungle-700 hover:bg-jungle-800 text-cream text-sm font-bold uppercase tracking-wider rounded-xl transition-colors flex items-center justify-center gap-2"
               >
-                {checkingOut ? (
-                  <>
-                    <Loader2 size={16} className="animate-spin" />
-                    Redirection...
-                  </>
-                ) : (
-                  `Commander — ${total.toFixed(2)} €`
-                )}
+                Commander — {total.toFixed(2)} €
               </button>
               <Link
                 href="/panier"
