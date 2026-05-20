@@ -62,7 +62,7 @@ export default function ConnexionPage() {
         }
       } else {
         // Inscription
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -71,6 +71,9 @@ export default function ConnexionPage() {
         });
         if (error) {
           setError(error.message);
+        } else if (data.user && data.user.identities?.length === 0) {
+          // Compte déjà existant
+          setError('Un compte existe déjà avec cet email. Connectez-vous ou réinitialisez votre mot de passe.');
         } else {
           setSuccess(
             'Un email de confirmation vous a été envoyé. Cliquez sur le lien pour activer votre compte.'
