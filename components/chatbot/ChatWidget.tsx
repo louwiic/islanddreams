@@ -79,7 +79,7 @@ export default function ChatWidget() {
   }, []);
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
-  useEffect(() => { if (open) setTimeout(() => inputRef.current?.focus(), 100); }, [open]);
+  useEffect(() => { if (open) setTimeout(() => inputRef.current?.focus(), 150); }, [open]);
 
   const handleSend = () => {
     const text = input.trim();
@@ -101,7 +101,12 @@ export default function ChatWidget() {
     <>
       {/* Panel */}
       {open && (
-        <div className={`fixed z-[9999] flex flex-col overflow-hidden rounded-2xl bg-white shadow-2xl bottom-24 w-[380px] ${isRight ? 'right-6' : 'left-6'}`} style={{ height: 580 }}>
+        <div
+          className={`fixed z-[9999] flex flex-col overflow-hidden rounded-2xl bg-white shadow-2xl
+            bottom-0 left-0 right-0 h-full
+            sm:bottom-24 sm:left-auto sm:right-auto sm:h-[580px] sm:w-[380px] sm:rounded-2xl
+            ${isRight ? 'sm:right-6' : 'sm:left-6'}`}
+        >
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 shrink-0" style={{ backgroundColor: config.primary_color, color: config.text_color }}>
             <div className="flex items-center gap-3">
@@ -176,27 +181,29 @@ export default function ChatWidget() {
           </div>
 
           {/* Input */}
-          <div className="border-t border-gray-100 p-3 shrink-0">
-            <div className="flex gap-2">
+          <div className="border-t border-gray-100 p-3 shrink-0 bg-white">
+            <form
+              onSubmit={(e) => { e.preventDefault(); handleSend(); }}
+              className="flex gap-2"
+            >
               <input
                 ref={inputRef}
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
                 placeholder="Votre message..."
-                className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-gray-300 focus:outline-none"
+                className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-200"
+                autoComplete="off"
               />
               <button
-                type="button"
-                onClick={handleSend}
+                type="submit"
                 disabled={isStreaming || !input.trim()}
                 className="shrink-0 rounded-xl p-2.5 text-white transition-colors disabled:opacity-50"
                 style={{ backgroundColor: config.primary_color }}
               >
                 {isStreaming ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
               </button>
-            </div>
+            </form>
           </div>
         </div>
       )}
