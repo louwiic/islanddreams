@@ -1,6 +1,19 @@
 'use server';
 
 import { createAdminClient } from '@/lib/supabase/admin';
+import sharp from 'sharp';
+
+const MAX_WIDTH = 1200;
+const QUALITY = 80;
+
+async function compressImage(buffer: Buffer): Promise<{ data: Buffer; contentType: string; ext: string }> {
+  const compressed = await sharp(buffer)
+    .resize(MAX_WIDTH, undefined, { withoutEnlargement: true })
+    .webp({ quality: QUALITY })
+    .toBuffer();
+
+  return { data: compressed, contentType: 'image/webp', ext: 'webp' };
+}
 
 export async function uploadProductImage(
   productSlug: string,
@@ -11,15 +24,15 @@ export async function uploadProductImage(
 
   const supabase = createAdminClient();
 
-  const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-  const path = `${productSlug}/${Date.now()}.${ext}`;
+  const rawBuffer = Buffer.from(await file.arrayBuffer());
+  const { data: compressed, contentType, ext } = await compressImage(rawBuffer);
 
-  const buffer = Buffer.from(await file.arrayBuffer());
+  const path = `${productSlug}/${Date.now()}.${ext}`;
 
   const { error } = await supabase.storage
     .from('product-images')
-    .upload(path, buffer, {
-      contentType: file.type,
+    .upload(path, compressed, {
+      contentType,
       upsert: true,
     });
 
@@ -37,15 +50,15 @@ export async function uploadTextileImage(
 
   const supabase = createAdminClient();
 
-  const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-  const path = `textile/${Date.now()}.${ext}`;
+  const rawBuffer = Buffer.from(await file.arrayBuffer());
+  const { data: compressed, contentType, ext } = await compressImage(rawBuffer);
 
-  const buffer = Buffer.from(await file.arrayBuffer());
+  const path = `textile/${Date.now()}.${ext}`;
 
   const { error } = await supabase.storage
     .from('product-images')
-    .upload(path, buffer, {
-      contentType: file.type,
+    .upload(path, compressed, {
+      contentType,
       upsert: true,
     });
 

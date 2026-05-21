@@ -4,12 +4,14 @@ import { calculateShipping } from '@/lib/actions/shipping';
 export async function GET(req: NextRequest) {
   const country = req.nextUrl.searchParams.get('country') || 'RE';
   const postalCode = req.nextUrl.searchParams.get('postal_code') || '';
+  const weightParam = req.nextUrl.searchParams.get('weight');
+  const cartWeightG = weightParam ? parseInt(weightParam) : undefined;
 
   if (!postalCode) {
     return NextResponse.json({ error: 'postal_code requis' }, { status: 400 });
   }
 
-  const result = await calculateShipping(country, postalCode);
+  const result = await calculateShipping(country, postalCode, cartWeightG);
 
   if (!result) {
     return NextResponse.json(
@@ -18,5 +20,5 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  return NextResponse.json(result);
+  return NextResponse.json({ options: result });
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -23,7 +23,7 @@ type ShippingMethod = {
   requiresSignature: boolean;
 };
 
-type ShippingResult = {
+type ShippingOption = {
   zone: string;
   methods: ShippingMethod[];
 };
@@ -32,7 +32,7 @@ export default function PanierPage() {
   const { items, total, count, removeItem, updateQuantity, clearCart } = useCart();
   const [postalCode, setPostalCode] = useState('');
   const [country, setCountry] = useState('RE');
-  const [shipping, setShipping] = useState<ShippingResult | null>(null);
+  const [shippingOptions, setShippingOptions] = useState<ShippingOption[] | null>(null);
   const [shippingError, setShippingError] = useState('');
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
   const [loadingShipping, setLoadingShipping] = useState(false);
@@ -43,8 +43,13 @@ export default function PanierPage() {
   const [promoLabel, setPromoLabel] = useState('');
   const [promoDiscount, setPromoDiscount] = useState<{ percentOff?: number; amountOff?: number } | null>(null);
 
-  const shippingCost =
-    shipping?.methods.find((m) => m.id === selectedMethod)?.cost ?? 0;
+  // Poids total du panier
+  const cartWeightG = items.reduce((sum, item) => sum + (item.weightGrams ?? 0) * item.quantity, 0);
+
+  // Trouver le coût de la méthode sélectionnée
+  const shippingCost = shippingOptions
+    ?.flatMap((o) => o.methods)
+    .find((m) => m.id === selectedMethod)?.cost ?? 0;
 
   // Calcul de la réduction
   let discountAmount = 0;
@@ -57,35 +62,45 @@ export default function PanierPage() {
   }
   const grandTotal = total - discountAmount + shippingCost;
 
-  const calculateShipping = async () => {
-    if (!postalCode.trim()) return;
+  const fetchShipping = async (cp: string, ctry: string, weight: number) => {
     setLoadingShipping(true);
     setShippingError('');
-    setShipping(null);
     setSelectedMethod(null);
 
     try {
+      const weightParam = weight > 0 ? `&weight=${weight}` : '';
       const res = await fetch(
-        `/api/shipping?country=${country}&postal_code=${postalCode.trim()}`
+        `/api/shipping?country=${ctry}&postal_code=${cp}${weightParam}`
       );
       const data = await res.json();
 
       if (!res.ok) {
-        setShippingError(
-          data.error || 'Zone non couverte. Contactez-nous.'
-        );
+        setShippingError(data.error || 'Zone non couverte. Contactez-nous.');
+        setShippingOptions(null);
       } else {
-        setShipping(data);
-        if (data.methods.length === 1) {
-          setSelectedMethod(data.methods[0].id);
-        }
+        setShippingOptions(data.options);
       }
     } catch {
       setShippingError('Erreur de connexion');
+      setShippingOptions(null);
     } finally {
       setLoadingShipping(false);
     }
   };
+
+  const calculateShipping = () => {
+    if (!postalCode.trim()) return;
+    fetchShipping(postalCode.trim(), country, cartWeightG);
+  };
+
+  // Recalculer automatiquement quand le poids du panier change (ajout/suppression)
+  const prevWeightRef = useRef(cartWeightG);
+  useEffect(() => {
+    if (!postalCode.trim() || !shippingOptions) return;
+    if (prevWeightRef.current === cartWeightG) return;
+    prevWeightRef.current = cartWeightG;
+    fetchShipping(postalCode.trim(), country, cartWeightG);
+  }, [cartWeightG, postalCode, country, shippingOptions]);
 
   const validatePromo = async () => {
     if (!promoCode.trim() || !promoEmail.trim()) return;
@@ -248,6 +263,7 @@ export default function PanierPage() {
                           {item.quantity}
                         </span>
                         <button
+                          disabled={item.maxQuantity != null && item.quantity >= item.maxQuantity}
                           onClick={() =>
                             updateQuantity(
                               item.productId,
@@ -291,12 +307,12 @@ export default function PanierPage() {
               </div>
 
               <div className="space-y-3">
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <select
                     value={country}
                     onChange={(e) => {
                       setCountry(e.target.value);
-                      setShipping(null);
+                      setShippingOptions(null);
                     }}
                     className="px-2 py-2 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-jungle-500/30"
                   >
@@ -309,7 +325,7 @@ export default function PanierPage() {
                     onChange={(e) => setPostalCode(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && calculateShipping()}
                     placeholder="Code postal"
-                    className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-jungle-500/30"
+                    className="flex-1 min-w-[100px] px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-jungle-500/30"
                   />
                   <button
                     onClick={calculateShipping}
@@ -328,13 +344,13 @@ export default function PanierPage() {
                   <p className="text-xs text-coral-500">{shippingError}</p>
                 )}
 
-                {shipping && (
-                  <div className="space-y-2">
-                    <p className="text-xs text-gray-500 flex items-center gap-1">
+                {shippingOptions && shippingOptions.map((option) => (
+                  <div key={option.zone} className="space-y-2">
+                    <p className="text-xs font-semibold text-gray-500 flex items-center gap-1 pt-1">
                       <MapPin size={12} />
-                      {shipping.zone}
+                      {option.zone}
                     </p>
-                    {shipping.methods.map((method) => (
+                    {option.methods.map((method) => (
                       <label
                         key={method.id}
                         className={cn(
@@ -370,9 +386,9 @@ export default function PanierPage() {
                       </label>
                     ))}
                   </div>
-                )}
+                ))}
 
-                {!shipping && !shippingError && (
+                {!shippingOptions && !shippingError && (
                   <p className="text-xs text-gray-400">
                     Entrez votre code postal pour calculer les frais
                   </p>
@@ -453,7 +469,7 @@ export default function PanierPage() {
               <div className="flex justify-between text-sm text-gray-500">
                 <span>Livraison</span>
                 <span>
-                  {shipping
+                  {shippingOptions
                     ? selectedMethod
                       ? `${shippingCost.toFixed(2)} €`
                       : 'Sélectionnez'
@@ -480,7 +496,7 @@ export default function PanierPage() {
                 )}
               </button>
 
-              {!selectedMethod && shipping && (
+              {!selectedMethod && shippingOptions && (
                 <p className="text-xs text-coral-500 text-center">
                   Choisissez un mode de livraison
                 </p>

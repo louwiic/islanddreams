@@ -6,7 +6,7 @@ import { ChevronRight } from 'lucide-react';
 import { getProductBySlug } from '@/lib/actions/products';
 import { ProductForm } from '@/components/ui/ProductForm';
 import { ProductGallery } from '@/components/ui/ProductGallery';
-import { ProductFaq } from '@/components/ui/ProductFaq';
+import { ProductTabs } from '@/components/ui/ProductTabs';
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -157,6 +157,9 @@ export default async function ProductPage({ params }: PageProps) {
                   sale_price: product.sale_price,
                   in_stock: product.in_stock,
                   image: mainImage?.url,
+                  weight_grams: product.weight_grams,
+                  manage_stock: product.manage_stock,
+                  stock_quantity: product.stock_quantity,
                 }}
                 attributes={product.attributes}
                 variants={product.variants.map((v) => ({
@@ -166,25 +169,17 @@ export default async function ProductPage({ params }: PageProps) {
               />
             </div>
 
-            {/* Description complète */}
-            {product.description && (
-              <div className="mt-8 pt-8 border-t border-gray-200">
-                <h2 className="text-sm font-bold text-ink uppercase tracking-wider mb-3">
-                  Description
-                </h2>
-                <div
-                  className="text-sm text-gray-600 leading-relaxed prose prose-sm"
-                  dangerouslySetInnerHTML={{ __html: product.description }}
-                />
-              </div>
-            )}
-
-            {/* FAQ */}
-            {product.faqs && product.faqs.length > 0 && (
-              <ProductFaq items={product.faqs} />
-            )}
           </div>
         </div>
+
+        {/* Onglets Description | Galerie | FAQ */}
+        <ProductTabs
+          description={product.description ?? undefined}
+          images={sortedImages}
+          faqs={product.faqs ?? []}
+          productName={product.name}
+          weightGrams={product.weight_grams}
+        />
       </div>
       </div>
 

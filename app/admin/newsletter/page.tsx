@@ -12,7 +12,7 @@ export default async function NewsletterPage() {
   const { data: subscribers } = await admin
     .from('newsletter_subscribers')
     .select('*')
-    .order('created_at', { ascending: false });
+    .order('subscribed_at', { ascending: false });
 
   const all = subscribers ?? [];
   const active = all.filter((s) => !s.unsubscribed_at);
@@ -97,7 +97,7 @@ export default async function NewsletterPage() {
                   <td className="px-5 py-3 hidden sm:table-cell">
                     <div className="flex items-center gap-1 text-xs text-gray-400">
                       <Clock size={12} />
-                      {new Date(sub.created_at).toLocaleDateString('fr-FR', {
+                      {new Date(sub.subscribed_at).toLocaleDateString('fr-FR', {
                         day: 'numeric',
                         month: 'short',
                         year: 'numeric',

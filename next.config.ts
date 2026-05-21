@@ -25,6 +25,12 @@ const nextConfig: NextConfig = {
         destination: '/politique-de-cookies',
         permanent: true,
       },
+      // Liens courts
+      {
+        source: '/go/avis',
+        destination: '/avis',
+        permanent: false,
+      },
     ];
   },
   images: {

@@ -98,7 +98,8 @@
       "Bash(mkdir -p \"/Users/loic/IT/islanddreams/app/\\(storefront\\)/blog/[slug]\")",
       "Bash(supabase gen:*)",
       "Bash(supabase --version)",
-      "Bash(supabase sql:*)"
+      "Bash(supabase sql:*)",
+      "WebFetch(domain:resend.com)"
     ]
   }
 }

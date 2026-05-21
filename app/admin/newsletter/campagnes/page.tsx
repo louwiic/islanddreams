@@ -65,10 +65,12 @@ export default async function CampaignsPage() {
               </h2>
               <div className="flex flex-col gap-3">
                 {drafts.map((b) => (
-                  <div key={b.id} className="bg-white rounded-xl border border-gray-200 p-5">
+                  <div key={b.id} className="bg-white rounded-xl border border-gray-200 p-5 hover:border-jungle-300 transition-colors">
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0">
-                        <p className="text-sm font-bold text-gray-900">{b.name}</p>
+                        <Link href={`/admin/newsletter/campagnes/${b.id}`} className="text-sm font-bold text-gray-900 hover:text-jungle-600 transition-colors">
+                          {b.name}
+                        </Link>
                         <div className="flex items-center gap-2 mt-1">
                           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-yellow-100 text-yellow-700">
                             Brouillon
@@ -100,10 +102,12 @@ export default async function CampaignsPage() {
               </h2>
               <div className="flex flex-col gap-3">
                 {sent.map((b) => (
-                  <div key={b.id} className="bg-white rounded-xl border border-gray-100 p-5">
+                  <div key={b.id} className="bg-white rounded-xl border border-gray-100 p-5 hover:border-gray-300 transition-colors">
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0">
-                        <p className="text-sm font-bold text-gray-900">{b.name}</p>
+                        <Link href={`/admin/newsletter/campagnes/${b.id}`} className="text-sm font-bold text-gray-900 hover:text-jungle-600 transition-colors">
+                          {b.name}
+                        </Link>
                         <div className="flex items-center gap-3 mt-1">
                           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-green-100 text-green-700">
                             <Send size={10} className="mr-1" />

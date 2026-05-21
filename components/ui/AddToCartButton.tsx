@@ -14,6 +14,9 @@ type Props = {
     salePrice?: number | null;
     image?: string;
     inStock: boolean;
+    weightGrams?: number | null;
+    manageStock?: boolean;
+    stockQuantity?: number | null;
   };
   variantId?: string;
   variantLabel?: string;
@@ -26,6 +29,7 @@ export function AddToCartButton({ product, variantId, variantLabel, disabled }: 
   const [added, setAdded] = useState(false);
 
   const price = product.salePrice || product.price;
+  const maxQty = product.manageStock && product.stockQuantity != null ? product.stockQuantity : Infinity;
 
   const handleAdd = () => {
     const item: CartItem = {
@@ -37,6 +41,8 @@ export function AddToCartButton({ product, variantId, variantLabel, disabled }: 
       price,
       quantity,
       image: product.image,
+      weightGrams: product.weightGrams ?? undefined,
+      maxQuantity: maxQty === Infinity ? undefined : maxQty,
     };
 
     addItem(item);
@@ -72,7 +78,8 @@ export function AddToCartButton({ product, variantId, variantLabel, disabled }: 
             {quantity}
           </span>
           <button
-            onClick={() => setQuantity((q) => q + 1)}
+            onClick={() => setQuantity((q) => Math.min(q + 1, maxQty))}
+            disabled={quantity >= maxQty}
             className="p-2 hover:bg-gray-50 transition-colors"
           >
             <Plus size={14} className="text-gray-500" />

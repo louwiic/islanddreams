@@ -24,6 +24,7 @@ import {
   FileText,
   Bot,
   HelpCircle,
+  Star,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -51,6 +52,7 @@ const navigation: (NavItem | NavGroup)[] = [
       { name: 'Blog', href: '/admin/blog', icon: FileText },
       { name: 'Bannières', href: '/admin/banners', icon: Megaphone },
       { name: 'FAQ', href: '/admin/faq', icon: HelpCircle },
+      { name: 'Avis', href: '/admin/avis', icon: Star },
     ],
   },
 

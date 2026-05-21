@@ -26,6 +26,9 @@ type Props = {
     sale_price: number | null;
     in_stock: boolean | null;
     image?: string;
+    weight_grams?: number | null;
+    manage_stock?: boolean | null;
+    stock_quantity?: number | null;
   };
   attributes: Attribute[];
   variants: Variant[];
@@ -144,9 +147,12 @@ export function ProductForm({ product, attributes, variants }: Props) {
           slug: product.slug,
           name: product.name,
           price: effectivePrice,
-          salePrice: null, // déjà calculé dans effectivePrice
+          salePrice: null,
           image: product.image,
           inStock,
+          weightGrams: product.weight_grams,
+          manageStock: product.manage_stock ?? false,
+          stockQuantity: product.stock_quantity,
         }}
         variantId={selectedVariant?.id}
         variantLabel={variantLabel}

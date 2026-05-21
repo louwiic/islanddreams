@@ -52,10 +52,34 @@ export async function getShippingZones(): Promise<ShippingZone[]> {
 
 /* ── Calculer les frais de livraison (public) ────────────── */
 
+type ShippingOption = {
+  zone: string;
+  methods: { id: string; name: string; cost: number; requiresSignature: boolean }[];
+};
+
+function matchesPostalCode(postalCode: string, country: string, pc: { country: string; postcode_pattern: string }): boolean {
+  if (pc.country !== country && pc.country !== '*') return false;
+
+  if (pc.postcode_pattern === '*') return true;
+
+  if (pc.postcode_pattern.includes('-')) {
+    const [start, end] = pc.postcode_pattern.split('-');
+    const code = parseInt(postalCode);
+    return code >= parseInt(start) && code <= parseInt(end);
+  }
+
+  if (pc.postcode_pattern.endsWith('*')) {
+    return postalCode.startsWith(pc.postcode_pattern.slice(0, -1));
+  }
+
+  return postalCode === pc.postcode_pattern;
+}
+
 export async function calculateShipping(
   country: string,
-  postalCode: string
-): Promise<{ zone: string; methods: { id: string; name: string; cost: number; requiresSignature: boolean }[] } | null> {
+  postalCode: string,
+  cartWeightG?: number
+): Promise<ShippingOption[] | null> {
   const supabase = await createClient();
 
   const { data: zones } = await supabase
@@ -70,66 +94,63 @@ export async function calculateShipping(
     .from('shipping_zone_postcodes')
     .select('zone_id, country, postcode_pattern');
 
-  // Trouver la zone correspondante
-  let matchedZoneId: string | null = null;
-  let matchedZoneName = '';
+  // Trouver TOUTES les zones correspondantes (livraison propre + La Poste)
+  const matchedZoneIds: { id: string; name: string }[] = [];
 
   for (const zone of zones) {
     const zonePostcodes = (allPostcodes ?? []).filter((p) => p.zone_id === zone.id);
-
-    for (const pc of zonePostcodes) {
-      if (pc.country !== country && pc.country !== '*') continue;
-
-      if (pc.postcode_pattern === '*') {
-        // Wildcard — match tout le pays
-        matchedZoneId = zone.id;
-        matchedZoneName = zone.name;
-      } else if (pc.postcode_pattern.includes('-')) {
-        // Range — ex: 97425-97427
-        const [start, end] = pc.postcode_pattern.split('-');
-        const code = parseInt(postalCode);
-        if (code >= parseInt(start) && code <= parseInt(end)) {
-          matchedZoneId = zone.id;
-          matchedZoneName = zone.name;
-        }
-      } else if (pc.postcode_pattern.endsWith('*')) {
-        // Prefix — ex: 974*
-        const prefix = pc.postcode_pattern.slice(0, -1);
-        if (postalCode.startsWith(prefix)) {
-          matchedZoneId = zone.id;
-          matchedZoneName = zone.name;
-        }
-      } else {
-        // Exact match
-        if (postalCode === pc.postcode_pattern) {
-          matchedZoneId = zone.id;
-          matchedZoneName = zone.name;
-        }
-      }
-
-      if (matchedZoneId) break;
-    }
-    if (matchedZoneId) break;
+    const matches = zonePostcodes.some((pc) => matchesPostalCode(postalCode, country, pc));
+    if (matches) matchedZoneIds.push({ id: zone.id, name: zone.name });
   }
 
-  if (!matchedZoneId) return null;
+  if (matchedZoneIds.length === 0) return null;
 
-  const { data: methods } = await supabase
+  const { data: rawMethods } = await supabase
     .from('shipping_methods')
-    .select('id, name, cost, requires_signature')
-    .eq('zone_id', matchedZoneId)
+    .select('*')
+    .in('zone_id', matchedZoneIds.map((z) => z.id))
     .eq('enabled', true)
     .order('sort_order');
 
-  return {
-    zone: matchedZoneName,
-    methods: (methods ?? []).map((m) => ({
-      id: m.id,
-      name: m.name,
-      cost: m.cost,
-      requiresSignature: m.requires_signature ?? false,
-    })),
-  };
+  const allMethods = (rawMethods ?? []) as unknown as { id: string; name: string; cost: number; requires_signature: boolean | null; zone_id: string; min_weight_g: number | null; max_weight_g: number | null }[];
+
+  // Séparer méthodes avec poids (La Poste) et sans poids (livraison propre)
+  const isWeightBased = (m: { min_weight_g: number | null; max_weight_g: number | null }) =>
+    m.min_weight_g != null || m.max_weight_g != null;
+
+  // Décider du mode : < 1000g → La Poste, >= 1000g → livraison propre
+  const usePostal = cartWeightG != null && cartWeightG > 0 && cartWeightG < 1000;
+  const useOwnDelivery = cartWeightG == null || cartWeightG === 0 || cartWeightG >= 1000;
+
+  const result: ShippingOption[] = [];
+
+  for (const zone of matchedZoneIds) {
+    const zoneMethods = allMethods
+      .filter((m) => m.zone_id === zone.id)
+      .filter((m) => {
+        if (isWeightBased(m)) {
+          // Méthode La Poste — afficher uniquement si poids < 1000g et dans la bonne tranche
+          if (!usePostal) return false;
+          if (!cartWeightG) return false;
+          return cartWeightG >= (m.min_weight_g ?? 0) && cartWeightG <= (m.max_weight_g ?? Infinity);
+        } else {
+          // Livraison propre — afficher uniquement si poids >= 1000g ou poids inconnu
+          return useOwnDelivery;
+        }
+      })
+      .map((m) => ({
+        id: m.id,
+        name: m.name,
+        cost: m.cost,
+        requiresSignature: m.requires_signature ?? false,
+      }));
+
+    if (zoneMethods.length > 0) {
+      result.push({ zone: zone.name, methods: zoneMethods });
+    }
+  }
+
+  return result.length > 0 ? result : null;
 }
 
 /* ── Mettre à jour le coût d'une méthode ─────────────────── */
