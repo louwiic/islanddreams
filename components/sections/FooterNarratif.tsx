@@ -242,36 +242,6 @@ export function FooterNarratif() {
             </ul>
           </div>
 
-          {/* Financements */}
-          <div>
-            <h3
-              className="text-cream font-black text-lg uppercase tracking-wide mb-4"
-              style={{ fontFamily: 'var(--font-heading, serif)' }}
-            >
-              Financements
-            </h3>
-            <p className="text-cream/60 text-sm leading-relaxed mb-4">
-              Ce site a été financé par l&apos;Union Européenne dans le cadre du programme FEDER-FSE+
-              Réunion dont l&apos;Autorité de gestion est la Région Réunion. L&apos;Europe s&apos;engage
-              à La Réunion avec le fonds FEDER
-            </p>
-            <div className="flex items-center gap-6">
-              <Image
-                src="/images/logo/union-europeenne.png"
-                alt="Union Européenne"
-                width={120}
-                height={80}
-                className="h-16 w-auto object-contain"
-              />
-              <Image
-                src="/images/logo/region-reunion.jpg"
-                alt="Région Réunion"
-                width={120}
-                height={80}
-                className="h-16 w-auto object-contain"
-              />
-            </div>
-          </div>
         </div>
 
         {/* ── Ligne copyright ── */}
