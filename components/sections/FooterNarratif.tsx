@@ -259,6 +259,9 @@ export function FooterNarratif() {
         <p className="text-cream/50 text-xs">
           Livraison France métropolitaine &amp; DOM · contact@islanddreams.re
         </p>
+        <p className="text-cream/30 text-[10px] mt-3">
+          Fait avec ❤️ par <a href="https://kolab.tech" target="_blank" rel="noopener noreferrer" className="text-cream/50 hover:text-cream transition-colors">KOLAB.TECH</a>
+        </p>
       </div>
     </footer>
   );
