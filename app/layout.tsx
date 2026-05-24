@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Analytics } from '@vercel/analytics/react';
 import { Fraunces, Inter, Oswald, Londrina_Solid, Barlow_Semi_Condensed } from 'next/font/google';
 import './globals.css';
 
@@ -99,6 +100,7 @@ export default function RootLayout({
           }}
         />
         {children}
+        <Analytics />
       </body>
     </html>
   );
