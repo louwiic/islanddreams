@@ -67,6 +67,37 @@ async function getDemoVideoConfig(): Promise<DemoVideoConfig | null> {
   };
 
   if (!config.enabled || !config.videoUrl || !config.productSlug) return null;
+
+  const { data: product } = await supabase
+    .from('products')
+    .select('id, slug, name, price, sale_price, in_stock, weight_grams, manage_stock, stock_quantity')
+    .eq('slug', config.productSlug)
+    .eq('status', 'publish')
+    .single();
+
+  if (product) {
+    const { data: mainImage } = await supabase
+      .from('product_images')
+      .select('url, alt')
+      .eq('product_id', product.id)
+      .eq('is_main', true)
+      .maybeSingle();
+
+    config.product = {
+      id: product.id,
+      slug: product.slug,
+      name: product.name,
+      price: product.price,
+      salePrice: product.sale_price,
+      image: mainImage?.url ?? null,
+      imageAlt: mainImage?.alt ?? null,
+      inStock: product.in_stock ?? false,
+      weightGrams: product.weight_grams,
+      manageStock: product.manage_stock,
+      stockQuantity: product.stock_quantity,
+    };
+  }
+
   return config;
 }
 
