@@ -101,10 +101,10 @@ export function DemoVideoWidget({ config }: Props) {
         <button
           type="button"
           onClick={() => setHidden(true)}
-          className="absolute -right-2 -top-2 z-20 grid h-6 w-6 place-items-center rounded-full border border-white/80 bg-black/80 text-white shadow-lg hover:bg-black"
+          className="absolute -right-2 -top-2 z-20 flex h-6 w-6 items-center justify-center rounded-full border border-white/80 bg-black/80 p-0 leading-none text-white shadow-lg hover:bg-black"
           aria-label="Masquer la vidéo"
         >
-          <X size={13} strokeWidth={3} />
+          <X size={14} strokeWidth={3} className="block" />
         </button>
         <button
           type="button"
