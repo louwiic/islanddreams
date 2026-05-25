@@ -7,23 +7,22 @@ const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime'];
 
 export async function POST(req: Request) {
   try {
-    const formData = await req.formData();
-    const file = formData.get('file');
+    const { fileName, contentType, size } = await req.json();
 
-    if (!(file instanceof File)) {
-      return NextResponse.json({ error: 'Aucun fichier' }, { status: 400 });
+    if (!fileName || !contentType || !size) {
+      return NextResponse.json({ error: 'Informations fichier manquantes' }, { status: 400 });
     }
 
-    if (!ALLOWED_VIDEO_TYPES.includes(file.type)) {
+    if (!ALLOWED_VIDEO_TYPES.includes(contentType)) {
       return NextResponse.json({ error: 'Le fichier doit être une vidéo' }, { status: 400 });
     }
 
-    if (file.size > MAX_VIDEO_SIZE) {
+    if (Number(size) > MAX_VIDEO_SIZE) {
       return NextResponse.json({ error: 'La vidéo ne doit pas dépasser 200 Mo' }, { status: 400 });
     }
 
     const supabase = createAdminClient();
-    const ext = file.name.split('.').pop()?.toLowerCase() || 'mp4';
+    const ext = String(fileName).split('.').pop()?.toLowerCase() || 'mp4';
     const path = `${Date.now()}.${ext}`;
 
     const { data: existingBuckets, error: listError } = await supabase.storage.listBuckets();
@@ -54,19 +53,21 @@ export async function POST(req: Request) {
       }
     }
 
-    const { error } = await supabase.storage
+    const { data: signedUpload, error } = await supabase.storage
       .from(VIDEO_BUCKET)
-      .upload(path, Buffer.from(await file.arrayBuffer()), {
-        contentType: file.type,
-        upsert: true,
-      });
+      .createSignedUploadUrl(path, { upsert: true });
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     const { data } = supabase.storage.from(VIDEO_BUCKET).getPublicUrl(path);
-    return NextResponse.json({ url: data.publicUrl });
+    return NextResponse.json({
+      bucket: VIDEO_BUCKET,
+      path,
+      token: signedUpload.token,
+      url: data.publicUrl,
+    });
   } catch (error) {
     console.error('[DEMO_VIDEO_UPLOAD]', error);
     return NextResponse.json({ error: 'Upload vidéo impossible' }, { status: 500 });

@@ -3,6 +3,7 @@
 import { useRef, useState, useTransition } from 'react';
 import { Film, Loader2, Save, Upload } from 'lucide-react';
 import { updateSettings } from '@/lib/actions/settings';
+import { createClient } from '@/lib/supabase/client';
 
 type DemoProduct = {
   id: string;
@@ -87,16 +88,31 @@ export function DemoVideoSettings({ products, initialSettings }: Props) {
       }
 
       setUploading(true);
-      const formData = new FormData();
-      formData.append('file', file);
       const res = await fetch('/api/admin/demo-video/upload', {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fileName: file.name,
+          contentType: file.type,
+          size: file.size,
+        }),
       });
-      const result = await res.json();
+      const result = await res.json().catch(() => null);
 
-      if (!res.ok || result.error) {
-        setError(result.error || 'Upload vidéo impossible');
+      if (!res.ok || !result || result.error) {
+        setError(result?.error || 'Upload vidéo impossible');
+        return;
+      }
+
+      const supabase = createClient();
+      const { error: uploadError } = await supabase.storage
+        .from(result.bucket)
+        .uploadToSignedUrl(result.path, result.token, file, {
+          contentType: file.type,
+        });
+
+      if (uploadError) {
+        setError(uploadError.message);
         return;
       }
 
