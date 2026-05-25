@@ -7,6 +7,8 @@ import { createClient } from '@/lib/supabase/server';
 import { cn } from '@/lib/utils';
 import { DemoVideoWidget, type DemoVideoConfig } from '@/components/shop/DemoVideoWidget';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Boutique — Cadeaux personnalisés Réunion 974 | Island Dreams',
   description:
@@ -49,6 +51,14 @@ type Props = {
   searchParams: Promise<{ categorie?: string; tri?: string; q?: string }>;
 };
 
+function settingToString(value: unknown) {
+  if (value == null) return '';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'boolean') return String(value);
+  if (typeof value === 'number') return String(value);
+  return '';
+}
+
 async function getDemoVideoConfig(): Promise<DemoVideoConfig | null> {
   const supabase = await createClient();
   const { data } = await supabase
@@ -64,12 +74,15 @@ async function getDemoVideoConfig(): Promise<DemoVideoConfig | null> {
     ]);
 
   const settings = Object.fromEntries(
-    ((data ?? []) as { key: string; value: string }[]).map((row) => [row.key, row.value])
+    ((data ?? []) as { key: string; value: unknown }[]).map((row) => [
+      row.key,
+      settingToString(row.value),
+    ])
   );
 
   const position = settings.demo_video_bubble_position === 'bottom-left' ? 'bottom-left' : 'bottom-right';
   const config: DemoVideoConfig = {
-    enabled: settings.demo_video_enabled === 'true',
+    enabled: settings.demo_video_enabled === 'true' || settings.demo_video_enabled === '1',
     videoUrl: settings.demo_video_url || '',
     posterUrl: settings.demo_video_poster_url || undefined,
     productSlug: settings.demo_video_product_slug || '',
