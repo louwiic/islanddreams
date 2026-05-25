@@ -5,6 +5,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { track } from '@vercel/analytics/react';
 
 const NAV_LINKS = [
   { label: 'BOUTIQUE',             href: 'https://www.islanddreams.re/boutique/' },
@@ -260,7 +261,21 @@ export function FooterNarratif() {
           Livraison France métropolitaine &amp; DOM · contact@islanddreams.re
         </p>
         <p className="text-cream/30 text-[10px] mt-3">
-          Fait avec ❤️ par <a href="https://kolab.tech" target="_blank" rel="noopener noreferrer" className="text-cream/50 hover:text-cream transition-colors">KOLAB.TECH</a>
+          Fait avec ❤️ par{' '}
+          <a
+            href="https://kolab.tech"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() =>
+              track('footer_kolab_credit_clicked', {
+                location: 'footer',
+                destination: 'https://kolab.tech',
+              })
+            }
+            className="text-cream/50 hover:text-cream transition-colors"
+          >
+            KOLAB.TECH
+          </a>
         </p>
       </div>
     </footer>
