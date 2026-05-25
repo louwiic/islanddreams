@@ -46,5 +46,6 @@ export async function updateSettings(settings: Record<string, string>) {
   revalidatePath('/admin/seo');
   revalidatePath('/admin/parametres');
   revalidatePath('/');
+  revalidatePath('/boutique');
   return { success: true };
 }

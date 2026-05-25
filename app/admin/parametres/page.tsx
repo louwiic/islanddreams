@@ -1,6 +1,7 @@
 import { Store, Truck } from 'lucide-react';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { MaintenanceToggle } from './MaintenanceToggle';
+import { DemoVideoSettings } from './DemoVideoSettings';
 
 async function getMaintenanceSettings() {
   const supabase = createAdminClient();
@@ -18,14 +19,49 @@ async function getMaintenanceSettings() {
   };
 }
 
+async function getDemoVideoSettings() {
+  const supabase = createAdminClient();
+  const { data } = await supabase
+    .from('shop_settings')
+    .select('key, value')
+    .in('key', [
+      'demo_video_enabled',
+      'demo_video_url',
+      'demo_video_poster_url',
+      'demo_video_product_slug',
+      'demo_video_title',
+      'demo_video_bubble_position',
+    ]);
+
+  return Object.fromEntries(
+    ((data ?? []) as { key: string; value: string }[]).map((r) => [r.key, r.value])
+  );
+}
+
+async function getDemoProducts() {
+  const supabase = createAdminClient();
+  const { data } = await supabase
+    .from('products')
+    .select('id, name, slug, status')
+    .order('name');
+
+  return (data ?? []) as { id: string; name: string; slug: string; status: string | null }[];
+}
+
 export default async function ParametresPage() {
-  const maintenance = await getMaintenanceSettings();
+  const [maintenance, demoVideoSettings, demoProducts] = await Promise.all([
+    getMaintenanceSettings(),
+    getDemoVideoSettings(),
+    getDemoProducts(),
+  ]);
 
   return (
     <div className="space-y-8 max-w-3xl">
 
       {/* Maintenance */}
       <MaintenanceToggle enabled={maintenance.enabled} pin={maintenance.pin} />
+
+      <DemoVideoSettings products={demoProducts} initialSettings={demoVideoSettings} />
 
       {/* Boutique */}
       <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">

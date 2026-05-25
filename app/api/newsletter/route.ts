@@ -4,6 +4,7 @@ import { sendResendEmail, addContactToAudience } from '@/lib/email/resend';
 import { newsletterWelcome } from '@/lib/email/templates';
 
 const PROMO_CODE = 'BIENVENUE10'; // À créer dans Stripe dashboard (10% off)
+const NEWSLETTER_BCC_EMAIL = process.env.NEWSLETTER_BCC_EMAIL || 'islanddreams974@gmail.com';
 
 const admin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -60,7 +61,7 @@ export async function POST(req: NextRequest) {
   // Email de bienvenue avec code promo (via Resend)
   const tpl = newsletterWelcome(email);
   console.log(`[NEWSLETTER] Envoi email bienvenue à ${email} via Resend...`);
-  const result = await sendResendEmail({ to: email, ...tpl });
+  const result = await sendResendEmail({ to: email, ...tpl, bcc: NEWSLETTER_BCC_EMAIL });
   console.log(`[NEWSLETTER] Résultat:`, result);
 
   return NextResponse.json({ code: PROMO_CODE });

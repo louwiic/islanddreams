@@ -3,16 +3,28 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Search, ChevronRight } from 'lucide-react';
 import { getPublishedProducts } from '@/lib/queries/products';
+import { createClient } from '@/lib/supabase/server';
 import { cn } from '@/lib/utils';
+import { DemoVideoWidget, type DemoVideoConfig } from '@/components/shop/DemoVideoWidget';
 
 export const metadata: Metadata = {
-  title: 'Boutique — Island Dreams | Souvenirs de La Réunion',
+  title: 'Boutique — Cadeaux personnalisés Réunion 974 | Island Dreams',
   description:
-    'Découvrez notre collection de souvenirs illustrés de La Réunion : magnets, stickers, textile, décoration. Dessinés et imprimés à La Réunion.',
+    'Découvrez notre collection de cadeaux personnalisés et souvenirs illustrés de La Réunion 974 : magnets, stickers, textile et décoration dessinés et imprimés à La Réunion.',
+  keywords: [
+    'cadeau personnalisé reunion',
+    'cadeau personnalisé 974',
+    'cadeaux personnalisés La Réunion',
+    'souvenirs Réunion',
+    'boutique souvenirs 974',
+    'magnets Réunion',
+    'stickers 974',
+  ],
   alternates: { canonical: '/boutique' },
   openGraph: {
-    title: 'Boutique — Island Dreams',
-    description: 'Magnets, stickers, textile, décoration — tous nos souvenirs illustrés de La Réunion.',
+    title: 'Boutique — Cadeaux personnalisés Réunion 974 | Island Dreams',
+    description:
+      'Magnets, stickers, textile, décoration — des cadeaux personnalisés et souvenirs illustrés de La Réunion 974.',
     locale: 'fr_RE',
     type: 'website',
   },
@@ -37,9 +49,44 @@ type Props = {
   searchParams: Promise<{ categorie?: string; tri?: string; q?: string }>;
 };
 
+async function getDemoVideoConfig(): Promise<DemoVideoConfig | null> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from('shop_settings')
+    .select('key, value')
+    .in('key', [
+      'demo_video_enabled',
+      'demo_video_url',
+      'demo_video_poster_url',
+      'demo_video_product_slug',
+      'demo_video_title',
+      'demo_video_bubble_position',
+    ]);
+
+  const settings = Object.fromEntries(
+    ((data ?? []) as { key: string; value: string }[]).map((row) => [row.key, row.value])
+  );
+
+  const position = settings.demo_video_bubble_position === 'bottom-left' ? 'bottom-left' : 'bottom-right';
+  const config: DemoVideoConfig = {
+    enabled: settings.demo_video_enabled === 'true',
+    videoUrl: settings.demo_video_url || '',
+    posterUrl: settings.demo_video_poster_url || undefined,
+    productSlug: settings.demo_video_product_slug || '',
+    title: settings.demo_video_title || 'Voir le produit en action',
+    position,
+  };
+
+  if (!config.enabled || !config.videoUrl || !config.productSlug) return null;
+  return config;
+}
+
 export default async function BoutiquePage({ searchParams }: Props) {
   const params = await searchParams;
-  const allProducts = await getPublishedProducts();
+  const [allProducts, demoVideoConfig] = await Promise.all([
+    getPublishedProducts(),
+    getDemoVideoConfig(),
+  ]);
 
   const activeCategory = params.categorie || 'tous';
   const sort = params.tri || 'recent';
@@ -256,6 +303,7 @@ export default async function BoutiquePage({ searchParams }: Props) {
         )}
       </div>
       </div>
+      <DemoVideoWidget config={demoVideoConfig} />
     </main>
   );
 }

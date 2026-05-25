@@ -18,9 +18,18 @@ import { getPublishedProducts } from '@/lib/queries/products';
 import { createAdminClient } from '@/lib/supabase/admin';
 
 export const metadata: Metadata = {
-  title: "Island Dreams — Souvenirs illustrés de La Réunion | Magnets, Stickers, Textile 974",
+  title: "Island Dreams — Cadeau personnalisé Réunion 974 | Souvenirs illustrés",
   description:
-    "Découvrez Island Dreams, la boutique de souvenirs illustrés de La Réunion. Magnets des communes, stickers 974, textile péi, décoration — dessinés et imprimés à La Réunion.",
+    "Découvrez Island Dreams, la boutique de cadeaux personnalisés à La Réunion 974 : magnets des communes, stickers 974, textile péi et décoration dessinés et imprimés à La Réunion.",
+  keywords: [
+    'cadeau personnalisé reunion 974',
+    'cadeau personnalisé Réunion 974',
+    'cadeaux personnalisés La Réunion',
+    'souvenirs illustrés Réunion',
+    'magnets communes Réunion',
+    'stickers 974',
+    'textile péi',
+  ],
   alternates: { canonical: '/' },
 };
 

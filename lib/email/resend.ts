@@ -10,9 +10,10 @@ type EmailOptions = {
   subject: string;
   html: string;
   replyTo?: string;
+  bcc?: string | string[];
 };
 
-export async function sendResendEmail({ to, subject, html, replyTo }: EmailOptions) {
+export async function sendResendEmail({ to, subject, html, replyTo, bcc }: EmailOptions) {
   try {
     const { error } = await resend.emails.send({
       from: FROM,
@@ -20,6 +21,7 @@ export async function sendResendEmail({ to, subject, html, replyTo }: EmailOptio
       subject,
       html,
       replyTo: replyTo || undefined,
+      bcc: bcc || undefined,
     });
     if (error) {
       console.error('[RESEND] Erreur:', error);

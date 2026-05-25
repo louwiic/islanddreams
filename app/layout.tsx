@@ -45,10 +45,20 @@ export const metadata: Metadata = {
   },
   title: "Island Dreams — L'île en souvenirs",
   description:
-    'Des objets qui racontent La Réunion. Magnets, stickers, textile, décoration — un bout de péi à garder, à offrir.',
+    'Des cadeaux personnalisés et souvenirs de La Réunion 974 : magnets, stickers, textile, décoration — un bout de péi à garder, à offrir.',
+  keywords: [
+    'cadeau personnalisé reunion',
+    'cadeau personnalisé Réunion',
+    'cadeau personnalisé 974',
+    'souvenir La Réunion',
+    'souvenir 974',
+    'boutique souvenirs Réunion',
+    'magnet 974',
+    'stickers Réunion',
+  ],
   openGraph: {
     title: "Island Dreams — L'île en souvenirs",
-    description: 'Un bout de péi à garder, à offrir.',
+    description: 'Cadeaux personnalisés et souvenirs illustrés de La Réunion 974, à garder ou à offrir.',
     locale: 'fr_RE',
     type: 'website',
     siteName: 'Island Dreams',
@@ -86,7 +96,8 @@ export default function RootLayout({
               name: 'Island Dreams',
               url: 'https://www.islanddreams.re',
               logo: 'https://www.islanddreams.re/images/logo/logo-horizontal-hd.png',
-              description: 'Souvenirs illustrés de La Réunion — magnets, stickers, textile, décoration.',
+              description:
+                'Cadeaux personnalisés et souvenirs illustrés de La Réunion 974 — magnets, stickers, textile, décoration.',
               address: {
                 '@type': 'PostalAddress',
                 addressLocality: 'La Réunion',
