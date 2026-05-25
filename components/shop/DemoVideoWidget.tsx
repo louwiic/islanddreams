@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Check, ExternalLink, Play, ShoppingBag, Volume2, X } from 'lucide-react';
@@ -39,6 +40,9 @@ export function DemoVideoWidget({ config }: Props) {
   const [open, setOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [added, setAdded] = useState(false);
+  const [portalTarget] = useState(() =>
+    typeof document === 'undefined' ? null : document.body
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -56,7 +60,7 @@ export function DemoVideoWidget({ config }: Props) {
     };
   }, [open]);
 
-  if (!config?.enabled || !config.videoUrl || !config.productSlug || hidden) return null;
+  if (!portalTarget || !config?.enabled || !config.videoUrl || !config.productSlug || hidden) return null;
 
   const productHref = `/boutique/${config.productSlug}`;
   const isLeft = config.position === 'bottom-left';
@@ -85,11 +89,12 @@ export function DemoVideoWidget({ config }: Props) {
     window.setTimeout(() => setAdded(false), 1800);
   };
 
-  return (
+  return createPortal(
     <>
       <div
+        style={{ bottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}
         className={cn(
-          'fixed bottom-5 z-40 w-28 overflow-visible rounded-2xl bg-black shadow-2xl shadow-black/25 sm:w-32',
+          'fixed z-[2147483000] w-28 overflow-visible rounded-2xl bg-black shadow-2xl shadow-black/25 sm:w-32',
           isLeft ? 'left-4 sm:left-6' : 'right-4 sm:right-6'
         )}
       >
@@ -132,7 +137,7 @@ export function DemoVideoWidget({ config }: Props) {
 
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/82 px-4 py-6 backdrop-blur-[2px]"
+          className="fixed inset-0 z-[2147483001] flex items-center justify-center bg-black/82 px-4 py-6 backdrop-blur-[2px]"
           role="dialog"
           aria-modal="true"
           aria-label="Vidéo démo produit"
@@ -235,6 +240,7 @@ export function DemoVideoWidget({ config }: Props) {
           </div>
         </div>
       )}
-    </>
+    </>,
+    portalTarget
   );
 }
