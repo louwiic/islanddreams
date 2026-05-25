@@ -117,7 +117,7 @@ export function DemoVideoSettings({ products, initialSettings }: Props) {
         const uploadError = await uploadRes.text();
         setError(
           uploadError ||
-            `Upload refusé par Supabase. Taille fichier: ${(file.size / 1024 / 1024).toFixed(1)} Mo, limite configurée: ${((result.maxSize || 0) / 1024 / 1024).toFixed(0)} Mo.`
+            `Upload refusé par Supabase. Taille fichier: ${(file.size / 1024 / 1024).toFixed(1)} Mo.`
         );
         return;
       }
@@ -216,7 +216,7 @@ export function DemoVideoSettings({ products, initialSettings }: Props) {
           </div>
         </div>
         <p className="text-xs text-gray-400 -mt-3">
-          Format conseillé : MP4 vertical, 30 secondes maximum, moins de 200 Mo.
+          Format conseillé : MP4 vertical, 30 secondes maximum.
         </p>
 
         <div>

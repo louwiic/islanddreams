@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 
-const MAX_VIDEO_SIZE = 200 * 1024 * 1024;
 const VIDEO_BUCKET = 'demo-videos';
 const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime'];
 
@@ -17,10 +16,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Le fichier doit être une vidéo' }, { status: 400 });
     }
 
-    if (Number(size) > MAX_VIDEO_SIZE) {
-      return NextResponse.json({ error: 'La vidéo ne doit pas dépasser 200 Mo' }, { status: 400 });
-    }
-
     const supabase = createAdminClient();
     const ext = String(fileName).split('.').pop()?.toLowerCase() || 'mp4';
     const path = `${Date.now()}.${ext}`;
@@ -34,7 +29,7 @@ export async function POST(req: Request) {
     if (!hasVideoBucket) {
       const { error: bucketError } = await supabase.storage.createBucket(VIDEO_BUCKET, {
         public: true,
-        fileSizeLimit: MAX_VIDEO_SIZE,
+        fileSizeLimit: null,
         allowedMimeTypes: ALLOWED_VIDEO_TYPES,
       });
 
@@ -44,7 +39,7 @@ export async function POST(req: Request) {
     } else {
       const { error: bucketError } = await supabase.storage.updateBucket(VIDEO_BUCKET, {
         public: true,
-        fileSizeLimit: MAX_VIDEO_SIZE,
+        fileSizeLimit: null,
         allowedMimeTypes: ALLOWED_VIDEO_TYPES,
       });
 
@@ -68,7 +63,6 @@ export async function POST(req: Request) {
       signedUrl: signedUpload.signedUrl,
       token: signedUpload.token,
       url: data.publicUrl,
-      maxSize: MAX_VIDEO_SIZE,
     });
   } catch (error) {
     console.error('[DEMO_VIDEO_UPLOAD]', error);
