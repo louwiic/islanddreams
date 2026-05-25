@@ -3,7 +3,6 @@
 import { useRef, useState, useTransition } from 'react';
 import { Film, Loader2, Save, Upload } from 'lucide-react';
 import { updateSettings } from '@/lib/actions/settings';
-import { createClient } from '@/lib/supabase/client';
 
 type DemoProduct = {
   id: string;
@@ -104,16 +103,33 @@ export function DemoVideoSettings({ products, initialSettings }: Props) {
         return;
       }
 
-      const supabase = createClient();
-      const { error: uploadError } = await supabase.storage
-        .from(result.bucket)
-        .uploadToSignedUrl(result.path, result.token, file, {
-          contentType: file.type,
-        });
+      const uploadRes = await fetch(result.signedUrl, {
+        method: 'PUT',
+        headers: {
+          'content-type': file.type,
+          'cache-control': '3600',
+          'x-upsert': 'true',
+        },
+        body: file,
+      });
 
-      if (uploadError) {
-        setError(uploadError.message);
+      if (!uploadRes.ok) {
+        const uploadError = await uploadRes.text();
+        setError(
+          uploadError ||
+            `Upload refusé par Supabase. Taille fichier: ${(file.size / 1024 / 1024).toFixed(1)} Mo, limite configurée: ${((result.maxSize || 0) / 1024 / 1024).toFixed(0)} Mo.`
+        );
         return;
+      }
+
+      try {
+        const uploadResult = await uploadRes.json();
+        if (uploadResult?.error) {
+          setError(uploadResult.error);
+          return;
+        }
+      } catch {
+        // Supabase peut répondre sans JSON exploitable sur un upload réussi.
       }
 
       setVideoUrl(result.url);

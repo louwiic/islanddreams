@@ -65,8 +65,10 @@ export async function POST(req: Request) {
     return NextResponse.json({
       bucket: VIDEO_BUCKET,
       path,
+      signedUrl: signedUpload.signedUrl,
       token: signedUpload.token,
       url: data.publicUrl,
+      maxSize: MAX_VIDEO_SIZE,
     });
   } catch (error) {
     console.error('[DEMO_VIDEO_UPLOAD]', error);
