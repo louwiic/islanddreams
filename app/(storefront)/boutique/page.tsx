@@ -3,11 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Search, ChevronRight } from 'lucide-react';
 import { getPublishedProducts } from '@/lib/queries/products';
-import { createClient } from '@/lib/supabase/server';
 import { cn } from '@/lib/utils';
-import { DemoVideoWidget, type DemoVideoConfig } from '@/components/shop/DemoVideoWidget';
-
-export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Boutique — Cadeaux personnalisés Réunion 974 | Island Dreams',
@@ -51,55 +47,9 @@ type Props = {
   searchParams: Promise<{ categorie?: string; tri?: string; q?: string }>;
 };
 
-function settingToString(value: unknown) {
-  if (value == null) return '';
-  if (typeof value === 'string') return value;
-  if (typeof value === 'boolean') return String(value);
-  if (typeof value === 'number') return String(value);
-  return '';
-}
-
-async function getDemoVideoConfig(): Promise<DemoVideoConfig | null> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from('shop_settings')
-    .select('key, value')
-    .in('key', [
-      'demo_video_enabled',
-      'demo_video_url',
-      'demo_video_poster_url',
-      'demo_video_product_slug',
-      'demo_video_title',
-      'demo_video_bubble_position',
-    ]);
-
-  const settings = Object.fromEntries(
-    ((data ?? []) as { key: string; value: unknown }[]).map((row) => [
-      row.key,
-      settingToString(row.value),
-    ])
-  );
-
-  const position = settings.demo_video_bubble_position === 'bottom-left' ? 'bottom-left' : 'bottom-right';
-  const config: DemoVideoConfig = {
-    enabled: settings.demo_video_enabled === 'true' || settings.demo_video_enabled === '1',
-    videoUrl: settings.demo_video_url || '',
-    posterUrl: settings.demo_video_poster_url || undefined,
-    productSlug: settings.demo_video_product_slug || '',
-    title: settings.demo_video_title || 'Voir le produit en action',
-    position,
-  };
-
-  if (!config.enabled || !config.videoUrl || !config.productSlug) return null;
-  return config;
-}
-
 export default async function BoutiquePage({ searchParams }: Props) {
   const params = await searchParams;
-  const [allProducts, demoVideoConfig] = await Promise.all([
-    getPublishedProducts(),
-    getDemoVideoConfig(),
-  ]);
+  const allProducts = await getPublishedProducts();
 
   const activeCategory = params.categorie || 'tous';
   const sort = params.tri || 'recent';
@@ -316,7 +266,6 @@ export default async function BoutiquePage({ searchParams }: Props) {
         )}
       </div>
       </div>
-      <DemoVideoWidget config={demoVideoConfig} />
     </main>
   );
 }
