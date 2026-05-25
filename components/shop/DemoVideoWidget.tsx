@@ -92,10 +92,15 @@ export function DemoVideoWidget({ config }: Props) {
   return createPortal(
     <>
       <div
-        style={{ bottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}
+        style={{
+          bottom: 'max(0.875rem, env(safe-area-inset-bottom))',
+          maxWidth: 'calc(100vw - 1.5rem)',
+          ...(isLeft
+            ? { left: 'max(0.75rem, env(safe-area-inset-left))' }
+            : { right: 'max(0.75rem, env(safe-area-inset-right))' }),
+        }}
         className={cn(
-          'fixed z-[2147483000] w-28 overflow-visible rounded-2xl bg-black shadow-2xl shadow-black/25 sm:w-32',
-          isLeft ? 'left-4 sm:left-6' : 'right-4 sm:right-6'
+          'fixed z-[2147483000] w-24 overflow-visible rounded-2xl bg-black shadow-2xl shadow-black/25 sm:w-32'
         )}
       >
         <button
