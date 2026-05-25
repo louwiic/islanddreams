@@ -58,6 +58,15 @@ function getVideoDuration(file: File) {
   });
 }
 
+function getVideoFileName(url: string) {
+  try {
+    const pathname = new URL(url).pathname;
+    return decodeURIComponent(pathname.split('/').pop() || 'video-demo.mp4');
+  } catch {
+    return url.split('/').pop() || 'video-demo.mp4';
+  }
+}
+
 export function DemoVideoSettings({ products, initialSettings }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [enabled, setEnabled] = useState(initialSettings.demo_video_enabled === 'true');
@@ -72,6 +81,7 @@ export function DemoVideoSettings({ products, initialSettings }: Props) {
   const [error, setError] = useState('');
   const [uploading, setUploading] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const videoFileName = videoUrl ? getVideoFileName(videoUrl) : '';
 
   const handleUpload = async (file: File | null) => {
     if (!file) return;
@@ -183,41 +193,69 @@ export function DemoVideoSettings({ products, initialSettings }: Props) {
           </span>
         </label>
 
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Vidéo courte
-            </label>
-            <input
-              type="url"
-              value={videoUrl}
-              onChange={(e) => setVideoUrl(e.target.value)}
-              placeholder="https://..."
-              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-jungle-500/20 focus:border-jungle-500"
-            />
-          </div>
-          <div className="flex items-end">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="video/mp4,video/webm,video/quicktime"
-              onChange={(e) => handleUpload(e.target.files?.[0] ?? null)}
-              className="sr-only"
-            />
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-            >
-              {uploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
-              Importer
-            </button>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Vidéo courte
+          </label>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="video/mp4,video/webm,video/quicktime"
+            onChange={(e) => handleUpload(e.target.files?.[0] ?? null)}
+            className="sr-only"
+          />
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3">
+            {videoUrl ? (
+              <div className="min-w-0 rounded-lg border border-jungle-100 bg-jungle-50 px-3 py-2.5">
+                <p className="text-sm font-semibold text-ink">Vidéo importée</p>
+                <p className="mt-0.5 truncate text-xs text-gray-500">{videoFileName}</p>
+              </div>
+            ) : (
+              <div className="rounded-lg border border-dashed border-gray-200 px-3 py-2.5 text-sm text-gray-500">
+                Aucune vidéo importée
+              </div>
+            )}
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                {uploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
+                {videoUrl ? 'Remplacer' : 'Importer'}
+              </button>
+              {videoUrl ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setVideoUrl('');
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                  }}
+                  className="inline-flex items-center justify-center px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-500 hover:bg-gray-50"
+                >
+                  Retirer
+                </button>
+              ) : null}
+            </div>
           </div>
         </div>
         <p className="text-xs text-gray-400 -mt-3">
           Format conseillé : MP4 vertical, 30 secondes maximum.
         </p>
+
+        <details className="-mt-2 rounded-lg border border-gray-100 bg-gray-50 px-3 py-2">
+          <summary className="cursor-pointer text-xs font-medium text-gray-500">
+            URL technique / URL manuelle
+          </summary>
+          <input
+            type="url"
+            value={videoUrl}
+            onChange={(e) => setVideoUrl(e.target.value)}
+            placeholder="https://..."
+            className="mt-2 w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-jungle-500/20 focus:border-jungle-500"
+          />
+        </details>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
