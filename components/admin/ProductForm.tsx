@@ -39,6 +39,7 @@ type ProductFormData = {
   metaTitle: string;
   metaDescription: string;
   focusKeyword: string;
+  seoKeywords: string[];
 };
 
 type Props = {
@@ -85,7 +86,32 @@ const DEFAULT: ProductFormData = {
   metaTitle: '',
   metaDescription: '',
   focusKeyword: '',
+  seoKeywords: [],
 };
+
+const SEO_TAG_PREFIX = 'seo:';
+const SYSTEM_TAG_PREFIXES = ['event:'];
+
+function uniqueTags(tags: string[]) {
+  return Array.from(new Set(tags.map((tag) => tag.trim()).filter(Boolean)));
+}
+
+function splitInitialTags(tags: string[] = []) {
+  return {
+    productTags: tags.filter(
+      (tag) =>
+        !tag.startsWith(SEO_TAG_PREFIX) &&
+        !SYSTEM_TAG_PREFIXES.some((prefix) => tag.startsWith(prefix))
+    ),
+    seoKeywords: tags
+      .filter((tag) => tag.startsWith(SEO_TAG_PREFIX))
+      .map((tag) => tag.slice(SEO_TAG_PREFIX.length))
+      .filter(Boolean),
+    systemTags: tags.filter((tag) =>
+      SYSTEM_TAG_PREFIXES.some((prefix) => tag.startsWith(prefix))
+    ),
+  };
+}
 
 /* ── Section collapsible ─────────────────────────────────── */
 
@@ -124,12 +150,16 @@ function Section({
 /* ── Composant principal ─────────────────────────────────── */
 
 export function ProductForm({ mode, initialData }: Props) {
+  const initialTagGroups = splitInitialTags(initialData?.tags);
   const [form, setForm] = useState<ProductFormData>({
     ...DEFAULT,
     ...initialData,
+    tags: initialTagGroups.productTags,
+    seoKeywords: initialData?.seoKeywords ?? initialTagGroups.seoKeywords,
   });
   const router = useRouter();
   const [tagInput, setTagInput] = useState('');
+  const [seoKeywordInput, setSeoKeywordInput] = useState('');
   const [autoSlug, setAutoSlug] = useState(!initialData?.slug);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -163,6 +193,21 @@ export function ProductForm({ mode, initialData }: Props) {
     );
   };
 
+  const addSeoKeyword = () => {
+    const trimmed = seoKeywordInput.trim();
+    if (trimmed && !form.seoKeywords.includes(trimmed)) {
+      update('seoKeywords', [...form.seoKeywords, trimmed]);
+    }
+    setSeoKeywordInput('');
+  };
+
+  const removeSeoKeyword = (keyword: string) => {
+    update(
+      'seoKeywords',
+      form.seoKeywords.filter((item) => item !== keyword)
+    );
+  };
+
   const handleSave = async () => {
     setSaving(true);
     setError('');
@@ -178,7 +223,11 @@ export function ProductForm({ mode, initialData }: Props) {
       description: form.description || undefined,
       shortDescription: form.shortDescription || undefined,
       category: form.category,
-      tags: form.tags,
+      tags: uniqueTags([
+        ...initialTagGroups.systemTags,
+        ...form.tags,
+        ...form.seoKeywords.map((keyword) => `${SEO_TAG_PREFIX}${keyword}`),
+      ]),
       price: priceNum,
       salePrice: salePriceNum,
       sku: form.sku || undefined,
@@ -560,9 +609,16 @@ export function ProductForm({ mode, initialData }: Props) {
 
           {/* SEO */}
           <Section title="SEO" defaultOpen={mode === 'edit'}>
+            <div className="rounded-lg border border-jungle-100 bg-jungle-50/60 p-4">
+              <p className="text-sm font-semibold text-ink">Zones importantes</p>
+              <p className="mt-1 text-xs leading-relaxed text-gray-500">
+                Utilisez naturellement les expressions dans le titre, la description courte, la description longue, les textes ALT et la FAQ. Les champs ci-dessous servent aux moteurs de recherche et au partage social.
+              </p>
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Meta title
+                Titre SEO
               </label>
               <input
                 type="text"
@@ -581,7 +637,7 @@ export function ProductForm({ mode, initialData }: Props) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Meta description
+                Description SEO
               </label>
               <textarea
                 value={form.metaDescription}
@@ -609,6 +665,46 @@ export function ProductForm({ mode, initialData }: Props) {
                 placeholder="Ex: magnet réunion"
                 className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-jungle-500/20 focus:border-jungle-500"
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Mots-clés secondaires
+              </label>
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {form.seoKeywords.map((keyword) => (
+                  <span
+                    key={keyword}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-jungle-50 text-xs text-jungle-700"
+                  >
+                    {keyword}
+                    <button
+                      type="button"
+                      onClick={() => removeSeoKeyword(keyword)}
+                      className="text-jungle-400 hover:text-coral-500"
+                    >
+                      <span className="sr-only">Supprimer</span>
+                      &times;
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <input
+                type="text"
+                value={seoKeywordInput}
+                onChange={(e) => setSeoKeywordInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addSeoKeyword();
+                  }
+                }}
+                placeholder="Ex: cadeau personnalisé reunion 974 + Entrée"
+                className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-jungle-500/20 focus:border-jungle-500"
+              />
+              <p className="mt-1 text-xs text-gray-400">
+                Ces mots-clés sont enregistrés séparément des tags techniques et ajoutés aux métadonnées de la fiche.
+              </p>
             </div>
 
             {/* Google Preview */}
