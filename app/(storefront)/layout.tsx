@@ -8,6 +8,7 @@ import { cookies } from 'next/headers';
 import { MaintenancePage } from '@/components/sections/MaintenancePage';
 import { ChatWidgetLoader } from '@/components/chatbot/ChatWidgetLoader';
 import { DemoVideoWidget, type DemoVideoConfig } from '@/components/shop/DemoVideoWidget';
+import { EventBanner, getActiveBanner } from '@/components/sections/EventBanner';
 
 export const dynamic = 'force-dynamic';
 
@@ -106,10 +107,11 @@ export default async function StorefrontLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [featuredCategory, maintenance, demoVideoConfig] = await Promise.all([
+  const [featuredCategory, maintenance, demoVideoConfig, activeBanner] = await Promise.all([
     getNavFeaturedCategory(),
     getMaintenanceSettings(),
     getDemoVideoConfig(),
+    getActiveBanner(),
   ]);
 
   if (maintenance.enabled) {
@@ -122,7 +124,8 @@ export default async function StorefrontLayout({
 
   return (
     <CartProvider>
-      <Navbar featuredCategory={featuredCategory} />
+      <EventBanner banner={activeBanner} />
+      <Navbar featuredCategory={featuredCategory} hasEventBanner={Boolean(activeBanner)} />
       {children}
       <CartDrawer />
       <NewsletterPopup />

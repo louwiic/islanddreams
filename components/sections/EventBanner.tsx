@@ -2,7 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { createAdminClient } from '@/lib/supabase/admin';
 
-type Banner = {
+export type Banner = {
   id: string;
   title: string;
   subtitle: string | null;
@@ -11,7 +11,7 @@ type Banner = {
   cta_link: string;
 };
 
-async function getActiveBanner(): Promise<Banner | null> {
+export async function getActiveBanner(): Promise<Banner | null> {
   const supabase = createAdminClient();
   const today = new Date().toISOString().slice(0, 10);
 
@@ -28,20 +28,23 @@ async function getActiveBanner(): Promise<Banner | null> {
   return data[0] as unknown as Banner;
 }
 
-export async function EventBanner() {
-  const banner = await getActiveBanner();
+function getBannerHref(link: string) {
+  if (link.startsWith('#evenement-special')) return '#evenement-special';
+  return link;
+}
+
+export function EventBanner({ banner }: { banner: Banner | null }) {
   if (!banner) return null;
 
   return (
-    <div className="relative z-40 bg-gradient-to-r from-coral-600 via-coral-500 to-sun-400 text-white">
-      <div className="max-w-6xl mx-auto px-4 py-3 md:py-4">
+    <div className="fixed inset-x-0 top-0 z-[70] bg-gradient-to-r from-coral-600 via-coral-500 to-sun-400 text-white shadow-md">
+      <div className="mx-auto max-w-6xl px-3 py-1.5 md:px-4 md:py-2">
         <Link
-          href={banner.cta_link}
-          className="flex items-center justify-center gap-4 md:gap-6 group"
+          href={getBannerHref(banner.cta_link)}
+          className="group flex min-h-8 items-center justify-center gap-3 md:min-h-9 md:gap-4"
         >
-          {/* Image produit */}
           {banner.image_url && (
-            <div className="relative w-12 h-12 md:w-16 md:h-16 flex-shrink-0 rounded-xl overflow-hidden bg-white/20 shadow-lg">
+            <div className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded-lg bg-white/20 shadow md:h-9 md:w-9">
               <Image
                 src={banner.image_url}
                 alt=""
@@ -51,20 +54,18 @@ export async function EventBanner() {
             </div>
           )}
 
-          {/* Texte */}
-          <div className="text-center md:text-left">
-            <p className="font-bold text-sm md:text-base leading-tight">
+          <div className="min-w-0 text-center md:text-left">
+            <p className="truncate text-sm font-black leading-tight md:text-base">
               {banner.title}
             </p>
             {banner.subtitle && (
-              <p className="text-white/80 text-xs md:text-sm leading-tight mt-0.5">
+              <p className="hidden text-xs leading-tight text-white/80 sm:block">
                 {banner.subtitle}
               </p>
             )}
           </div>
 
-          {/* CTA */}
-          <span className="hidden md:inline-flex items-center gap-1.5 px-4 py-1.5 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white text-xs font-bold uppercase tracking-wider rounded-full transition-colors flex-shrink-0 group-hover:bg-white/30">
+          <span className="hidden flex-shrink-0 items-center gap-1.5 rounded-full bg-white/20 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white transition-colors group-hover:bg-white/30 md:inline-flex">
             {banner.cta_text}
             <svg className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />

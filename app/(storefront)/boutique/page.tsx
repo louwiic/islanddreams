@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { Search, ChevronRight } from 'lucide-react';
 import { getPublishedProducts } from '@/lib/queries/products';
 import { cn } from '@/lib/utils';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export const metadata: Metadata = {
   title: 'Boutique — Cadeaux personnalisés Réunion 974 | Island Dreams',
@@ -44,21 +45,59 @@ const SORT_OPTIONS = [
 ];
 
 type Props = {
-  searchParams: Promise<{ categorie?: string; tri?: string; q?: string }>;
+  searchParams: Promise<{ categorie?: string; evenement?: string; tri?: string; q?: string }>;
 };
+
+type EventCollection = {
+  slug: string;
+  title: string;
+};
+
+function eventSlugFromLink(link: string | null) {
+  if (!link) return '';
+  const hashMatch = link.match(/^#evenement-special:([^/?#]+)/);
+  if (hashMatch) return hashMatch[1];
+  const queryMatch = link.match(/[?&]evenement=([^&#]+)/);
+  return queryMatch?.[1] ?? '';
+}
+
+async function getActiveEventCollection(): Promise<EventCollection | null> {
+  const supabase = createAdminClient();
+  const today = new Date().toISOString().slice(0, 10);
+  const { data } = await supabase
+    .from('hero_banners' as never)
+    .select('title, cta_link')
+    .eq('is_active', true)
+    .lte('start_date', today)
+    .gte('end_date', today)
+    .order('priority', { ascending: false })
+    .limit(1);
+
+  if (!data || data.length === 0) return null;
+  const banner = data[0] as unknown as { title: string; cta_link: string | null };
+  const slug = eventSlugFromLink(banner.cta_link);
+  if (!slug) return null;
+  return { slug, title: banner.title };
+}
 
 export default async function BoutiquePage({ searchParams }: Props) {
   const params = await searchParams;
-  const allProducts = await getPublishedProducts();
+  const [allProducts, eventCollection] = await Promise.all([
+    getPublishedProducts(),
+    getActiveEventCollection(),
+  ]);
 
   const activeCategory = params.categorie || 'tous';
+  const activeEvent = params.evenement || '';
   const sort = params.tri || 'recent';
   const query = params.q?.toLowerCase().trim() || '';
 
   // Filtrer
   let filtered = allProducts;
 
-  if (activeCategory !== 'tous') {
+  if (activeEvent) {
+    filtered = filtered.filter((p) => p.tags?.includes(`event:${activeEvent}`));
+  } else if (activeCategory !== 'tous') {
     filtered = filtered.filter((p) => p.category === activeCategory);
   }
 
@@ -88,7 +127,13 @@ export default async function BoutiquePage({ searchParams }: Props) {
   ) as string[];
 
   function buildHref(overrides: Record<string, string | undefined>) {
-    const merged = { categorie: activeCategory, tri: sort, q: query || undefined, ...overrides };
+    const merged = {
+      categorie: activeEvent ? undefined : activeCategory,
+      evenement: activeEvent || undefined,
+      tri: sort,
+      q: query || undefined,
+      ...overrides,
+    };
     const sp = new URLSearchParams();
     for (const [k, v] of Object.entries(merged)) {
       if (v && v !== 'tous' && v !== 'recent' && v !== '') sp.set(k, v);
@@ -137,6 +182,9 @@ export default async function BoutiquePage({ searchParams }: Props) {
             {sort !== 'recent' && (
               <input type="hidden" name="tri" value={sort} />
             )}
+            {activeEvent && (
+              <input type="hidden" name="evenement" value={activeEvent} />
+            )}
           </form>
 
           {/* Tri */}
@@ -164,25 +212,40 @@ export default async function BoutiquePage({ searchParams }: Props) {
         {/* Catégories */}
         <div className="flex gap-2 mb-8 overflow-x-auto pb-1">
           <Link
-            href={buildHref({ categorie: 'tous' })}
+            href={buildHref({ categorie: 'tous', evenement: undefined })}
             className={cn(
               'px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-colors',
-              activeCategory === 'tous'
+              activeCategory === 'tous' && !activeEvent
                 ? 'bg-jungle-700 text-white'
                 : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
             )}
           >
             Tout ({allProducts.length})
           </Link>
+          {eventCollection && (
+            <Link
+              href={buildHref({ categorie: undefined, evenement: eventCollection.slug })}
+              className={cn(
+                'px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-colors',
+                activeEvent === eventCollection.slug
+                  ? 'bg-coral-600 text-white'
+                  : 'bg-white border border-coral-200 text-coral-600 hover:bg-coral-50'
+              )}
+            >
+              {eventCollection.title} (
+              {allProducts.filter((p) => p.tags?.includes(`event:${eventCollection.slug}`)).length}
+              )
+            </Link>
+          )}
           {categories.map((cat) => {
             const count = allProducts.filter((p) => p.category === cat).length;
             return (
               <Link
                 key={cat}
-                href={buildHref({ categorie: cat })}
+                href={buildHref({ categorie: cat, evenement: undefined })}
                 className={cn(
                   'px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-colors',
-                  activeCategory === cat
+                  activeCategory === cat && !activeEvent
                     ? 'bg-jungle-700 text-white'
                     : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
                 )}
@@ -197,7 +260,9 @@ export default async function BoutiquePage({ searchParams }: Props) {
         {query && (
           <p className="text-sm text-gray-500 mb-4">
             {filtered.length} résultat{filtered.length > 1 ? 's' : ''} pour &quot;{query}&quot;
-            {activeCategory !== 'tous' && ` dans ${CATEGORY_LABELS[activeCategory] ?? activeCategory}`}
+            {activeEvent
+              ? ` dans ${eventCollection?.title ?? activeEvent}`
+              : activeCategory !== 'tous' && ` dans ${CATEGORY_LABELS[activeCategory] ?? activeCategory}`}
           </p>
         )}
 

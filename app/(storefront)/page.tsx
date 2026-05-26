@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import { Hero } from '@/components/sections/Hero';
 import { FridgeCollection } from '@/components/sections/FridgeCollection';
 import { FlyingMagnets } from '@/components/sections/FlyingMagnets';
-import { EventBanner } from '@/components/sections/EventBanner';
 
 import { ProductCarousel } from '@/components/sections/ProductCarousel';
 import { FrizeLivraison } from '@/components/sections/FrizeLivraison';
@@ -14,6 +13,7 @@ import { CarteCollection } from '@/components/sections/CarteCollection';
 import { UspBanner } from '@/components/sections/UspBanner';
 import { HomeFaq } from '@/components/sections/HomeFaq';
 import { HomeReviewsCarousel, type HomeReview } from '@/components/sections/HomeReviewsCarousel';
+import { EventProductFeature, type EventFeatureConfig } from '@/components/sections/EventProductFeature';
 import { SmoothScroll } from '@/components/ui/SmoothScroll';
 import { getPublishedProducts } from '@/lib/queries/products';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -56,18 +56,69 @@ async function getHomeReviews(): Promise<HomeReview[]> {
   return (data ?? []) as HomeReview[];
 }
 
+type ActiveBanner = {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  image_url: string | null;
+  cta_text: string | null;
+  cta_link: string | null;
+};
+
+function productSlugFromLink(link: string | null) {
+  if (!link) return '';
+  const eventMatch = link.match(/^#evenement-special:([^/?#]+)/);
+  if (eventMatch) return eventMatch[1];
+  const eventQueryMatch = link.match(/[?&]evenement=([^&#]+)/);
+  if (eventQueryMatch) return eventQueryMatch[1];
+  return '';
+}
+
+async function getActiveEventBanner(): Promise<ActiveBanner | null> {
+  const supabase = createAdminClient();
+  const today = new Date().toISOString().slice(0, 10);
+  const { data } = await supabase
+    .from('hero_banners' as never)
+    .select('id, title, subtitle, image_url, cta_text, cta_link')
+    .eq('is_active', true)
+    .lte('start_date', today)
+    .gte('end_date', today)
+    .order('priority', { ascending: false })
+    .limit(1);
+
+  if (!data || data.length === 0) return null;
+  return data[0] as unknown as ActiveBanner;
+}
+
 export default async function Home() {
-  const [products, faqs, reviews] = await Promise.all([
+  const [products, faqs, reviews, activeBanner] = await Promise.all([
     getPublishedProducts(),
     getSiteFaqs(),
     getHomeReviews(),
+    getActiveEventBanner(),
   ]);
+  const eventProductSlug = productSlugFromLink(activeBanner?.cta_link ?? null);
+  const eventFeatureConfig: EventFeatureConfig | null =
+    activeBanner && eventProductSlug
+      ? {
+          enabled: true,
+          badge: 'Événement spécial',
+          title: activeBanner.title,
+          description:
+            activeBanner.subtitle ||
+            'Un souvenir de La Réunion à offrir pour marquer le moment.',
+          ctaLabel: activeBanner.cta_text || 'Découvrir le produit',
+          image: activeBanner.image_url || null,
+          imageAlt: activeBanner.title,
+          href: `/boutique?evenement=${eventProductSlug}`,
+        }
+      : null;
 
   return (
     <>
       <SmoothScroll />
-      <EventBanner />
       <Hero />
+      <EventProductFeature config={eventFeatureConfig} />
       <FridgeCollection />
       <FlyingMagnets />
       <FrizeLivraison />
