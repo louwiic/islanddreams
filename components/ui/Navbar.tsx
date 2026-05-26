@@ -70,7 +70,7 @@ export function Navbar({
     <nav
       ref={navRef}
       className={`fixed left-0 right-0 z-50 transition-all duration-500 ${
-        hasEventBanner ? 'top-[44px] md:top-[52px]' : 'top-0'
+        hasEventBanner ? 'top-9 md:top-10' : 'top-0'
       } ${
         scrolled
           ? 'bg-jungle-600/97 backdrop-blur-md shadow-lg py-3'

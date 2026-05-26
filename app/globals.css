@@ -104,6 +104,23 @@ body {
     display: none;
   }
 
+  .event-marquee-track {
+    animation: event-marquee-ltr 18s linear infinite;
+  }
+
+  .event-marquee-track:hover {
+    animation-play-state: paused;
+  }
+
+  @keyframes event-marquee-ltr {
+    from {
+      transform: translateX(-33.333%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+
   /* Typo titre — Londrina Solid bold, ombre portée pour lisibilité */
   .title-chunky {
     font-family: var(--font-heading);

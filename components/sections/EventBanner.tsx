@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import { createAdminClient } from '@/lib/supabase/admin';
 
@@ -36,41 +35,38 @@ function getBannerHref(link: string) {
 export function EventBanner({ banner }: { banner: Banner | null }) {
   if (!banner) return null;
 
+  const href = getBannerHref(banner.cta_link);
+  const marqueeItem = (
+    <span className="inline-flex items-center gap-3 whitespace-nowrap px-5 md:px-7">
+      <span className="text-xs font-black leading-none md:text-sm">{banner.title}</span>
+      {banner.subtitle && (
+        <span className="hidden text-xs leading-none text-white/80 sm:inline md:text-sm">{banner.subtitle}</span>
+      )}
+    </span>
+  );
+
   return (
     <div className="fixed inset-x-0 top-0 z-[70] bg-gradient-to-r from-coral-600 via-coral-500 to-sun-400 text-white shadow-md">
-      <div className="mx-auto max-w-6xl px-3 py-1.5 md:px-4 md:py-2">
+      <div className="mx-auto flex h-9 max-w-6xl items-center gap-2 px-3 md:h-10 md:px-4">
         <Link
-          href={getBannerHref(banner.cta_link)}
-          className="group flex min-h-8 items-center justify-center gap-3 md:min-h-9 md:gap-4"
+          href={href}
+          className="group min-w-0 flex-1 overflow-hidden"
+          aria-label={`${banner.title}${banner.subtitle ? ` — ${banner.subtitle}` : ''}`}
         >
-          {banner.image_url && (
-            <div className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded-lg bg-white/20 shadow md:h-9 md:w-9">
-              <Image
-                src={banner.image_url}
-                alt=""
-                fill
-                className="object-cover"
-              />
-            </div>
-          )}
-
-          <div className="min-w-0 text-center md:text-left">
-            <p className="truncate text-sm font-black leading-tight md:text-base">
-              {banner.title}
-            </p>
-            {banner.subtitle && (
-              <p className="hidden text-xs leading-tight text-white/80 sm:block">
-                {banner.subtitle}
-              </p>
-            )}
-          </div>
-
-          <span className="hidden flex-shrink-0 items-center gap-1.5 rounded-full bg-white/20 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white transition-colors group-hover:bg-white/30 md:inline-flex">
-            {banner.cta_text}
-            <svg className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-            </svg>
+          <span className="event-marquee-track inline-flex items-center">
+            {marqueeItem}
+            {marqueeItem}
+            {marqueeItem}
           </span>
+        </Link>
+        <Link
+          href={href}
+          className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-full bg-white/20 px-3 py-1.5 text-[11px] font-black uppercase tracking-wider text-white transition-colors hover:bg-white/30 md:px-4"
+        >
+          {banner.cta_text}
+          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+          </svg>
         </Link>
       </div>
     </div>
