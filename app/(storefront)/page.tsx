@@ -13,6 +13,7 @@ import { FooterNarratif } from '@/components/sections/FooterNarratif';
 import { CarteCollection } from '@/components/sections/CarteCollection';
 import { UspBanner } from '@/components/sections/UspBanner';
 import { HomeFaq } from '@/components/sections/HomeFaq';
+import { HomeReviewsCarousel, type HomeReview } from '@/components/sections/HomeReviewsCarousel';
 import { SmoothScroll } from '@/components/ui/SmoothScroll';
 import { getPublishedProducts } from '@/lib/queries/products';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -43,8 +44,24 @@ async function getSiteFaqs() {
   return (data ?? []) as { id: string; question: string; answer: string }[];
 }
 
+async function getHomeReviews(): Promise<HomeReview[]> {
+  const supabase = createAdminClient();
+  const { data } = await supabase
+    .from('reviews' as never)
+    .select('id, customer_name, rating, comment, created_at')
+    .eq('is_approved', true)
+    .order('created_at', { ascending: false })
+    .limit(8);
+
+  return (data ?? []) as HomeReview[];
+}
+
 export default async function Home() {
-  const [products, faqs] = await Promise.all([getPublishedProducts(), getSiteFaqs()]);
+  const [products, faqs, reviews] = await Promise.all([
+    getPublishedProducts(),
+    getSiteFaqs(),
+    getHomeReviews(),
+  ]);
 
   return (
     <>
@@ -59,6 +76,7 @@ export default async function Home() {
       <FemmePlage />
       <UspBanner />
       <CarteCollection />
+      <HomeReviewsCarousel reviews={reviews} />
       <HomeFaq items={faqs} />
       <VillesBlock products={products} />
       <FooterNarratif />

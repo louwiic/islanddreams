@@ -95,6 +95,15 @@ body {
     text-wrap: pretty;
   }
 
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
   /* Typo titre — Londrina Solid bold, ombre portée pour lisibilité */
   .title-chunky {
     font-family: var(--font-heading);
