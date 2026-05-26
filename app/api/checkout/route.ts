@@ -7,14 +7,41 @@ type CheckoutBody = {
   items: CartItem[];
   shippingMethodId?: string;
   promoCode?: string;
+  customer?: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    address?: {
+      line1?: string;
+      line2?: string;
+      city?: string;
+      postalCode?: string;
+      country?: string;
+    };
+  };
 };
 
 export async function POST(req: NextRequest) {
   try {
-    const { items, shippingMethodId, promoCode } = (await req.json()) as CheckoutBody;
+    const { items, shippingMethodId, promoCode, customer } = (await req.json()) as CheckoutBody;
 
     if (!items || items.length === 0) {
       return NextResponse.json({ error: 'Panier vide' }, { status: 400 });
+    }
+
+    if (
+      !customer?.name?.trim() ||
+      !customer.email?.trim() ||
+      !customer.phone?.trim() ||
+      !customer.address?.line1?.trim() ||
+      !customer.address.city?.trim() ||
+      !customer.address.postalCode?.trim()
+    ) {
+      return NextResponse.json({ error: 'Coordonnées de livraison incomplètes' }, { status: 400 });
+    }
+
+    if (!shippingMethodId) {
+      return NextResponse.json({ error: 'Mode de livraison requis' }, { status: 400 });
     }
 
     const supabase = createAdminClient();
@@ -84,6 +111,8 @@ export async function POST(req: NextRequest) {
     });
 
     // ── Frais de livraison ──────────────────────────────────────────────
+    let selectedShippingCost = 0;
+    let selectedShippingName = '';
     if (shippingMethodId) {
       const { data: method } = await supabase
         .from('shipping_methods')
@@ -91,7 +120,14 @@ export async function POST(req: NextRequest) {
         .eq('id', shippingMethodId)
         .single();
 
-      if (method && method.cost > 0) {
+      if (!method) {
+        return NextResponse.json({ error: 'Mode de livraison introuvable' }, { status: 400 });
+      }
+
+      selectedShippingCost = method.cost;
+      selectedShippingName = method.name;
+
+      if (method.cost > 0) {
         lineItems.push({
           price_data: {
             currency: 'eur',
@@ -129,6 +165,10 @@ export async function POST(req: NextRequest) {
       line_items: lineItems,
       ...(discounts ? { discounts } : {}),
       customer_creation: 'always',
+      customer_email: customer.email.trim(),
+      phone_number_collection: {
+        enabled: true,
+      },
       shipping_address_collection: {
         allowed_countries: ['FR', 'RE'],
       },
@@ -138,7 +178,16 @@ export async function POST(req: NextRequest) {
       metadata: {
         source: 'island-dreams-web',
         shippingMethodId: shippingMethodId || '',
+        shippingMethodName: selectedShippingName,
+        shippingCost: String(selectedShippingCost),
         promoCode: promoCode ? promoCode.toUpperCase() : '',
+        customerName: customer.name.trim(),
+        customerPhone: customer.phone.trim(),
+        shippingLine1: customer.address.line1.trim(),
+        shippingLine2: customer.address.line2?.trim() || '',
+        shippingCity: customer.address.city.trim(),
+        shippingPostalCode: customer.address.postalCode.trim(),
+        shippingCountry: customer.address.country || 'RE',
       },
     });
 

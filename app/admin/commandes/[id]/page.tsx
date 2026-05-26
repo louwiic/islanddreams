@@ -6,6 +6,32 @@ import { OrderStatusUpdater } from '@/components/admin/OrderStatusUpdater';
 
 type PageProps = { params: Promise<{ id: string }> };
 
+type OrderCustomer = {
+  first_name?: string | null;
+  last_name?: string | null;
+  email?: string | null;
+  phone?: string | null;
+};
+
+type OrderShippingAddress = {
+  name?: string | null;
+  line1?: string | null;
+  line2?: string | null;
+  postal_code?: string | null;
+  city?: string | null;
+  country?: string | null;
+  phone?: string | null;
+};
+
+type OrderItem = {
+  id: string;
+  product_name: string;
+  variant_label?: string | null;
+  unit_price: number;
+  quantity: number;
+  total: number;
+};
+
 const STATUS_LABELS: Record<string, string> = {
   pending: 'En attente',
   confirmed: 'Confirmée',
@@ -22,8 +48,8 @@ export default async function OrderDetailPage({ params }: PageProps) {
 
   if (!order) notFound();
 
-  const customer = order.customers as any;
-  const shipping = order.shipping_address as any;
+  const customer = order.customers as OrderCustomer | null;
+  const shipping = order.shipping_address as OrderShippingAddress | null;
 
   return (
     <div className="space-y-6">
@@ -67,7 +93,7 @@ export default async function OrderDetailPage({ params }: PageProps) {
             </h3>
           </div>
           <div className="divide-y divide-gray-50">
-            {order.items.map((item: any) => (
+            {order.items.map((item: OrderItem) => (
               <div
                 key={item.id}
                 className="px-5 py-3 flex items-center justify-between"
@@ -146,6 +172,7 @@ export default async function OrderDetailPage({ params }: PageProps) {
                   {shipping.postal_code} {shipping.city}
                 </p>
                 <p>{shipping.country}</p>
+                {shipping.phone && <p className="pt-2 text-ink">Tél : {shipping.phone}</p>}
               </div>
             </div>
           )}

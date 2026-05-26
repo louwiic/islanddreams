@@ -42,6 +42,9 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   // Créer ou trouver le client
   const email = session.customer_details?.email;
+  const metadata = session.metadata ?? {};
+  const metadataPhone = metadata.customerPhone || null;
+  const metadataName = metadata.customerName || null;
   let customerId: string | null = null;
 
   if (email) {
@@ -58,9 +61,9 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
         .from('customers')
         .insert({
           email,
-          first_name: session.customer_details?.name?.split(' ')[0] || null,
-          last_name: session.customer_details?.name?.split(' ').slice(1).join(' ') || null,
-          phone: session.customer_details?.phone || null,
+          first_name: (session.customer_details?.name || metadataName)?.split(' ')[0] || null,
+          last_name: (session.customer_details?.name || metadataName)?.split(' ').slice(1).join(' ') || null,
+          phone: session.customer_details?.phone || metadataPhone,
         })
         .select('id')
         .single();
@@ -70,8 +73,27 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   }
 
   // Adresse de livraison
-  const sessionDetails = session as any;
-  const shipping = sessionDetails.shipping_details?.address;
+  const shippingDetails = (
+    session as Stripe.Checkout.Session & {
+      shipping_details?: {
+        address?: Stripe.Address | null;
+        name?: string | null;
+      } | null;
+    }
+  ).shipping_details;
+  const shipping = shippingDetails?.address;
+  const metadataShipping =
+    metadata.shippingLine1 || metadata.shippingCity || metadata.shippingPostalCode
+      ? {
+          line1: metadata.shippingLine1 || null,
+          line2: metadata.shippingLine2 || null,
+          city: metadata.shippingCity || null,
+          postal_code: metadata.shippingPostalCode || null,
+          country: metadata.shippingCountry || null,
+          name: metadataName,
+          phone: metadataPhone,
+        }
+      : null;
   const shippingAddress = shipping
     ? {
         line1: shipping.line1,
@@ -79,13 +101,15 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
         city: shipping.city,
         postal_code: shipping.postal_code,
         country: shipping.country,
-        name: sessionDetails.shipping_details?.name,
+        name: shippingDetails?.name || metadataName,
+        phone: session.customer_details?.phone || metadataPhone,
       }
-    : null;
+    : metadataShipping;
 
   // Calculer le total
   const subtotal = (session.amount_subtotal ?? 0) / 100;
-  const shippingCost = (session.total_details?.amount_shipping ?? 0) / 100;
+  const metadataShippingCost = Number(metadata.shippingCost || 0);
+  const shippingCost = ((session.total_details?.amount_shipping ?? 0) / 100) || metadataShippingCost;
   const total = (session.amount_total ?? 0) / 100;
 
   // Idempotence — ne pas créer deux fois la même commande
@@ -166,7 +190,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   console.log(`✓ Commande créée: ${order.id} — ${total}€`);
 
   // ── Enregistrer l'usage du code promo ───────────────────────────
-  const promoCodeUsed = session.metadata?.promoCode;
+  const promoCodeUsed = metadata.promoCode;
   console.log(`[PROMO-WEBHOOK] metadata.promoCode="${promoCodeUsed}", email="${email}"`);
   if (promoCodeUsed && email) {
     const { error: promoErr } = await supabase
@@ -189,10 +213,10 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   }
 
   // ── Emails ──────────────────────────────────────────────────────
-  const customerName = session.customer_details?.name || 'Client';
+  const customerName = session.customer_details?.name || metadataName || 'Client';
   const customerEmail = session.customer_details?.email;
-  const shippingStr = shipping
-    ? `${shipping.line1}${shipping.line2 ? ', ' + shipping.line2 : ''}, ${shipping.postal_code} ${shipping.city}`
+  const shippingStr = shippingAddress
+    ? `${shippingAddress.line1}${shippingAddress.line2 ? ', ' + shippingAddress.line2 : ''}, ${shippingAddress.postal_code} ${shippingAddress.city}${shippingAddress.phone ? ` — Tél : ${shippingAddress.phone}` : ''}`
     : undefined;
 
   const emailOrderData = {
