@@ -2,6 +2,7 @@ import { Store, Truck } from 'lucide-react';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { MaintenanceToggle } from './MaintenanceToggle';
 import { DemoVideoSettings } from './DemoVideoSettings';
+import { ContestSettings } from './ContestSettings';
 
 async function getMaintenanceSettings() {
   const supabase = createAdminClient();
@@ -38,6 +39,30 @@ async function getDemoVideoSettings() {
   );
 }
 
+async function getContestSettings() {
+  const supabase = createAdminClient();
+  const { data } = await supabase
+    .from('shop_settings')
+    .select('key, value')
+    .in('key', [
+      'contest_popup_enabled',
+      'contest_popup_title',
+      'contest_popup_description',
+      'contest_popup_image_url',
+      'contest_popup_start_date',
+      'contest_popup_end_date',
+      'contest_popup_question',
+      'contest_popup_require_answer',
+      'contest_popup_facebook_url',
+      'contest_popup_instagram_url',
+      'contest_popup_tiktok_url',
+    ]);
+
+  return Object.fromEntries(
+    ((data ?? []) as { key: string; value: string }[]).map((r) => [r.key, r.value])
+  );
+}
+
 async function getDemoProducts() {
   const supabase = createAdminClient();
   const { data } = await supabase
@@ -49,9 +74,10 @@ async function getDemoProducts() {
 }
 
 export default async function ParametresPage() {
-  const [maintenance, demoVideoSettings, demoProducts] = await Promise.all([
+  const [maintenance, demoVideoSettings, contestSettings, demoProducts] = await Promise.all([
     getMaintenanceSettings(),
     getDemoVideoSettings(),
+    getContestSettings(),
     getDemoProducts(),
   ]);
 
@@ -62,6 +88,8 @@ export default async function ParametresPage() {
       <MaintenanceToggle enabled={maintenance.enabled} pin={maintenance.pin} />
 
       <DemoVideoSettings products={demoProducts} initialSettings={demoVideoSettings} />
+
+      <ContestSettings initialSettings={contestSettings} />
 
       {/* Boutique */}
       <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">

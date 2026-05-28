@@ -9,6 +9,7 @@ import { MaintenancePage } from '@/components/sections/MaintenancePage';
 import { ChatWidgetLoader } from '@/components/chatbot/ChatWidgetLoader';
 import { DemoVideoWidget, type DemoVideoConfig } from '@/components/shop/DemoVideoWidget';
 import { EventBanner, getActiveBanner } from '@/components/sections/EventBanner';
+import { ContestPopup, type ContestPopupConfig } from '@/components/ui/ContestPopup';
 
 export const dynamic = 'force-dynamic';
 
@@ -102,15 +103,65 @@ async function getDemoVideoConfig(): Promise<DemoVideoConfig | null> {
   return config;
 }
 
+function isActiveDateRange(startDate: string, endDate: string) {
+  const today = new Date().toISOString().slice(0, 10);
+  return (!startDate || startDate <= today) && (!endDate || endDate >= today);
+}
+
+async function getContestPopupConfig(): Promise<ContestPopupConfig | null> {
+  const supabase = createAdminClient();
+  const { data } = await supabase
+    .from('shop_settings')
+    .select('key, value')
+    .in('key', [
+      'contest_popup_enabled',
+      'contest_popup_title',
+      'contest_popup_description',
+      'contest_popup_image_url',
+      'contest_popup_start_date',
+      'contest_popup_end_date',
+      'contest_popup_question',
+      'contest_popup_require_answer',
+      'contest_popup_facebook_url',
+      'contest_popup_instagram_url',
+      'contest_popup_tiktok_url',
+    ]);
+
+  const settings = Object.fromEntries(
+    ((data ?? []) as { key: string; value: unknown }[]).map((row) => [
+      row.key,
+      settingToString(row.value),
+    ])
+  );
+
+  const config: ContestPopupConfig = {
+    enabled: settings.contest_popup_enabled === 'true' || settings.contest_popup_enabled === '1',
+    title: settings.contest_popup_title || 'Jeu concours Island Dreams',
+    description: settings.contest_popup_description || '',
+    imageUrl: settings.contest_popup_image_url || '',
+    startDate: settings.contest_popup_start_date || '',
+    endDate: settings.contest_popup_end_date || '',
+    question: settings.contest_popup_question || '',
+    requireAnswer: settings.contest_popup_require_answer === 'true',
+    facebookUrl: settings.contest_popup_facebook_url || 'https://www.facebook.com/islanddreams974/',
+    instagramUrl: settings.contest_popup_instagram_url || 'https://www.instagram.com/islanddreams.re/',
+    tiktokUrl: settings.contest_popup_tiktok_url || '',
+  };
+
+  if (!config.enabled || !isActiveDateRange(config.startDate, config.endDate)) return null;
+  return config;
+}
+
 export default async function StorefrontLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [featuredCategory, maintenance, demoVideoConfig, activeBanner] = await Promise.all([
+  const [featuredCategory, maintenance, demoVideoConfig, contestPopupConfig, activeBanner] = await Promise.all([
     getNavFeaturedCategory(),
     getMaintenanceSettings(),
     getDemoVideoConfig(),
+    getContestPopupConfig(),
     getActiveBanner(),
   ]);
 
@@ -128,7 +179,7 @@ export default async function StorefrontLayout({
       <Navbar featuredCategory={featuredCategory} hasEventBanner={Boolean(activeBanner)} />
       {children}
       <CartDrawer />
-      <NewsletterPopup />
+      {contestPopupConfig ? <ContestPopup config={contestPopupConfig} /> : <NewsletterPopup />}
       <ChatWidgetLoader />
       <DemoVideoWidget config={demoVideoConfig} />
     </CartProvider>
