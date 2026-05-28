@@ -15,6 +15,8 @@ export type ContestPopupConfig = {
   endDate: string;
   question: string;
   requireAnswer: boolean;
+  termsText: string;
+  socialText: string;
   facebookUrl: string;
   instagramUrl: string;
   tiktokUrl: string;
@@ -34,6 +36,7 @@ export function ContestPopup({ config }: Props) {
   const [answer, setAnswer] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState('');
 
   const key = useMemo(() => (config ? storageKey(config) : ''), [config]);
@@ -65,8 +68,7 @@ export function ContestPopup({ config }: Props) {
         body: JSON.stringify({
           email,
           answer,
-          question: config.question,
-          contestTitle: config.title,
+          termsAccepted,
         }),
       });
       const data = await res.json().catch(() => null);
@@ -197,6 +199,20 @@ export function ContestPopup({ config }: Props) {
 
                 {error && <p className="text-xs text-coral-600">{error}</p>}
 
+                <label className="flex items-start gap-2 rounded-xl bg-white/70 p-3 text-xs leading-relaxed text-ink/55">
+                  <input
+                    type="checkbox"
+                    required
+                    checked={termsAccepted}
+                    onChange={(event) => setTermsAccepted(event.target.checked)}
+                    className="mt-0.5 rounded border-ink/20 text-jungle-700 focus:ring-jungle-600"
+                  />
+                  <span>
+                    {config.termsText ||
+                      'J’accepte que mes données soient utilisées pour ma participation au jeu concours et pour recevoir des communications commerciales d’Island Dreams.'}
+                  </span>
+                </label>
+
                 <button
                   type="submit"
                   disabled={loading}
@@ -219,7 +235,7 @@ export function ContestPopup({ config }: Props) {
 
           <div className="mt-5 border-t border-ink/10 pt-4">
             <p className="mb-3 text-center text-xs font-bold uppercase tracking-wider text-ink/40">
-              Suis-nous sur les réseaux
+              {config.socialText || 'Suis-nous sur les réseaux'}
             </p>
             <div className="grid grid-cols-3 gap-2">
               <a

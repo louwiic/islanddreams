@@ -56,6 +56,8 @@ async function getContestSettings() {
       'contest_popup_end_date',
       'contest_popup_question',
       'contest_popup_require_answer',
+      'contest_popup_terms_text',
+      'contest_popup_social_text',
       'contest_popup_facebook_url',
       'contest_popup_instagram_url',
       'contest_popup_tiktok_url',

@@ -29,6 +29,14 @@ export function ContestSettings({ initialSettings, products }: Props) {
   const [requireAnswer, setRequireAnswer] = useState(
     initialSettings.contest_popup_require_answer === 'true'
   );
+  const [termsText, setTermsText] = useState(
+    initialSettings.contest_popup_terms_text ||
+      'J’accepte que mes données soient utilisées pour ma participation au jeu concours et pour recevoir des communications commerciales d’Island Dreams.'
+  );
+  const [socialText, setSocialText] = useState(
+    initialSettings.contest_popup_social_text ||
+      'Double tes chances en participant aussi sur nos réseaux'
+  );
   const [facebookUrl, setFacebookUrl] = useState(
     initialSettings.contest_popup_facebook_url || 'https://www.facebook.com/islanddreams974/'
   );
@@ -84,6 +92,8 @@ export function ContestSettings({ initialSettings, products }: Props) {
         contest_popup_end_date: endDate,
         contest_popup_question: question.trim(),
         contest_popup_require_answer: String(requireAnswer),
+        contest_popup_terms_text: termsText.trim(),
+        contest_popup_social_text: socialText.trim(),
         contest_popup_facebook_url: facebookUrl.trim(),
         contest_popup_instagram_url: instagramUrl.trim(),
         contest_popup_tiktok_url: tiktokUrl.trim(),
@@ -275,6 +285,34 @@ export function ContestSettings({ initialSettings, products }: Props) {
             />
             Réponse obligatoire si la question est affichée
           </label>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Texte CGU / consentement
+          </label>
+          <textarea
+            rows={3}
+            value={termsText}
+            onChange={(event) => setTermsText(event.target.value)}
+            className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-jungle-500/20 focus:border-jungle-500 resize-y"
+          />
+          <p className="mt-1 text-xs text-gray-400">
+            Ce texte est affiché avec une case obligatoire dans la popup.
+          </p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Phrase au-dessus des boutons réseaux
+          </label>
+          <input
+            type="text"
+            value={socialText}
+            onChange={(event) => setSocialText(event.target.value)}
+            placeholder="Ex: Double tes chances en participant aussi sur nos réseaux"
+            className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-jungle-500/20 focus:border-jungle-500"
+          />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

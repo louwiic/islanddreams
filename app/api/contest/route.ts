@@ -61,9 +61,14 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   const email = String(body?.email || '').trim().toLowerCase();
   const answer = String(body?.answer || '').trim();
+  const termsAccepted = body?.termsAccepted === true;
 
   if (!email || !isValidEmail(email)) {
     return NextResponse.json({ error: 'Email invalide.' }, { status: 400 });
+  }
+
+  if (!termsAccepted) {
+    return NextResponse.json({ error: 'Tu dois accepter les conditions de participation.' }, { status: 400 });
   }
 
   const contest = await getActiveContest();
@@ -91,6 +96,7 @@ export async function POST(req: NextRequest) {
     `Participation au jeu concours : ${contest.title}`,
     contest.question ? `Question : ${contest.question}` : null,
     contest.question ? `Réponse : ${answer || 'Aucune réponse'}` : null,
+    'Consentement : conditions acceptées, données utilisables pour la participation et les communications commerciales.',
   ].filter(Boolean).join('\n\n');
 
   const { error } = await admin.from('contact_messages').insert({

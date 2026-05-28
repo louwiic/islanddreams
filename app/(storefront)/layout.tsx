@@ -125,6 +125,8 @@ async function getContestPopupConfig(): Promise<ContestPopupConfig | null> {
       'contest_popup_end_date',
       'contest_popup_question',
       'contest_popup_require_answer',
+      'contest_popup_terms_text',
+      'contest_popup_social_text',
       'contest_popup_facebook_url',
       'contest_popup_instagram_url',
       'contest_popup_tiktok_url',
@@ -149,6 +151,10 @@ async function getContestPopupConfig(): Promise<ContestPopupConfig | null> {
     endDate: settings.contest_popup_end_date || '',
     question: settings.contest_popup_question || '',
     requireAnswer: settings.contest_popup_require_answer === 'true',
+    termsText:
+      settings.contest_popup_terms_text ||
+      'J’accepte que mes données soient utilisées pour ma participation au jeu concours et pour recevoir des communications commerciales d’Island Dreams.',
+    socialText: settings.contest_popup_social_text || 'Double tes chances en participant aussi sur nos réseaux',
     facebookUrl: settings.contest_popup_facebook_url || 'https://www.facebook.com/islanddreams974/',
     instagramUrl: settings.contest_popup_instagram_url || 'https://www.instagram.com/islanddreams.re/',
     tiktokUrl: settings.contest_popup_tiktok_url || '',
