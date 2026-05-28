@@ -10,6 +10,7 @@ export type ContestPopupConfig = {
   title: string;
   description: string;
   imageUrl: string;
+  prizeUrl: string;
   startDate: string;
   endDate: string;
   question: string;
@@ -109,7 +110,20 @@ export function ContestPopup({ config }: Props) {
           <X size={19} />
         </button>
 
-        <div className="relative min-h-[210px] bg-jungle-800 sm:min-h-full">
+        <a
+          href={config.prizeUrl || undefined}
+          className="relative block min-h-[210px] bg-jungle-800 sm:min-h-full"
+          onClick={(event) => {
+            if (!config.prizeUrl) {
+              event.preventDefault();
+              return;
+            }
+            track('contest_prize_clicked', {
+              contest_title: config.title,
+              destination: config.prizeUrl,
+            });
+          }}
+        >
           {config.imageUrl ? (
             <Image
               src={config.imageUrl}
@@ -130,7 +144,7 @@ export function ContestPopup({ config }: Props) {
               Lot à gagner
             </span>
           </div>
-        </div>
+        </a>
 
         <div className="overflow-y-auto px-5 py-6 sm:px-6 sm:py-8">
           {!submitted ? (

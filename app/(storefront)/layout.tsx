@@ -115,9 +115,12 @@ async function getContestPopupConfig(): Promise<ContestPopupConfig | null> {
     .select('key, value')
     .in('key', [
       'contest_popup_enabled',
+      'contest_popup_prize_source',
+      'contest_popup_product_slug',
       'contest_popup_title',
       'contest_popup_description',
       'contest_popup_image_url',
+      'contest_popup_prize_url',
       'contest_popup_start_date',
       'contest_popup_end_date',
       'contest_popup_question',
@@ -134,11 +137,14 @@ async function getContestPopupConfig(): Promise<ContestPopupConfig | null> {
     ])
   );
 
+  const prizeSource = settings.contest_popup_prize_source || 'manual';
+  const productSlug = settings.contest_popup_product_slug || '';
   const config: ContestPopupConfig = {
     enabled: settings.contest_popup_enabled === 'true' || settings.contest_popup_enabled === '1',
     title: settings.contest_popup_title || 'Jeu concours Island Dreams',
     description: settings.contest_popup_description || '',
     imageUrl: settings.contest_popup_image_url || '',
+    prizeUrl: settings.contest_popup_prize_url || '',
     startDate: settings.contest_popup_start_date || '',
     endDate: settings.contest_popup_end_date || '',
     question: settings.contest_popup_question || '',
@@ -149,6 +155,29 @@ async function getContestPopupConfig(): Promise<ContestPopupConfig | null> {
   };
 
   if (!config.enabled || !isActiveDateRange(config.startDate, config.endDate)) return null;
+
+  if (prizeSource === 'product' && productSlug) {
+    const { data: product } = await supabase
+      .from('products')
+      .select('id, slug, name')
+      .eq('slug', productSlug)
+      .eq('status', 'publish')
+      .maybeSingle();
+
+    if (product) {
+      const { data: mainImage } = await supabase
+        .from('product_images')
+        .select('url')
+        .eq('product_id', product.id)
+        .eq('is_main', true)
+        .maybeSingle();
+
+      config.imageUrl = mainImage?.url || config.imageUrl;
+      config.prizeUrl = `/boutique/${product.slug}`;
+      if (!settings.contest_popup_title) config.title = product.name;
+    }
+  }
+
   return config;
 }
 

@@ -46,9 +46,12 @@ async function getContestSettings() {
     .select('key, value')
     .in('key', [
       'contest_popup_enabled',
+      'contest_popup_prize_source',
+      'contest_popup_product_slug',
       'contest_popup_title',
       'contest_popup_description',
       'contest_popup_image_url',
+      'contest_popup_prize_url',
       'contest_popup_start_date',
       'contest_popup_end_date',
       'contest_popup_question',
@@ -89,7 +92,7 @@ export default async function ParametresPage() {
 
       <DemoVideoSettings products={demoProducts} initialSettings={demoVideoSettings} />
 
-      <ContestSettings initialSettings={contestSettings} />
+      <ContestSettings initialSettings={contestSettings} products={demoProducts} />
 
       {/* Boutique */}
       <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
