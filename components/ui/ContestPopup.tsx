@@ -17,6 +17,7 @@ export type ContestPopupConfig = {
   requireAnswer: boolean;
   termsText: string;
   socialText: string;
+  termsUrl: string;
   facebookUrl: string;
   instagramUrl: string;
   tiktokUrl: string;
@@ -212,6 +213,20 @@ export function ContestPopup({ config }: Props) {
                       'J’accepte que mes données soient utilisées pour ma participation au jeu concours et pour recevoir des communications commerciales d’Island Dreams.'}
                   </span>
                 </label>
+                <a
+                  href={config.termsUrl || '/conditions-jeu-concours'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() =>
+                    track('contest_terms_clicked', {
+                      contest_title: config.title,
+                      destination: config.termsUrl || '/conditions-jeu-concours',
+                    })
+                  }
+                  className="-mt-1 block text-center text-xs font-semibold text-jungle-700 underline-offset-4 hover:underline"
+                >
+                  Voir les conditions complètes du jeu
+                </a>
 
                 <button
                   type="submit"

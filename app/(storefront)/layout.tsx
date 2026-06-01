@@ -155,6 +155,7 @@ async function getContestPopupConfig(): Promise<ContestPopupConfig | null> {
       settings.contest_popup_terms_text ||
       'J’accepte que mes données soient utilisées pour ma participation au jeu concours et pour recevoir des communications commerciales d’Island Dreams.',
     socialText: settings.contest_popup_social_text || 'Double tes chances en participant aussi sur nos réseaux',
+    termsUrl: '/conditions-jeu-concours',
     facebookUrl: settings.contest_popup_facebook_url || 'https://www.facebook.com/islanddreams974/',
     instagramUrl: settings.contest_popup_instagram_url || 'https://www.instagram.com/islanddreams.re/',
     tiktokUrl: settings.contest_popup_tiktok_url || '',
