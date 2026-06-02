@@ -11,7 +11,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   textile: 'Textile',
   goodies: 'Goodies',
   decoration: 'Décoration',
-  uncategorized: 'Tout',
+  uncategorized: 'Non classé',
 };
 
 export type CarouselProduct = {
@@ -28,7 +28,7 @@ export function ProductCarousel({ products }: { products: CarouselProduct[] }) {
   // Extraire les catégories uniques depuis les vrais produits
   const availableCategories = useMemo(() => {
     const cats = new Set(products.map((p) => p.category ?? 'uncategorized'));
-    return ['Tout', ...Array.from(cats).map((c) => CATEGORY_LABELS[c] ?? c)];
+    return Array.from(new Set(['Tout', ...Array.from(cats).map((c) => CATEGORY_LABELS[c] ?? c)]));
   }, [products]);
 
   const [activeCategory, setActiveCategory] = useState<string>('Tout');
@@ -51,15 +51,12 @@ export function ProductCarousel({ products }: { products: CarouselProduct[] }) {
     skipSnaps: false,
   });
 
-  const [selectedIndex, setSelectedIndex] = useState(0);
-
   const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
   const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
 
   useEffect(() => {
     if (!emblaApi) return;
     emblaApi.reInit();
-    setSelectedIndex(0);
   }, [activeCategory, selectedVille, emblaApi]);
 
   useEffect(() => {
@@ -84,16 +81,6 @@ export function ProductCarousel({ products }: { products: CarouselProduct[] }) {
       window.removeEventListener('select-ville', villeHandler);
     };
   }, []);
-
-  useEffect(() => {
-    if (!emblaApi) return;
-    const onSelect = () => setSelectedIndex(emblaApi.selectedScrollSnap());
-    emblaApi.on('select', onSelect);
-    onSelect();
-    return () => {
-      emblaApi.off('select', onSelect);
-    };
-  }, [emblaApi]);
 
   if (products.length === 0) return null;
 

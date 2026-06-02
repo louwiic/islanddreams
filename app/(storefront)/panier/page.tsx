@@ -498,6 +498,17 @@ export default function PanierPage() {
                   <p className="text-xs text-coral-500">{shippingError}</p>
                 )}
 
+                {shippingOptions && (
+                  <div className="rounded-xl border border-jungle-100 bg-jungle-50/70 px-4 py-3 text-xs leading-relaxed text-jungle-800">
+                    <p className="font-semibold text-ink">
+                      Petits colis expédiés sous 48h ouvrées
+                    </p>
+                    <p className="mt-1 text-jungle-800/75">
+                      Island Dreams prépare et remet le colis au transporteur. L&apos;acheminement est ensuite assuré par La Poste selon ses délais.
+                    </p>
+                  </div>
+                )}
+
                 {shippingOptions && shippingOptions.map((option) => (
                   <div key={option.zone} className="space-y-2">
                     <p className="text-xs font-semibold text-gray-500 flex items-center gap-1 pt-1">

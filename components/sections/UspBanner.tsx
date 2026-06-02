@@ -18,8 +18,8 @@ const USP_ITEMS = [
   {
     src: '/images/usp-voiture.svg',
     alt: 'Voiture livraison',
-    title: 'OU GAGN OUT KOMAND',
-    subtitle: 'AN 72H',
+    title: 'TI KOLI EXPÉDIÉ',
+    subtitle: 'SOUS 48H OUVRÉES',
   },
   {
     src: '/images/usp-magnet.png',

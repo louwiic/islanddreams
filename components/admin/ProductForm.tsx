@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Save, Eye, Trash2, Copy, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Save, Eye, Trash2, Copy, ChevronDown, Sparkles, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { slugify, type ProductCategory, type ProductStatus } from '@/lib/types/product';
 import { createProduct, updateProduct, deleteProduct, saveProductFaqs } from '@/lib/actions/products';
@@ -45,6 +45,23 @@ type ProductFormData = {
 type Props = {
   mode: 'create' | 'edit';
   initialData?: Partial<ProductFormData>;
+};
+
+type AiSuggestions = Partial<Pick<
+  ProductFormData,
+  | 'name'
+  | 'slug'
+  | 'shortDescription'
+  | 'description'
+  | 'category'
+  | 'tags'
+  | 'metaTitle'
+  | 'metaDescription'
+  | 'focusKeyword'
+  | 'seoKeywords'
+  | 'faqs'
+>> & {
+  imageAlt?: string;
 };
 
 const CATEGORIES: { value: ProductCategory; label: string }[] = [
@@ -113,6 +130,22 @@ function splitInitialTags(tags: string[] = []) {
   };
 }
 
+function fileToDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') resolve(reader.result);
+      else reject(new Error('Image invalide'));
+    };
+    reader.onerror = () => reject(new Error('Image illisible'));
+    reader.readAsDataURL(file);
+  });
+}
+
+function mergeUnique(current: string[], incoming?: string[]) {
+  return uniqueTags([...(current || []), ...(incoming || [])]);
+}
+
 /* ── Section collapsible ─────────────────────────────────── */
 
 function Section({
@@ -162,6 +195,8 @@ export function ProductForm({ mode, initialData }: Props) {
   const [seoKeywordInput, setSeoKeywordInput] = useState('');
   const [autoSlug, setAutoSlug] = useState(!initialData?.slug);
   const [saving, setSaving] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiMessage, setAiMessage] = useState('');
   const [error, setError] = useState('');
 
   const update = <K extends keyof ProductFormData>(
@@ -329,6 +364,86 @@ export function ProductForm({ mode, initialData }: Props) {
     }
   };
 
+  const handleAiSuggestions = async () => {
+    const mainImage = form.images.find((img) => img.isMain) ?? form.images[0];
+    if (!mainImage) {
+      setError('Ajoutez une image produit avant de demander les suggestions IA.');
+      return;
+    }
+
+    setAiLoading(true);
+    setAiMessage('');
+    setError('');
+
+    try {
+      const image = mainImage.file
+        ? await fileToDataUrl(mainImage.file)
+        : mainImage.preview;
+
+      if (image.startsWith('blob:')) {
+        setError('Cette image locale doit être réimportée avant analyse IA.');
+        return;
+      }
+
+      const response = await fetch('/api/admin/products/ai-suggestions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          image,
+          imageAlt: mainImage.alt,
+          current: {
+            name: form.name,
+            category: form.category,
+            tags: form.tags,
+          },
+        }),
+      });
+
+      const data = (await response.json()) as {
+        suggestions?: AiSuggestions;
+        error?: string;
+      };
+
+      if (!response.ok || !data.suggestions) {
+        setError(data.error || 'Impossible de générer les suggestions IA.');
+        return;
+      }
+
+      const suggestions = data.suggestions;
+      setForm((prev) => {
+        const nextName = suggestions.name || prev.name;
+        const nextSlug = suggestions.slug || (autoSlug ? slugify(nextName) : prev.slug);
+        const mainImageId = mainImage.id;
+
+        return {
+          ...prev,
+          name: nextName,
+          slug: nextSlug,
+          shortDescription: suggestions.shortDescription || prev.shortDescription,
+          description: suggestions.description || prev.description,
+          category: suggestions.category || prev.category,
+          tags: mergeUnique(prev.tags, suggestions.tags),
+          metaTitle: suggestions.metaTitle || prev.metaTitle,
+          metaDescription: suggestions.metaDescription || prev.metaDescription,
+          focusKeyword: suggestions.focusKeyword || prev.focusKeyword,
+          seoKeywords: mergeUnique(prev.seoKeywords, suggestions.seoKeywords),
+          faqs: suggestions.faqs?.length ? suggestions.faqs : prev.faqs,
+          images: suggestions.imageAlt
+            ? prev.images.map((img) =>
+                img.id === mainImageId ? { ...img, alt: suggestions.imageAlt || img.alt } : img
+              )
+            : prev.images,
+        };
+      });
+      setAutoSlug(false);
+      setAiMessage('Suggestions IA appliquées. Vous pouvez tout modifier avant enregistrement.');
+    } catch {
+      setError('Erreur pendant la génération IA. Réessayez.');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   const currentStatus = STATUS_OPTIONS.find((s) => s.value === form.status)!;
 
   return (
@@ -363,6 +478,26 @@ export function ProductForm({ mode, initialData }: Props) {
             <span className="hidden sm:inline">Aperçu</span>
           </button>
           <button
+            type="button"
+            onClick={handleAiSuggestions}
+            disabled={aiLoading || form.images.length === 0}
+            title={
+              form.images.length === 0
+                ? 'Ajoutez une image produit avant de lancer les suggestions IA'
+                : 'Analyser l’image principale et remplir les champs produit'
+            }
+            className="flex items-center gap-2 px-4 py-2 border border-jungle-200 bg-jungle-50 text-jungle-700 rounded-lg text-sm font-medium hover:bg-jungle-100 transition-colors disabled:opacity-40"
+          >
+            {aiLoading ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <Sparkles size={16} />
+            )}
+            <span className="hidden sm:inline">
+              {aiLoading ? 'Analyse...' : 'Suggestions IA'}
+            </span>
+          </button>
+          <button
             onClick={handleSave}
             disabled={saving || !form.name.trim()}
             className="flex items-center gap-2 px-5 py-2 bg-jungle-600 text-white rounded-lg text-sm font-medium hover:bg-jungle-700 transition-colors disabled:opacity-40"
@@ -377,6 +512,11 @@ export function ProductForm({ mode, initialData }: Props) {
       {error && (
         <div className="px-4 py-3 bg-coral-50 border border-coral-200 rounded-lg text-sm text-coral-700">
           {error}
+        </div>
+      )}
+      {aiMessage && (
+        <div className="px-4 py-3 bg-jungle-50 border border-jungle-100 rounded-lg text-sm text-jungle-700">
+          {aiMessage}
         </div>
       )}
 
