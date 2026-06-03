@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Save, ArrowLeft, Eye, EyeOff, Trash2, Loader2, ImagePlus } from 'lucide-react';
+import { Save, ArrowLeft, Trash2, Loader2, ImagePlus } from 'lucide-react';
 import { createBlogPost, updateBlogPost, deleteBlogPost, uploadBlogImage, getBlogCategories } from '@/lib/actions/blog';
 import type { BlogCategory } from '@/lib/actions/blog';
+import { RichTextEditor } from './RichTextEditor';
 import { cn } from '@/lib/utils';
 
 type BlogFormData = {
@@ -44,7 +45,7 @@ export function BlogPostForm({ mode, initialData }: Props) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [preview, setPreview] = useState(false);
+
   const [uploading, setUploading] = useState(false);
   const [categories, setCategories] = useState<BlogCategory[]>([]);
   const [tagInput, setTagInput] = useState('');
@@ -219,24 +220,11 @@ export function BlogPostForm({ mode, initialData }: Props) {
 
           {/* Contenu */}
           <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Contenu</label>
-              <button onClick={() => setPreview(!preview)} className="flex items-center gap-1 text-xs text-gray-500 hover:text-jungle-600">
-                {preview ? <EyeOff size={14} /> : <Eye size={14} />}
-                {preview ? 'Éditer' : 'Aperçu'}
-              </button>
-            </div>
-            {preview ? (
-              <div className="border border-gray-200 rounded-lg p-6 min-h-[400px] prose prose-sm max-w-none bg-white" dangerouslySetInnerHTML={{ __html: form.content }} />
-            ) : (
-              <textarea
-                value={form.content}
-                onChange={(e) => update('content', e.target.value)}
-                rows={20}
-                placeholder="<h2>Votre contenu HTML ici...</h2>"
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-jungle-500/20 focus:border-jungle-500 outline-none resize-y"
-              />
-            )}
+            <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Contenu</label>
+            <RichTextEditor
+              value={form.content}
+              onChange={(html) => update('content', html)}
+            />
           </div>
 
           {/* SEO */}
