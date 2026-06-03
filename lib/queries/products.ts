@@ -6,7 +6,7 @@ export async function getPublishedProducts() {
 
   const { data: products } = await supabase
     .from('products')
-    .select('id, slug, name, category, price, sale_price, featured')
+    .select('id, slug, name, category, price, sale_price, featured, tags')
     .eq('status', 'publish')
     .order('sort_order')
     .order('created_at', { ascending: false });
@@ -37,7 +37,7 @@ export async function getProductsByCategory(categorySlug: string) {
 
   const { data: products } = await supabase
     .from('products')
-    .select('id, slug, name, category, price, sale_price, featured')
+    .select('id, slug, name, category, price, sale_price, featured, tags')
     .eq('status', 'publish')
     .eq('category', categorySlug as 'magnets' | 'stickers' | 'textile' | 'goodies' | 'decoration' | 'uncategorized')
     .order('featured', { ascending: false })
@@ -68,7 +68,7 @@ export async function getFeaturedProducts() {
 
   const { data: products } = await supabase
     .from('products')
-    .select('id, slug, name, category, price, sale_price, featured')
+    .select('id, slug, name, category, price, sale_price, featured, tags')
     .eq('status', 'publish')
     .eq('featured', true)
     .order('created_at', { ascending: false });

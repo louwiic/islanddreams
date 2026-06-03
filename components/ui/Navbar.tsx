@@ -27,13 +27,15 @@ const rightLinks = [
 
 // Visible dans le menu mobile uniquement
 const mobileOnlyLinks = [
-  { label: 'Découvrir la Réunion', href: '/decouvrir', color: null, featured: false },
+  { label: 'Découvrir la Réunion', href: '/decouvrir-la-reunion', color: null, featured: false },
 ];
 
 export function Navbar({
   featuredCategory,
+  hasEventBanner = false,
 }: {
   featuredCategory?: NavFeaturedCategory;
+  hasEventBanner?: boolean;
 }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -67,7 +69,9 @@ export function Navbar({
   return (
     <nav
       ref={navRef}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+      className={`fixed left-0 right-0 z-50 transition-all duration-500 ${
+        hasEventBanner ? 'top-9 md:top-10' : 'top-0'
+      } ${
         scrolled
           ? 'bg-jungle-600/97 backdrop-blur-md shadow-lg py-3'
           : 'bg-transparent py-5'

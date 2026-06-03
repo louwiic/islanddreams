@@ -22,6 +22,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       images: post.cover_image_url ? [{ url: post.cover_image_url, width: 1200, height: 630 }] : undefined,
       type: 'article',
       publishedTime: post.published_at || undefined,
+      modifiedTime: post.updated_at || undefined,
       authors: [post.author],
     },
     twitter: { card: 'summary_large_image' },
@@ -94,6 +95,11 @@ export default async function BlogArticlePage({ params }: PageProps) {
             <Clock size={12} />
             {post.published_at && new Date(post.published_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
           </span>
+          {post.updated_at && post.updated_at !== post.published_at && (
+            <span className="text-xs text-gray-400 flex items-center gap-1">
+              · Mis à jour le {new Date(post.updated_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </span>
+          )}
           <span className="text-xs text-gray-400">par {post.author}</span>
         </div>
 

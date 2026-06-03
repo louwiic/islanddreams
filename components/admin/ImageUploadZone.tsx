@@ -77,6 +77,12 @@ export function ImageUploadZone({ images, onChange }: Props) {
     ));
   };
 
+  const updateAlt = (id: string, alt: string) => {
+    onChange(
+      images.map((img) => (img.id === id ? { ...img, alt } : img))
+    );
+  };
+
   const onDragStart = (index: number) => {
     dragItemRef.current = index;
   };
@@ -171,6 +177,25 @@ export function ImageUploadZone({ images, onChange }: Props) {
           <p className="text-xs text-gray-400">
             L’image marquée <strong>Principale</strong> sera utilisée en couverture. Les autres images seront visibles dans la galerie produit.
           </p>
+          <div className="space-y-2 rounded-lg border border-gray-200 bg-gray-50/50 p-3">
+            <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+              Textes alternatifs SEO
+            </p>
+            {images.map((img, index) => (
+              <div key={img.id} className="grid gap-2 sm:grid-cols-[88px_1fr] sm:items-center">
+                <span className="text-xs text-gray-500">
+                  Image {index + 1}{img.isMain ? ' · principale' : ''}
+                </span>
+                <input
+                  type="text"
+                  value={img.alt}
+                  onChange={(e) => updateAlt(img.id, e.target.value)}
+                  placeholder="Ex: Magnet personnalisé Réunion 974"
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs focus:border-jungle-500 focus:outline-none focus:ring-2 focus:ring-jungle-500/20"
+                />
+              </div>
+            ))}
+          </div>
         </>
       )}
 

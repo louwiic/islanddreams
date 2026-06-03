@@ -5,6 +5,7 @@ import sharp from 'sharp';
 
 const MAX_WIDTH = 1200;
 const QUALITY = 80;
+const MAX_VIDEO_SIZE = 60 * 1024 * 1024;
 
 async function compressImage(buffer: Buffer): Promise<{ data: Buffer; contentType: string; ext: string }> {
   const compressed = await sharp(buffer)
@@ -59,6 +60,31 @@ export async function uploadTextileImage(
     .from('product-images')
     .upload(path, compressed, {
       contentType,
+      upsert: true,
+    });
+
+  if (error) return { url: '', error: error.message };
+
+  const { data } = supabase.storage.from('product-images').getPublicUrl(path);
+  return { url: data.publicUrl };
+}
+
+export async function uploadDemoVideo(
+  formData: FormData
+): Promise<{ url: string; error?: string }> {
+  const file = formData.get('file') as File | null;
+  if (!file) return { url: '', error: 'Aucun fichier' };
+  if (!file.type.startsWith('video/')) return { url: '', error: 'Le fichier doit être une vidéo' };
+  if (file.size > MAX_VIDEO_SIZE) return { url: '', error: 'La vidéo ne doit pas dépasser 60 Mo' };
+
+  const supabase = createAdminClient();
+  const ext = file.name.split('.').pop()?.toLowerCase() || 'mp4';
+  const path = `demo-videos/${Date.now()}.${ext}`;
+
+  const { error } = await supabase.storage
+    .from('product-images')
+    .upload(path, Buffer.from(await file.arrayBuffer()), {
+      contentType: file.type,
       upsert: true,
     });
 

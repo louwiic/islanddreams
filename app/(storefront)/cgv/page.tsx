@@ -82,6 +82,13 @@ export default function CGVPage() {
 
         <h2>Article 7 — Livraison</h2>
         <p>Les produits sont livrés à l&apos;adresse indiquée par le client lors de la commande.</p>
+        <p>
+          Pour les petits colis, ISLAND DREAMS prépare et remet généralement la commande au
+          transporteur sous <strong>48h ouvrées</strong> après validation du paiement, hors
+          rupture de stock, personnalisation spécifique ou période de forte activité. Une fois le
+          colis remis au transporteur, l&apos;acheminement est assuré par La Poste selon ses propres
+          délais.
+        </p>
         <h3>Zones et délais indicatifs :</h3>
         <ul>
           <li><strong>La Réunion (974)</strong> : 3 à 7 jours ouvrés</li>

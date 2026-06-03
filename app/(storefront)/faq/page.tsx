@@ -22,8 +22,21 @@ async function getSiteFaqs() {
 export default async function FaqPage() {
   const faqs = await getSiteFaqs();
 
+  const faqJsonLd = faqs.length > 0 ? {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.question,
+      acceptedAnswer: { '@type': 'Answer', text: f.answer },
+    })),
+  } : null;
+
   return (
     <main>
+      {faqJsonLd && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+      )}
       <div className="bg-jungle-800 pt-24 pb-12">
         <div className="max-w-3xl mx-auto px-6 text-center">
           <h1 className="font-[family-name:var(--font-oswald)] text-3xl md:text-4xl font-bold text-cream uppercase tracking-wide">

@@ -5,12 +5,13 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { track } from '@vercel/analytics/react';
 
 const NAV_LINKS = [
-  { label: 'BOUTIQUE',             href: 'https://www.islanddreams.re/boutique/' },
-  { label: 'À PROPOS',             href: 'https://www.islanddreams.re/a-propos/' },
-  { label: 'DÉCOUVRIR LA RÉUNION', href: 'https://www.islanddreams.re/decouvrir-la-reunion/' },
-  { label: 'CONTACT',              href: 'https://www.islanddreams.re/contact/' },
+  { label: 'BOUTIQUE',             href: '/boutique' },
+  { label: 'À PROPOS',             href: '/a-propos' },
+  { label: 'DÉCOUVRIR LA RÉUNION', href: '/decouvrir-la-reunion' },
+  { label: 'CONTACT',              href: '/contact' },
 ];
 
 const LEGAL_LINKS = [
@@ -141,12 +142,12 @@ export function FooterNarratif() {
               </SocialBtn>
             </div>
 
-            <a
-              href="https://www.islanddreams.re/boutique/"
+            <Link
+              href="/boutique"
               className="inline-block bg-sun-400 text-ink text-sm font-bold px-6 py-2.5 rounded-full hover:bg-sun-300 transition-colors tracking-wide"
             >
               Voir la boutique
-            </a>
+            </Link>
           </div>
 
           {/* ── Centre : newsletter + navigation ── */}
@@ -167,14 +168,14 @@ export function FooterNarratif() {
 
             <nav className="flex flex-col items-center gap-5" aria-label="Footer navigation">
               {NAV_LINKS.map((link) => (
-                <a
+                <Link
                   key={link.href}
                   href={link.href}
                   className="text-cream font-black text-xl md:text-2xl uppercase tracking-wide hover:text-sun-400 transition-colors leading-none"
                   style={{ fontFamily: 'var(--font-heading, serif)' }}
                 >
                   {link.label}
-                </a>
+                </Link>
               ))}
             </nav>
           </div>
@@ -212,12 +213,12 @@ export function FooterNarratif() {
               </SocialBtn>
             </div>
 
-            <a
-              href="https://www.islanddreams.re/contact/"
+            <Link
+              href="/contact"
               className="inline-block border-2 border-cream/40 text-cream text-sm font-bold px-6 py-2.5 rounded-full hover:border-sun-400 hover:text-sun-400 transition-colors tracking-wide"
             >
               Nous contacter
-            </a>
+            </Link>
           </div>
         </div>
 
@@ -246,7 +247,7 @@ export function FooterNarratif() {
 
         {/* ── Ligne copyright ── */}
         <div className="max-w-6xl mx-auto px-6 py-4 text-center text-xs text-cream/30 border-t border-cream/10">
-          <p>Un site fait à La Réunion (974). 2025 Island Dreams.</p>
+          <p>Un site fait à La Réunion (974). 2026 Island Dreams.</p>
         </div>
       </div>
 
@@ -260,7 +261,21 @@ export function FooterNarratif() {
           Livraison France métropolitaine &amp; DOM · contact@islanddreams.re
         </p>
         <p className="text-cream/30 text-[10px] mt-3">
-          Fait avec ❤️ par <a href="https://kolab.tech" target="_blank" rel="noopener noreferrer" className="text-cream/50 hover:text-cream transition-colors">KOLAB.TECH</a>
+          Fait avec ❤️ par{' '}
+          <a
+            href="https://kolab.tech"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() =>
+              track('footer_kolab_credit_clicked', {
+                location: 'footer',
+                destination: 'https://kolab.tech',
+              })
+            }
+            className="text-cream/50 hover:text-cream transition-colors"
+          >
+            KOLAB.TECH
+          </a>
         </p>
       </div>
     </footer>

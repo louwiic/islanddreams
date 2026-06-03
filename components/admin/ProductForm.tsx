@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Save, Eye, Trash2, Copy, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Save, Eye, Trash2, Copy, ChevronDown, Sparkles, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { slugify, type ProductCategory, type ProductStatus } from '@/lib/types/product';
 import { createProduct, updateProduct, deleteProduct, saveProductFaqs } from '@/lib/actions/products';
@@ -39,11 +39,29 @@ type ProductFormData = {
   metaTitle: string;
   metaDescription: string;
   focusKeyword: string;
+  seoKeywords: string[];
 };
 
 type Props = {
   mode: 'create' | 'edit';
   initialData?: Partial<ProductFormData>;
+};
+
+type AiSuggestions = Partial<Pick<
+  ProductFormData,
+  | 'name'
+  | 'slug'
+  | 'shortDescription'
+  | 'description'
+  | 'category'
+  | 'tags'
+  | 'metaTitle'
+  | 'metaDescription'
+  | 'focusKeyword'
+  | 'seoKeywords'
+  | 'faqs'
+>> & {
+  imageAlt?: string;
 };
 
 const CATEGORIES: { value: ProductCategory; label: string }[] = [
@@ -85,7 +103,48 @@ const DEFAULT: ProductFormData = {
   metaTitle: '',
   metaDescription: '',
   focusKeyword: '',
+  seoKeywords: [],
 };
+
+const SEO_TAG_PREFIX = 'seo:';
+const SYSTEM_TAG_PREFIXES = ['event:'];
+
+function uniqueTags(tags: string[]) {
+  return Array.from(new Set(tags.map((tag) => tag.trim()).filter(Boolean)));
+}
+
+function splitInitialTags(tags: string[] = []) {
+  return {
+    productTags: tags.filter(
+      (tag) =>
+        !tag.startsWith(SEO_TAG_PREFIX) &&
+        !SYSTEM_TAG_PREFIXES.some((prefix) => tag.startsWith(prefix))
+    ),
+    seoKeywords: tags
+      .filter((tag) => tag.startsWith(SEO_TAG_PREFIX))
+      .map((tag) => tag.slice(SEO_TAG_PREFIX.length))
+      .filter(Boolean),
+    systemTags: tags.filter((tag) =>
+      SYSTEM_TAG_PREFIXES.some((prefix) => tag.startsWith(prefix))
+    ),
+  };
+}
+
+function fileToDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') resolve(reader.result);
+      else reject(new Error('Image invalide'));
+    };
+    reader.onerror = () => reject(new Error('Image illisible'));
+    reader.readAsDataURL(file);
+  });
+}
+
+function mergeUnique(current: string[], incoming?: string[]) {
+  return uniqueTags([...(current || []), ...(incoming || [])]);
+}
 
 /* ── Section collapsible ─────────────────────────────────── */
 
@@ -124,14 +183,20 @@ function Section({
 /* ── Composant principal ─────────────────────────────────── */
 
 export function ProductForm({ mode, initialData }: Props) {
+  const initialTagGroups = splitInitialTags(initialData?.tags);
   const [form, setForm] = useState<ProductFormData>({
     ...DEFAULT,
     ...initialData,
+    tags: initialTagGroups.productTags,
+    seoKeywords: initialData?.seoKeywords ?? initialTagGroups.seoKeywords,
   });
   const router = useRouter();
   const [tagInput, setTagInput] = useState('');
+  const [seoKeywordInput, setSeoKeywordInput] = useState('');
   const [autoSlug, setAutoSlug] = useState(!initialData?.slug);
   const [saving, setSaving] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiMessage, setAiMessage] = useState('');
   const [error, setError] = useState('');
 
   const update = <K extends keyof ProductFormData>(
@@ -163,6 +228,21 @@ export function ProductForm({ mode, initialData }: Props) {
     );
   };
 
+  const addSeoKeyword = () => {
+    const trimmed = seoKeywordInput.trim();
+    if (trimmed && !form.seoKeywords.includes(trimmed)) {
+      update('seoKeywords', [...form.seoKeywords, trimmed]);
+    }
+    setSeoKeywordInput('');
+  };
+
+  const removeSeoKeyword = (keyword: string) => {
+    update(
+      'seoKeywords',
+      form.seoKeywords.filter((item) => item !== keyword)
+    );
+  };
+
   const handleSave = async () => {
     setSaving(true);
     setError('');
@@ -178,7 +258,11 @@ export function ProductForm({ mode, initialData }: Props) {
       description: form.description || undefined,
       shortDescription: form.shortDescription || undefined,
       category: form.category,
-      tags: form.tags,
+      tags: uniqueTags([
+        ...initialTagGroups.systemTags,
+        ...form.tags,
+        ...form.seoKeywords.map((keyword) => `${SEO_TAG_PREFIX}${keyword}`),
+      ]),
       price: priceNum,
       salePrice: salePriceNum,
       sku: form.sku || undefined,
@@ -280,6 +364,86 @@ export function ProductForm({ mode, initialData }: Props) {
     }
   };
 
+  const handleAiSuggestions = async () => {
+    const mainImage = form.images.find((img) => img.isMain) ?? form.images[0];
+    if (!mainImage) {
+      setError('Ajoutez une image produit avant de demander les suggestions IA.');
+      return;
+    }
+
+    setAiLoading(true);
+    setAiMessage('');
+    setError('');
+
+    try {
+      const image = mainImage.file
+        ? await fileToDataUrl(mainImage.file)
+        : mainImage.preview;
+
+      if (image.startsWith('blob:')) {
+        setError('Cette image locale doit être réimportée avant analyse IA.');
+        return;
+      }
+
+      const response = await fetch('/api/admin/products/ai-suggestions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          image,
+          imageAlt: mainImage.alt,
+          current: {
+            name: form.name,
+            category: form.category,
+            tags: form.tags,
+          },
+        }),
+      });
+
+      const data = (await response.json()) as {
+        suggestions?: AiSuggestions;
+        error?: string;
+      };
+
+      if (!response.ok || !data.suggestions) {
+        setError(data.error || 'Impossible de générer les suggestions IA.');
+        return;
+      }
+
+      const suggestions = data.suggestions;
+      setForm((prev) => {
+        const nextName = suggestions.name || prev.name;
+        const nextSlug = suggestions.slug || (autoSlug ? slugify(nextName) : prev.slug);
+        const mainImageId = mainImage.id;
+
+        return {
+          ...prev,
+          name: nextName,
+          slug: nextSlug,
+          shortDescription: suggestions.shortDescription || prev.shortDescription,
+          description: suggestions.description || prev.description,
+          category: suggestions.category || prev.category,
+          tags: mergeUnique(prev.tags, suggestions.tags),
+          metaTitle: suggestions.metaTitle || prev.metaTitle,
+          metaDescription: suggestions.metaDescription || prev.metaDescription,
+          focusKeyword: suggestions.focusKeyword || prev.focusKeyword,
+          seoKeywords: mergeUnique(prev.seoKeywords, suggestions.seoKeywords),
+          faqs: suggestions.faqs?.length ? suggestions.faqs : prev.faqs,
+          images: suggestions.imageAlt
+            ? prev.images.map((img) =>
+                img.id === mainImageId ? { ...img, alt: suggestions.imageAlt || img.alt } : img
+              )
+            : prev.images,
+        };
+      });
+      setAutoSlug(false);
+      setAiMessage('Suggestions IA appliquées. Vous pouvez tout modifier avant enregistrement.');
+    } catch {
+      setError('Erreur pendant la génération IA. Réessayez.');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   const currentStatus = STATUS_OPTIONS.find((s) => s.value === form.status)!;
 
   return (
@@ -314,6 +478,26 @@ export function ProductForm({ mode, initialData }: Props) {
             <span className="hidden sm:inline">Aperçu</span>
           </button>
           <button
+            type="button"
+            onClick={handleAiSuggestions}
+            disabled={aiLoading || form.images.length === 0}
+            title={
+              form.images.length === 0
+                ? 'Ajoutez une image produit avant de lancer les suggestions IA'
+                : 'Analyser l’image principale et remplir les champs produit'
+            }
+            className="flex items-center gap-2 px-4 py-2 border border-jungle-200 bg-jungle-50 text-jungle-700 rounded-lg text-sm font-medium hover:bg-jungle-100 transition-colors disabled:opacity-40"
+          >
+            {aiLoading ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <Sparkles size={16} />
+            )}
+            <span className="hidden sm:inline">
+              {aiLoading ? 'Analyse...' : 'Suggestions IA'}
+            </span>
+          </button>
+          <button
             onClick={handleSave}
             disabled={saving || !form.name.trim()}
             className="flex items-center gap-2 px-5 py-2 bg-jungle-600 text-white rounded-lg text-sm font-medium hover:bg-jungle-700 transition-colors disabled:opacity-40"
@@ -328,6 +512,11 @@ export function ProductForm({ mode, initialData }: Props) {
       {error && (
         <div className="px-4 py-3 bg-coral-50 border border-coral-200 rounded-lg text-sm text-coral-700">
           {error}
+        </div>
+      )}
+      {aiMessage && (
+        <div className="px-4 py-3 bg-jungle-50 border border-jungle-100 rounded-lg text-sm text-jungle-700">
+          {aiMessage}
         </div>
       )}
 
@@ -560,9 +749,16 @@ export function ProductForm({ mode, initialData }: Props) {
 
           {/* SEO */}
           <Section title="SEO" defaultOpen={mode === 'edit'}>
+            <div className="rounded-lg border border-jungle-100 bg-jungle-50/60 p-4">
+              <p className="text-sm font-semibold text-ink">Zones importantes</p>
+              <p className="mt-1 text-xs leading-relaxed text-gray-500">
+                Utilisez naturellement les expressions dans le titre, la description courte, la description longue, les textes ALT et la FAQ. Les champs ci-dessous servent aux moteurs de recherche et au partage social.
+              </p>
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Meta title
+                Titre SEO
               </label>
               <input
                 type="text"
@@ -581,7 +777,7 @@ export function ProductForm({ mode, initialData }: Props) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Meta description
+                Description SEO
               </label>
               <textarea
                 value={form.metaDescription}
@@ -609,6 +805,46 @@ export function ProductForm({ mode, initialData }: Props) {
                 placeholder="Ex: magnet réunion"
                 className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-jungle-500/20 focus:border-jungle-500"
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Mots-clés secondaires
+              </label>
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {form.seoKeywords.map((keyword) => (
+                  <span
+                    key={keyword}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-jungle-50 text-xs text-jungle-700"
+                  >
+                    {keyword}
+                    <button
+                      type="button"
+                      onClick={() => removeSeoKeyword(keyword)}
+                      className="text-jungle-400 hover:text-coral-500"
+                    >
+                      <span className="sr-only">Supprimer</span>
+                      &times;
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <input
+                type="text"
+                value={seoKeywordInput}
+                onChange={(e) => setSeoKeywordInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addSeoKeyword();
+                  }
+                }}
+                placeholder="Ex: cadeau personnalisé reunion 974 + Entrée"
+                className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-jungle-500/20 focus:border-jungle-500"
+              />
+              <p className="mt-1 text-xs text-gray-400">
+                Ces mots-clés sont enregistrés séparément des tags techniques et ajoutés aux métadonnées de la fiche.
+              </p>
             </div>
 
             {/* Google Preview */}

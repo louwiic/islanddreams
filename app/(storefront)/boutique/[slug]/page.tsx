@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import Image from 'next/image';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { getProductBySlug } from '@/lib/actions/products';
@@ -11,6 +10,17 @@ import { ProductTabs } from '@/components/ui/ProductTabs';
 type PageProps = {
   params: Promise<{ slug: string }>;
 };
+
+function getSeoKeywords(product: { focus_keyword: string | null; tags: string[] | null }) {
+  return Array.from(
+    new Set([
+      product.focus_keyword,
+      ...(product.tags ?? [])
+        .filter((tag) => tag.startsWith('seo:'))
+        .map((tag) => tag.slice(4)),
+    ].filter(Boolean) as string[])
+  );
+}
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
@@ -25,15 +35,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     `${product.name} — Souvenir illustré de La Réunion par Island Dreams.`;
 
   const mainImage = product.images.find((i) => i.is_main) ?? product.images[0];
+  const keywords = getSeoKeywords(product);
 
   return {
     title,
     description,
+    keywords: keywords.length > 0 ? keywords : undefined,
     alternates: { canonical: `/boutique/${slug}` },
     openGraph: {
       title: product.meta_title || `${product.name} | Island Dreams`,
       description,
-      locale: 'fr_RE',
+      locale: 'fr_FR',
       type: 'article',
       images: mainImage ? [{ url: mainImage.url, alt: mainImage.alt || product.name }] : undefined,
     },
@@ -193,8 +205,10 @@ export default async function ProductPage({ params }: PageProps) {
               '@type': 'Product',
               name: product.name,
               description: product.meta_description || product.short_description || '',
+              keywords: getSeoKeywords(product).join(', '),
               image: mainImage?.url,
               sku: product.sku,
+              brand: { '@type': 'Brand', name: 'Island Dreams' },
               offers: {
                 '@type': 'Offer',
                 url: `https://www.islanddreams.re/boutique/${product.slug}`,
@@ -224,7 +238,7 @@ export default async function ProductPage({ params }: PageProps) {
               itemListElement: [
                 { '@type': 'ListItem', position: 1, name: 'Accueil', item: 'https://www.islanddreams.re' },
                 { '@type': 'ListItem', position: 2, name: 'Boutique', item: 'https://www.islanddreams.re/boutique' },
-                { '@type': 'ListItem', position: 3, name: categoryLabel, item: `https://www.islanddreams.re/boutique?categorie=${product.category}` },
+                { '@type': 'ListItem', position: 3, name: categoryLabel, item: 'https://www.islanddreams.re/boutique' },
                 { '@type': 'ListItem', position: 4, name: product.name },
               ],
             },

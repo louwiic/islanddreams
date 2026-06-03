@@ -24,6 +24,7 @@ import {
   FileText,
   Bot,
   HelpCircle,
+  QrCode,
   Star,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -61,6 +62,7 @@ const navigation: (NavItem | NavGroup)[] = [
     items: [
       { name: 'Messages', href: '/admin/messages', icon: MessageSquare },
       { name: 'Newsletter', href: '/admin/newsletter', icon: Mail },
+      { name: 'QR codes', href: '/admin/qrcodes', icon: QrCode },
       { name: 'Chatbot', href: '/admin/chatbot', icon: Bot },
     ],
   },

@@ -96,10 +96,10 @@ export function FrizeLivraison() {
           className="absolute left-3 md:left-5 top-[18%] md:top-[20%] z-10"
         >
           <p className="title-chunky-light text-xl md:text-3xl lg:text-4xl leading-tight text-ink whitespace-nowrap">
-            Ou gagn out komand an 72h
+            Ti koli expédié sous 48h ouvrées
           </p>
           <p className="text-ink/55 text-[10px] md:text-xs font-semibold uppercase tracking-widest mt-0.5">
-            Livraison à La Réunion
+            Acheminement ensuite assuré par La Poste
           </p>
         </div>
 

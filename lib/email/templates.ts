@@ -40,6 +40,15 @@ ${footer}
 </html>`;
 }
 
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // ─── Newsletter bienvenue ──────────────────────────────────────────
 
 export function newsletterWelcome(email: string) {
@@ -152,6 +161,42 @@ export function contactNotification(contact: ContactData) {
       </div>
       <a href="https://islanddreams.re/admin/messages" style="display:inline-block;background:#2a5a3a;color:#f5efe0;padding:10px 20px;border-radius:6px;text-decoration:none;font-size:13px;font-weight:bold;">
         Voir dans l'admin
+      </a>
+    `),
+  };
+}
+
+// ─── Notification admin — nouvel avis client ───────────────────────
+
+type ReviewData = {
+  customerName: string;
+  customerEmail?: string | null;
+  orderNumber?: string | null;
+  rating: number;
+  comment: string;
+};
+
+export function reviewNotification(review: ReviewData) {
+  const safeName = escapeHtml(review.customerName);
+  const safeEmail = review.customerEmail ? escapeHtml(review.customerEmail) : null;
+  const safeOrderNumber = review.orderNumber ? escapeHtml(review.orderNumber) : null;
+  const safeComment = escapeHtml(review.comment).replace(/\n/g, '<br>');
+
+  return {
+    subject: `Nouvel avis client — ${review.rating}/5`,
+    html: wrap(`
+      <h2 style="color:#1a2e3b;font-size:20px;margin:0 0 16px;">Nouvel avis à valider</h2>
+      <table style="width:100%;font-size:14px;">
+        <tr><td style="padding:6px 0;color:#999;width:120px;">Nom</td><td style="color:#333;font-weight:bold;">${safeName}</td></tr>
+        ${safeEmail ? `<tr><td style="padding:6px 0;color:#999;">Email</td><td style="color:#333;">${safeEmail}</td></tr>` : ''}
+        ${safeOrderNumber ? `<tr><td style="padding:6px 0;color:#999;">Commande</td><td style="color:#333;">#${safeOrderNumber}</td></tr>` : ''}
+        <tr><td style="padding:6px 0;color:#999;">Note</td><td style="color:#333;font-weight:bold;">${review.rating}/5</td></tr>
+      </table>
+      <div style="background:#f5f5f5;padding:16px;border-radius:8px;margin:16px 0;color:#333;line-height:1.6;">
+        ${safeComment}
+      </div>
+      <a href="https://islanddreams.re/admin/avis" style="display:inline-block;background:#2a5a3a;color:#f5efe0;padding:10px 20px;border-radius:6px;text-decoration:none;font-size:13px;font-weight:bold;">
+        Valider l'avis dans l'admin
       </a>
     `),
   };

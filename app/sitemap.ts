@@ -33,12 +33,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  const categoryUrls = (categories ?? []).map((c) => ({
-    url: `${BASE_URL}/boutique?categorie=${c.slug}`,
-    lastModified: c.updated_at ? new Date(c.updated_at) : new Date(),
-    changeFrequency: 'weekly' as const,
-    priority: 0.6,
-  }));
+  // Les URLs de catégories sont des filtres qui canonicalisent vers /boutique
+  // — ne pas les inclure dans le sitemap (signaux contradictoires)
+  const categoryUrls: MetadataRoute.Sitemap = [];
 
   const blogUrls = (blogPosts ?? []).map((p) => ({
     url: `${BASE_URL}/blog/${p.slug}`,
@@ -50,6 +47,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages = [
     { path: '/blog', priority: 0.8 },
     { path: '/decouvrir-la-reunion', priority: 0.7 },
+    { path: '/faq', priority: 0.6 },
+    { path: '/avis', priority: 0.5 },
     { path: '/a-propos', priority: 0.5 },
     { path: '/contact', priority: 0.5 },
     { path: '/mentions-legales', priority: 0.3 },

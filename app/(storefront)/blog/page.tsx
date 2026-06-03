@@ -8,6 +8,14 @@ export const metadata: Metadata = {
   title: 'Blog — Island Dreams | Souvenirs de La Réunion',
   description: "Actualités, coulisses et conseils autour de La Réunion et des créations Island Dreams. Découvrez notre île à travers nos articles.",
   alternates: { canonical: '/blog' },
+  openGraph: {
+    title: 'Blog — Island Dreams | Souvenirs de La Réunion',
+    description: "Actualités, coulisses et conseils autour de La Réunion et des créations Island Dreams.",
+    locale: 'fr_FR',
+    type: 'website',
+    images: [{ url: '/images/og-default.jpg', width: 1200, height: 630, alt: 'Island Dreams — Blog' }],
+  },
+  twitter: { card: 'summary_large_image' },
 };
 
 export default async function BlogPage({

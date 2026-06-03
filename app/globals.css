@@ -62,11 +62,27 @@
   --foreground: var(--color-ink);
 }
 
+html {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 body {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-body);
   overflow-x: hidden;
+}
+
+@supports (overflow: clip) {
+  html,
+  body {
+    overflow-x: clip;
+  }
 }
 
 /* Utilitaires personnalisés Island Dreams */
@@ -77,6 +93,32 @@ body {
 
   .text-pretty {
     text-wrap: pretty;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .event-marquee-track {
+    animation: event-marquee-ltr 18s linear infinite;
+  }
+
+  .event-marquee-track:hover {
+    animation-play-state: paused;
+  }
+
+  @keyframes event-marquee-ltr {
+    from {
+      transform: translateX(-33.333%);
+    }
+    to {
+      transform: translateX(0);
+    }
   }
 
   /* Typo titre — Londrina Solid bold, ombre portée pour lisibilité */
