@@ -3,8 +3,8 @@ import Link from 'next/link';
 import { DecouvrirClient } from './DecouvrirClient';
 
 export const metadata: Metadata = {
-  title: 'Découvrir La Réunion — Island Dreams 974',
-  description: 'Partez à la découverte des communes de La Réunion. Cirques, lagon, volcans, forêts et culture créole : chaque ville a son histoire.',
+  title: 'Communes de La Réunion — 27 villes à explorer | Island Dreams',
+  description: 'Partez à la découverte des 27 communes de La Réunion : Saint-Denis, Saint-Gilles, Cilaos, Mafate, Saint-Joseph… Cirques, lagon, volcans et culture créole — chaque ville a son histoire.',
   alternates: { canonical: '/decouvrir-la-reunion' },
 };
 
@@ -40,9 +40,39 @@ const COMMUNES = [
 
 const REGIONS = ['Nord', 'Nord-Est', 'Est', 'Sud-Est', 'Sud', 'Hauts du Sud', 'Cirques', 'Ouest', 'Nord-Ouest', 'Hauts'];
 
+const communesJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: 'Les 27 communes de La Réunion',
+  description: 'Découvrez les 27 communes de La Réunion : histoire, culture créole, paysages et identité de chaque ville.',
+  numberOfItems: COMMUNES.length,
+  itemListElement: COMMUNES.map((c, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    item: {
+      '@type': 'Place',
+      name: c.name,
+      description: c.description,
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: c.name,
+        postalCode: c.postalCode,
+        addressCountry: 'FR',
+        addressRegion: 'La Réunion',
+      },
+      containedInPlace: {
+        '@type': 'AdministrativeArea',
+        name: 'La Réunion',
+        sameAs: 'https://fr.wikipedia.org/wiki/La_R%C3%A9union',
+      },
+    },
+  })),
+};
+
 export default function DecouvrirPage() {
   return (
     <main className="bg-cream min-h-screen">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(communesJsonLd) }} />
       {/* Hero */}
       <div className="bg-jungle-800 pt-28 pb-12 px-4 text-center">
         <h1 className="text-4xl md:text-5xl font-black text-cream mb-2 leading-tight uppercase tracking-wide">

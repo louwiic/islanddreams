@@ -59,7 +59,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Island Dreams — L'île en souvenirs",
     description: 'Cadeaux personnalisés et souvenirs illustrés de La Réunion 974, à garder ou à offrir.',
-    locale: 'fr_RE',
+    locale: 'fr_FR',
     type: 'website',
     siteName: 'Island Dreams',
     images: [
@@ -92,21 +92,38 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               '@context': 'https://schema.org',
-              '@type': 'Organization',
+              '@type': 'LocalBusiness',
               name: 'Island Dreams',
               url: 'https://www.islanddreams.re',
               logo: 'https://www.islanddreams.re/images/logo/logo-horizontal-hd.png',
+              image: 'https://www.islanddreams.re/images/og-default.jpg',
               description:
-                'Cadeaux personnalisés et souvenirs illustrés de La Réunion 974 — magnets, stickers, textile, décoration.',
+                'Cadeaux personnalisés et souvenirs illustrés de La Réunion 974 — magnets, stickers, textile, décoration. Dessiné et imprimé à La Réunion.',
+              telephone: '+262693056667',
+              email: 'contact@islanddreams.re',
               address: {
                 '@type': 'PostalAddress',
                 addressLocality: 'La Réunion',
+                addressRegion: 'La Réunion',
                 addressCountry: 'FR',
+                postalCode: '974',
               },
+              areaServed: ['La Réunion', 'France métropolitaine', 'DOM-TOM'],
               sameAs: [
                 'https://www.instagram.com/islanddreams.re/',
                 'https://www.facebook.com/islanddreams974/',
+                'https://www.tiktok.com/@islanddreams.re',
               ],
+              hasOfferCatalog: {
+                '@type': 'OfferCatalog',
+                name: 'Souvenirs et cadeaux illustrés de La Réunion',
+                itemListElement: [
+                  { '@type': 'Offer', itemOffered: { '@type': 'Product', name: 'Magnets de La Réunion' } },
+                  { '@type': 'Offer', itemOffered: { '@type': 'Product', name: 'Stickers 974' } },
+                  { '@type': 'Offer', itemOffered: { '@type': 'Product', name: 'Textile péi' } },
+                  { '@type': 'Offer', itemOffered: { '@type': 'Product', name: 'Décoration réunionnaise' } },
+                ],
+              },
             }),
           }}
         />

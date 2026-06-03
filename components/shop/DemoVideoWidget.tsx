@@ -92,52 +92,53 @@ export function DemoVideoWidget({ config }: Props) {
   return createPortal(
     <>
       <div
-        style={{
-          bottom: 'max(0.875rem, env(safe-area-inset-bottom))',
-          maxWidth: 'calc(100vw - 1.5rem)',
-          ...(isLeft
-            ? { left: 'max(0.75rem, env(safe-area-inset-left))' }
-            : { right: 'max(0.75rem, env(safe-area-inset-right))' }),
-        }}
-        className={cn(
-          'fixed z-[2147483000] w-24 overflow-visible rounded-2xl bg-black shadow-2xl shadow-black/25 sm:w-32'
-        )}
+        className="pointer-events-none fixed inset-0 z-[2147483000] h-dvh w-dvw overflow-hidden"
+        aria-hidden={open ? true : undefined}
       >
-        <button
-          type="button"
-          onClick={() => setHidden(true)}
-          className="absolute -right-2 -top-2 z-20 flex h-6 w-6 items-center justify-center rounded-full border border-white/80 bg-black/80 p-0 leading-none text-white shadow-lg hover:bg-black"
-          aria-label="Masquer la vidéo"
+        <div
+          className={cn(
+            'pointer-events-auto absolute bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] w-[86px] max-w-[28dvw] rounded-2xl bg-black shadow-2xl shadow-black/25 sm:w-32',
+            isLeft
+              ? 'left-[calc(env(safe-area-inset-left)+0.75rem)]'
+              : 'right-[calc(env(safe-area-inset-right)+0.75rem)]'
+          )}
         >
-          <X size={14} strokeWidth={3} className="block" />
-        </button>
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="group block w-full overflow-hidden rounded-2xl text-left ring-1 ring-white/40"
-          aria-label="Ouvrir la vidéo démo"
-        >
-          <div className="relative aspect-[9/16] bg-black">
-            <video
-              src={config.videoUrl}
-              poster={config.posterUrl}
-              muted
-              loop
-              playsInline
-              autoPlay
-              className="h-full w-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/10" />
-            <span className="absolute inset-x-0 bottom-8 flex justify-center">
-              <span className="grid h-9 w-9 place-items-center rounded-full bg-white/90 text-ink shadow-lg transition-transform group-hover:scale-105">
-                <Play size={16} fill="currentColor" />
+          <button
+            type="button"
+            onClick={() => setHidden(true)}
+            className="absolute right-1 top-1 z-20 grid h-6 w-6 place-items-center rounded-full border border-white/80 bg-black/80 p-0 leading-none text-white shadow-lg hover:bg-black"
+            aria-label="Masquer la vidéo"
+          >
+            <X size={14} strokeWidth={3} className="block" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="group block w-full overflow-hidden rounded-2xl text-left ring-1 ring-white/40"
+            aria-label="Ouvrir la vidéo démo"
+          >
+            <div className="relative aspect-[9/16] bg-black">
+              <video
+                src={config.videoUrl}
+                poster={config.posterUrl}
+                muted
+                loop
+                playsInline
+                autoPlay
+                className="h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/10" />
+              <span className="absolute inset-x-0 bottom-8 flex justify-center">
+                <span className="grid h-9 w-9 place-items-center rounded-full bg-white/90 text-ink shadow-lg transition-transform group-hover:scale-105">
+                  <Play size={16} fill="currentColor" />
+                </span>
               </span>
-            </span>
-            <span className="absolute inset-x-2 bottom-2 line-clamp-2 text-center text-[11px] font-bold leading-tight text-white">
-              {config.title}
-            </span>
-          </div>
-        </button>
+              <span className="absolute inset-x-2 bottom-2 line-clamp-2 text-center text-[10px] font-bold leading-tight text-white sm:text-[11px]">
+                {config.title}
+              </span>
+            </div>
+          </button>
+        </div>
       </div>
 
       {open && (
@@ -160,6 +161,7 @@ export function DemoVideoWidget({ config }: Props) {
                 poster={config.posterUrl}
                 controls
                 autoPlay
+                loop
                 playsInline
                 className="aspect-[9/16] max-h-[calc(100svh-6rem)] w-full object-cover"
               />

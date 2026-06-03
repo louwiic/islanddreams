@@ -45,7 +45,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     openGraph: {
       title: product.meta_title || `${product.name} | Island Dreams`,
       description,
-      locale: 'fr_RE',
+      locale: 'fr_FR',
       type: 'article',
       images: mainImage ? [{ url: mainImage.url, alt: mainImage.alt || product.name }] : undefined,
     },
@@ -208,6 +208,7 @@ export default async function ProductPage({ params }: PageProps) {
               keywords: getSeoKeywords(product).join(', '),
               image: mainImage?.url,
               sku: product.sku,
+              brand: { '@type': 'Brand', name: 'Island Dreams' },
               offers: {
                 '@type': 'Offer',
                 url: `https://www.islanddreams.re/boutique/${product.slug}`,
@@ -237,7 +238,7 @@ export default async function ProductPage({ params }: PageProps) {
               itemListElement: [
                 { '@type': 'ListItem', position: 1, name: 'Accueil', item: 'https://www.islanddreams.re' },
                 { '@type': 'ListItem', position: 2, name: 'Boutique', item: 'https://www.islanddreams.re/boutique' },
-                { '@type': 'ListItem', position: 3, name: categoryLabel, item: `https://www.islanddreams.re/boutique?categorie=${product.category}` },
+                { '@type': 'ListItem', position: 3, name: categoryLabel, item: 'https://www.islanddreams.re/boutique' },
                 { '@type': 'ListItem', position: 4, name: product.name },
               ],
             },

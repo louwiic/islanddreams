@@ -5,6 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 export const metadata: Metadata = {
   title: 'Donnez votre avis — Island Dreams',
   description: 'Partagez votre expérience avec Island Dreams. Votre avis compte !',
+  alternates: { canonical: '/avis' },
 };
 
 async function getApprovedReviews() {

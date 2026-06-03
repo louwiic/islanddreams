@@ -1,5 +1,5 @@
-import Link from 'next/link';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { TrackedEventLink } from './TrackedEventLink';
 
 export type Banner = {
   id: string;
@@ -48,26 +48,38 @@ export function EventBanner({ banner }: { banner: Banner | null }) {
   return (
     <div className="fixed inset-x-0 top-0 z-[70] bg-gradient-to-r from-coral-600 via-coral-500 to-sun-400 text-white shadow-md">
       <div className="mx-auto flex h-9 max-w-6xl items-center gap-2 px-3 md:h-10 md:px-4">
-        <Link
+        <TrackedEventLink
           href={href}
+          eventName="event_banner_ticker_clicked"
+          eventProps={{
+            banner_id: banner.id,
+            banner_title: banner.title,
+            cta_text: banner.cta_text,
+          }}
           className="group min-w-0 flex-1 overflow-hidden"
-          aria-label={`${banner.title}${banner.subtitle ? ` — ${banner.subtitle}` : ''}`}
+          ariaLabel={`${banner.title}${banner.subtitle ? ` — ${banner.subtitle}` : ''}`}
         >
           <span className="event-marquee-track inline-flex items-center">
             {marqueeItem}
             {marqueeItem}
             {marqueeItem}
           </span>
-        </Link>
-        <Link
+        </TrackedEventLink>
+        <TrackedEventLink
           href={href}
+          eventName="event_banner_cta_clicked"
+          eventProps={{
+            banner_id: banner.id,
+            banner_title: banner.title,
+            cta_text: banner.cta_text,
+          }}
           className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-full bg-white/20 px-3 py-1.5 text-[11px] font-black uppercase tracking-wider text-white transition-colors hover:bg-white/30 md:px-4"
         >
           {banner.cta_text}
           <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
           </svg>
-        </Link>
+        </TrackedEventLink>
       </div>
     </div>
   );

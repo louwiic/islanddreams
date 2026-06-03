@@ -27,7 +27,7 @@ const rightLinks = [
 
 // Visible dans le menu mobile uniquement
 const mobileOnlyLinks = [
-  { label: 'Découvrir la Réunion', href: '/decouvrir', color: null, featured: false },
+  { label: 'Découvrir la Réunion', href: '/decouvrir-la-reunion', color: null, featured: false },
 ];
 
 export function Navbar({

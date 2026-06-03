@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     title: 'Boutique — Cadeaux personnalisés Réunion 974 | Island Dreams',
     description:
       'Magnets, stickers, textile, décoration — des cadeaux personnalisés et souvenirs illustrés de La Réunion 974.',
-    locale: 'fr_RE',
+    locale: 'fr_FR',
     type: 'website',
   },
 };
