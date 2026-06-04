@@ -119,6 +119,12 @@ export default async function ConditionsJeuConcoursPage() {
           La participation est gratuite et ouverte aux personnes disposant d’une adresse email
           valide. Une seule participation par adresse email est acceptée pour un même jeu concours.
         </p>
+        <p>
+          La participation s’effectue via le formulaire affiché sur le site. Le participant doit
+          renseigner une adresse email valide, accepter les présentes conditions et, si une question
+          est prévue, fournir une réponse sincère. Toute participation incomplète, frauduleuse,
+          automatisée ou réalisée avec une identité usurpée pourra être écartée.
+        </p>
         {contest.question && (
           <p>
             Le participant peut être invité à répondre à la question suivante :{' '}
@@ -138,6 +144,11 @@ export default async function ConditionsJeuConcoursPage() {
           ISLAND DREAMS. Il pourra être contacté par email à l’adresse indiquée lors de sa
           participation.
         </p>
+        <p>
+          Si le gagnant ne répond pas dans un délai raisonnable après la prise de contact, ou si les
+          informations transmises ne permettent pas de confirmer sa participation, ISLAND DREAMS se
+          réserve le droit de désigner un autre gagnant parmi les participations valides.
+        </p>
 
         <h2>Article 7 — Données personnelles et communications commerciales</h2>
         <p>
@@ -145,9 +156,15 @@ export default async function ConditionsJeuConcoursPage() {
           du participant et, le cas échéant, sa réponse à la question posée.
         </p>
         <p>
-          En cochant la case de consentement dans la popup, le participant accepte que ses données
-          soient utilisées pour la gestion de sa participation, la prise de contact en cas de gain,
-          ainsi que pour recevoir des communications commerciales de la part d’ISLAND DREAMS.
+          Ces données sont utilisées pour enregistrer la participation, contrôler l’unicité de la
+          participation, désigner et contacter le gagnant, gérer la remise du lot et traiter les
+          demandes relatives au jeu concours.
+        </p>
+        <p>
+          Si le participant accepte de recevoir des communications commerciales, son adresse email
+          pourra également être utilisée pour lui envoyer les nouveautés, offres et actualités
+          d’ISLAND DREAMS. Il peut retirer son consentement à tout moment en utilisant le lien de
+          désinscription présent dans les emails ou en écrivant à contact@islanddreams.re.
         </p>
         {contest.termsText && <p>Texte de consentement affiché : {contest.termsText}</p>}
         <p>
@@ -162,11 +179,20 @@ export default async function ConditionsJeuConcoursPage() {
           TikTok. Sauf mention contraire, ces actions ne sont pas obligatoires pour valider la
           participation sur le site.
         </p>
+        <p>
+          Ce jeu concours n’est ni géré, ni parrainé, ni administré par Facebook, Instagram ou
+          TikTok. Ces plateformes ne peuvent être tenues responsables de l’organisation du jeu.
+        </p>
 
         <h2>Article 9 — Responsabilité</h2>
         <p>
           ISLAND DREAMS se réserve le droit de modifier, reporter ou annuler le jeu concours en cas
           de nécessité, de fraude, de problème technique ou de force majeure.
+        </p>
+        <p>
+          ISLAND DREAMS ne saurait être tenue responsable des erreurs de saisie, problèmes de
+          connexion, indisponibilités techniques temporaires ou dysfonctionnements empêchant une
+          participation d’être enregistrée correctement.
         </p>
       </div>
     </main>

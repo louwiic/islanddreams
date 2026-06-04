@@ -70,7 +70,7 @@ export function RichTextEditor({ value, onChange }: Props) {
       setSourceHtml(editor.getHTML());
     } else {
       // Revenir vers visual : injecter le HTML dans l'éditeur
-      editor.commands.setContent(sourceHtml, false);
+      editor.commands.setContent(sourceHtml, { emitUpdate: false });
       onChange(sourceHtml);
     }
     setSourceMode(!sourceMode);

@@ -84,22 +84,30 @@ function NewsletterForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2 w-full max-w-xs mx-auto">
-      <input
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="ton@email.re"
-        required
-        className="flex-1 px-3 py-2 rounded-lg text-sm bg-white/10 border border-cream/20 text-cream placeholder:text-cream/40 focus:outline-none focus:border-sun-400 transition-colors"
-      />
-      <button
-        type="submit"
-        disabled={status === 'loading'}
-        className="px-4 py-2 bg-sun-400 text-ink text-sm font-bold rounded-lg hover:bg-sun-300 transition-colors disabled:opacity-50 shrink-0"
-      >
-        {status === 'loading' ? '…' : 'OK'}
-      </button>
+    <form onSubmit={handleSubmit} className="mx-auto w-full max-w-xs space-y-2">
+      <div className="flex gap-2">
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="ton@email.re"
+          required
+          className="flex-1 px-3 py-2 rounded-lg text-sm bg-white/10 border border-cream/20 text-cream placeholder:text-cream/40 focus:outline-none focus:border-sun-400 transition-colors"
+        />
+        <button
+          type="submit"
+          disabled={status === 'loading'}
+          className="px-4 py-2 bg-sun-400 text-ink text-sm font-bold rounded-lg hover:bg-sun-300 transition-colors disabled:opacity-50 shrink-0"
+        >
+          {status === 'loading' ? '…' : 'OK'}
+        </button>
+      </div>
+      <p className="text-center text-[10px] leading-relaxed text-cream/50">
+        En m’inscrivant, j’accepte de recevoir les emails Island Dreams. Désinscription en un clic.{' '}
+        <Link href="/politique-de-confidentialite" className="underline hover:text-cream">
+          Confidentialité
+        </Link>
+      </p>
     </form>
   );
 }

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
-import { Analytics } from '@vercel/analytics/react';
 import { Fraunces, Inter, Oswald, Londrina_Solid, Barlow_Semi_Condensed } from 'next/font/google';
+import { CookieConsent } from '@/components/ui/CookieConsent';
 import './globals.css';
 
 const fraunces = Fraunces({
@@ -128,7 +128,7 @@ export default function RootLayout({
           }}
         />
         {children}
-        <Analytics />
+        <CookieConsent />
       </body>
     </html>
   );

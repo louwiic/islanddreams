@@ -102,6 +102,15 @@ export function NewsletterPopup() {
                     className="flex-1 bg-transparent text-ink text-sm outline-none placeholder:text-ink/30"
                   />
                 </div>
+                <p className="text-ink/45 text-[11px] leading-relaxed">
+                  En envoyant mon email, j’accepte de recevoir la newsletter et les offres
+                  commerciales d’Island Dreams. Je peux me désinscrire à tout moment via le lien
+                  présent dans chaque email.{' '}
+                  <a href="/politique-de-confidentialite" className="font-semibold underline hover:text-ink">
+                    Politique de confidentialité
+                  </a>
+                  .
+                </p>
                 {error && <p className="text-red-500 text-xs">{error}</p>}
                 <button
                   type="submit"

@@ -144,9 +144,13 @@ export function ContactForm() {
           className="mt-0.5 shrink-0 accent-jungle-700 w-4 h-4"
         />
         <span className="text-[11px] text-ink/45 leading-relaxed group-hover:text-ink/60 transition-colors">
-          En cochant cette case, j'accepte que mes données personnelles soient utilisées
+          En cochant cette case, j&apos;accepte que mes données personnelles soient utilisées
           pour me recontacter dans le cadre de ma demande.{' '}
-          <a href="/mentions-legales" className="underline hover:text-ink">Mentions légales</a>.
+          <a href="/politique-de-confidentialite" className="underline hover:text-ink">
+            Politique de confidentialité
+          </a>
+          {' '}et{' '}
+          <a href="/mentions-legales" className="underline hover:text-ink">mentions légales</a>.
         </span>
       </label>
 
