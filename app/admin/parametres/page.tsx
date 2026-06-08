@@ -3,6 +3,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { MaintenanceToggle } from './MaintenanceToggle';
 import { DemoVideoSettings } from './DemoVideoSettings';
 import { ContestSettings } from './ContestSettings';
+import { GiftOfferSettings } from './GiftOfferSettings';
 
 async function getMaintenanceSettings() {
   const supabase = createAdminClient();
@@ -68,6 +69,24 @@ async function getContestSettings() {
   );
 }
 
+async function getGiftOfferSettings() {
+  const supabase = createAdminClient();
+  const { data } = await supabase
+    .from('shop_settings')
+    .select('key, value')
+    .in('key', [
+      'gift_offer_enabled',
+      'gift_offer_min_amount',
+      'gift_offer_product_slug',
+      'gift_offer_title',
+      'gift_offer_description',
+    ]);
+
+  return Object.fromEntries(
+    ((data ?? []) as { key: string; value: string }[]).map((r) => [r.key, r.value])
+  );
+}
+
 async function getDemoProducts() {
   const supabase = createAdminClient();
   const { data } = await supabase
@@ -79,10 +98,11 @@ async function getDemoProducts() {
 }
 
 export default async function ParametresPage() {
-  const [maintenance, demoVideoSettings, contestSettings, demoProducts] = await Promise.all([
+  const [maintenance, demoVideoSettings, contestSettings, giftOfferSettings, demoProducts] = await Promise.all([
     getMaintenanceSettings(),
     getDemoVideoSettings(),
     getContestSettings(),
+    getGiftOfferSettings(),
     getDemoProducts(),
   ]);
 
@@ -95,6 +115,8 @@ export default async function ParametresPage() {
       <DemoVideoSettings products={demoProducts} initialSettings={demoVideoSettings} />
 
       <ContestSettings initialSettings={contestSettings} products={demoProducts} />
+
+      <GiftOfferSettings initialSettings={giftOfferSettings} products={demoProducts} />
 
       {/* Boutique */}
       <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">

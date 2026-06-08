@@ -14,6 +14,7 @@ import { UspBanner } from '@/components/sections/UspBanner';
 import { HomeFaq } from '@/components/sections/HomeFaq';
 import { HomeReviewsCarousel, type HomeReview } from '@/components/sections/HomeReviewsCarousel';
 import { EventProductFeature, type EventFeatureConfig } from '@/components/sections/EventProductFeature';
+import { GiftOfferBanner, type GiftOfferBannerConfig } from '@/components/sections/GiftOfferBanner';
 import { SmoothScroll } from '@/components/ui/SmoothScroll';
 import { getPublishedProducts } from '@/lib/queries/products';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -90,12 +91,75 @@ async function getActiveEventBanner(): Promise<ActiveBanner | null> {
   return data[0] as unknown as ActiveBanner;
 }
 
+function settingToString(value: unknown) {
+  if (value == null) return '';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'boolean') return String(value);
+  if (typeof value === 'number') return String(value);
+  return '';
+}
+
+async function getGiftOfferBanner(): Promise<GiftOfferBannerConfig | null> {
+  const supabase = createAdminClient();
+  const { data } = await supabase
+    .from('shop_settings')
+    .select('key, value')
+    .in('key', [
+      'gift_offer_enabled',
+      'gift_offer_min_amount',
+      'gift_offer_product_slug',
+      'gift_offer_title',
+      'gift_offer_description',
+    ]);
+
+  const settings = Object.fromEntries(
+    ((data ?? []) as { key: string; value: unknown }[]).map((row) => [
+      row.key,
+      settingToString(row.value),
+    ])
+  );
+
+  const enabled = settings.gift_offer_enabled === 'true' || settings.gift_offer_enabled === '1';
+  const minAmount = Number(String(settings.gift_offer_min_amount || '0').replace(',', '.'));
+  const productSlug = settings.gift_offer_product_slug || '';
+  if (!enabled || !productSlug || !Number.isFinite(minAmount) || minAmount <= 0) return null;
+
+  const { data: product } = await supabase
+    .from('products')
+    .select('id, name, slug, status')
+    .eq('slug', productSlug)
+    .eq('status', 'publish')
+    .maybeSingle();
+
+  if (!product) return null;
+
+  const { data: image } = await supabase
+    .from('product_images')
+    .select('url, alt')
+    .eq('product_id', product.id)
+    .eq('is_main', true)
+    .maybeSingle();
+
+  return {
+    title: settings.gift_offer_title || 'Un cadeau vous attend',
+    description:
+      settings.gift_offer_description ||
+      'Ajoutez vos souvenirs préférés au panier et débloquez un cadeau offert.',
+    minAmount,
+    productName: product.name,
+    productSlug: product.slug,
+    imageUrl: image?.url || null,
+    imageAlt: image?.alt || product.name,
+  };
+}
+
 export default async function Home() {
-  const [products, faqs, reviews, activeBanner] = await Promise.all([
+  const [products, faqs, reviews, activeBanner, giftOfferBanner] = await Promise.all([
     getPublishedProducts(),
     getSiteFaqs(),
     getHomeReviews(),
     getActiveEventBanner(),
+    getGiftOfferBanner(),
   ]);
   const eventProductSlug = productSlugFromLink(activeBanner?.cta_link ?? null);
   const eventFeatureConfig: EventFeatureConfig | null =
@@ -118,6 +182,7 @@ export default async function Home() {
     <>
       <SmoothScroll />
       <Hero />
+      <GiftOfferBanner config={giftOfferBanner} />
       <EventProductFeature config={eventFeatureConfig} />
       <FridgeCollection />
       <FlyingMagnets />

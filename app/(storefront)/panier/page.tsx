@@ -16,6 +16,7 @@ import {
   Home,
   CreditCard,
   ArrowRight,
+  Gift,
 } from 'lucide-react';
 import { useCart } from '@/lib/cart/CartProvider';
 import { cn } from '@/lib/utils';
@@ -30,6 +31,19 @@ type ShippingMethod = {
 type ShippingOption = {
   zone: string;
   methods: ShippingMethod[];
+};
+
+type GiftOffer = {
+  enabled: boolean;
+  minAmount?: number;
+  title?: string;
+  description?: string;
+  product?: {
+    name: string;
+    slug: string;
+    image: string | null;
+    imageAlt: string | null;
+  };
 };
 
 export default function PanierPage() {
@@ -55,6 +69,7 @@ export default function PanierPage() {
   const [promoStatus, setPromoStatus] = useState<'idle' | 'valid' | 'invalid' | 'already_used' | 'not_subscribed' | 'loading'>('idle');
   const [promoLabel, setPromoLabel] = useState('');
   const [promoDiscount, setPromoDiscount] = useState<{ percentOff?: number; amountOff?: number } | null>(null);
+  const [giftOffer, setGiftOffer] = useState<GiftOffer | null>(null);
 
   // Poids total du panier
   const cartWeightG = items.reduce((sum, item) => sum + (item.weightGrams ?? 0) * item.quantity, 0);
@@ -83,6 +98,11 @@ export default function PanierPage() {
     customerInfo.city.trim().length > 1 &&
     postalCode.trim().length >= 4;
   const shippingComplete = Boolean(selectedMethod);
+  const giftRemaining =
+    giftOffer?.enabled && giftOffer.minAmount
+      ? Math.max(0, giftOffer.minAmount - total)
+      : null;
+  const giftUnlocked = giftRemaining === 0;
 
   const setCustomerField = (field: keyof typeof customerInfo, value: string) => {
     setCustomerInfo((current) => ({ ...current, [field]: value }));
@@ -127,6 +147,21 @@ export default function PanierPage() {
     prevWeightRef.current = cartWeightG;
     fetchShipping(postalCode.trim(), country, cartWeightG);
   }, [cartWeightG, postalCode, country, shippingOptions]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/gift-offer')
+      .then((res) => res.json())
+      .then((data: GiftOffer) => {
+        if (!cancelled) setGiftOffer(data);
+      })
+      .catch(() => {
+        if (!cancelled) setGiftOffer(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const validatePromo = async () => {
     if (!promoCode.trim() || !promoEmail.trim()) return;
@@ -337,6 +372,34 @@ export default function PanierPage() {
 
           {/* Résumé + Livraison */}
           <div className="space-y-4">
+            {giftOffer?.enabled && giftOffer.minAmount && giftOffer.product && (
+              <div className="overflow-hidden rounded-xl border border-sun-200 bg-sun-50">
+                <div className="flex items-start gap-3 p-4">
+                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-jungle-800 text-cream">
+                    <Gift size={18} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-black uppercase tracking-[0.12em] text-ink">
+                      {giftUnlocked ? 'Cadeau débloqué' : giftOffer.title || 'Un cadeau vous attend'}
+                    </p>
+                    <p className="mt-1 text-xs leading-relaxed text-ink/65">
+                      {giftUnlocked
+                        ? `${giftOffer.product.name} sera ajouté à votre commande.`
+                        : `Encore ${giftRemaining?.toFixed(2)} € pour recevoir ${giftOffer.product.name} offert.`}
+                    </p>
+                    <div className="mt-3 h-2 overflow-hidden rounded-full bg-white">
+                      <div
+                        className="h-full rounded-full bg-jungle-700 transition-all"
+                        style={{
+                          width: `${Math.min(100, (total / giftOffer.minAmount) * 100)}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="bg-white rounded-xl border border-gray-200 p-3">
               <div className="grid grid-cols-3 gap-2">
                 {[

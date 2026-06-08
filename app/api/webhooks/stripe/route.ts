@@ -161,6 +161,19 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     };
   });
 
+  if (metadata.giftProductId && metadata.giftProductName) {
+    orderItems.push({
+      order_id: order.id,
+      product_id: metadata.giftProductId,
+      variant_id: null,
+      variant_label: 'Cadeau offert',
+      product_name: `${metadata.giftProductName} — cadeau offert`,
+      quantity: 1,
+      unit_price: 0,
+      total: 0,
+    });
+  }
+
   if (orderItems.length > 0) {
     await supabase.from('order_items').insert(orderItems);
   }

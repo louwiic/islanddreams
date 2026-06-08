@@ -21,6 +21,14 @@ type CheckoutBody = {
   };
 };
 
+function settingToString(value: unknown) {
+  if (value == null) return '';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'boolean') return String(value);
+  if (typeof value === 'number') return String(value);
+  return '';
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { items, shippingMethodId, promoCode, customer } = (await req.json()) as CheckoutBody;
@@ -58,6 +66,11 @@ export async function POST(req: NextRequest) {
     }
 
     const productMap = new Map(dbProducts.map((p) => [p.id, p]));
+    const validatedSubtotal = items.reduce((sum, item) => {
+      const dbProd = productMap.get(item.productId);
+      const unitPrice = dbProd ? dbProd.sale_price ?? dbProd.price : 0;
+      return sum + unitPrice * item.quantity;
+    }, 0);
 
     // Vérifications : prix + stock
     for (const item of items) {
@@ -82,6 +95,68 @@ export async function POST(req: NextRequest) {
             },
             { status: 400 },
           );
+        }
+      }
+    }
+
+    // ── Cadeau automatique selon palier panier ─────────────────────────
+    let giftMetadata = {
+      giftProductId: '',
+      giftProductName: '',
+      giftProductSlug: '',
+    };
+
+    const { data: giftSettingsData } = await supabase
+      .from('shop_settings')
+      .select('key, value')
+      .in('key', [
+        'gift_offer_enabled',
+        'gift_offer_min_amount',
+        'gift_offer_product_slug',
+      ]);
+
+    const giftSettings = Object.fromEntries(
+      ((giftSettingsData ?? []) as { key: string; value: unknown }[]).map((row) => [
+        row.key,
+        settingToString(row.value),
+      ])
+    );
+    const giftEnabled =
+      giftSettings.gift_offer_enabled === 'true' || giftSettings.gift_offer_enabled === '1';
+    const giftMinAmount = Number(
+      String(giftSettings.gift_offer_min_amount || '0').replace(',', '.')
+    );
+    const giftProductSlug = giftSettings.gift_offer_product_slug || '';
+
+    if (
+      giftEnabled &&
+      giftProductSlug &&
+      Number.isFinite(giftMinAmount) &&
+      giftMinAmount > 0 &&
+      validatedSubtotal >= giftMinAmount
+    ) {
+      const { data: giftProduct } = await supabase
+        .from('products')
+        .select('id, name, slug, status, in_stock, manage_stock, stock_quantity')
+        .eq('slug', giftProductSlug)
+        .eq('status', 'publish')
+        .maybeSingle();
+
+      if (giftProduct?.in_stock) {
+        const purchasedGiftQuantity = items
+          .filter((item) => item.productId === giftProduct.id)
+          .reduce((sum, item) => sum + item.quantity, 0);
+        const giftStockOk =
+          !giftProduct.manage_stock ||
+          giftProduct.stock_quantity === null ||
+          giftProduct.stock_quantity > purchasedGiftQuantity;
+
+        if (giftStockOk) {
+          giftMetadata = {
+            giftProductId: giftProduct.id,
+            giftProductName: giftProduct.name,
+            giftProductSlug: giftProduct.slug,
+          };
         }
       }
     }
@@ -188,6 +263,7 @@ export async function POST(req: NextRequest) {
         shippingCity: customer.address.city.trim(),
         shippingPostalCode: customer.address.postalCode.trim(),
         shippingCountry: customer.address.country || 'RE',
+        ...giftMetadata,
       },
     });
 
