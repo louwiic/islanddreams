@@ -8,6 +8,7 @@ import { cookies } from 'next/headers';
 import { MaintenancePage } from '@/components/sections/MaintenancePage';
 import { ChatWidgetLoader } from '@/components/chatbot/ChatWidgetLoader';
 import { DemoVideoWidget, type DemoVideoConfig } from '@/components/shop/DemoVideoWidget';
+import { GiftOfferFloatingPopup } from '@/components/shop/GiftOfferFloatingPopup';
 import { EventBanner, getActiveBanner } from '@/components/sections/EventBanner';
 import { ContestPopup, type ContestPopupConfig } from '@/components/ui/ContestPopup';
 
@@ -217,6 +218,7 @@ export default async function StorefrontLayout({
       <CartDrawer />
       {contestPopupConfig ? <ContestPopup config={contestPopupConfig} /> : <NewsletterPopup />}
       <ChatWidgetLoader />
+      <GiftOfferFloatingPopup />
       <DemoVideoWidget config={demoVideoConfig} />
     </CartProvider>
   );
