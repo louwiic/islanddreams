@@ -118,7 +118,8 @@ export function GiftOfferSettings({ initialSettings, products }: Props) {
 
         <p className="text-xs leading-relaxed text-gray-400">
           Le serveur vérifiera le montant depuis la base produits au moment du checkout. Le cadeau
-          sera ajouté à la commande à 0 € si le palier est atteint.
+          peut être non publié, mais il doit être en stock. Il sera ajouté à la commande à 0 € si le
+          palier est atteint.
         </p>
 
         {message && <p className="text-sm text-jungle-600">{message}</p>}

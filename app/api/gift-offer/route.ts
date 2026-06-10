@@ -39,12 +39,11 @@ export async function GET() {
 
   const { data: product } = await supabase
     .from('products')
-    .select('id, name, slug, status')
+    .select('id, name, slug, status, in_stock')
     .eq('slug', productSlug)
-    .eq('status', 'publish')
     .maybeSingle();
 
-  if (!product) return NextResponse.json({ enabled: false });
+  if (!product || !product.in_stock) return NextResponse.json({ enabled: false });
 
   const { data: image } = await supabase
     .from('product_images')

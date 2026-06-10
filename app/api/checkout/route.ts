@@ -139,7 +139,6 @@ export async function POST(req: NextRequest) {
         .from('products')
         .select('id, name, slug, status, in_stock, manage_stock, stock_quantity')
         .eq('slug', giftProductSlug)
-        .eq('status', 'publish')
         .maybeSingle();
 
       if (giftProduct?.in_stock) {

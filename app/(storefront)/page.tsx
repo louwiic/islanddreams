@@ -126,12 +126,11 @@ async function getGiftOfferBanner(): Promise<GiftOfferBannerConfig | null> {
 
   const { data: product } = await supabase
     .from('products')
-    .select('id, name, slug, status')
+    .select('id, name, slug, status, in_stock')
     .eq('slug', productSlug)
-    .eq('status', 'publish')
     .maybeSingle();
 
-  if (!product) return null;
+  if (!product || !product.in_stock) return null;
 
   const { data: image } = await supabase
     .from('product_images')
