@@ -1,8 +1,10 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Package, MapPin, User, CreditCard } from 'lucide-react';
+import { ArrowLeft, Package, MapPin, User, CreditCard, ExternalLink, FileText } from 'lucide-react';
 import { getOrderById } from '@/lib/actions/orders';
 import { OrderStatusUpdater } from '@/components/admin/OrderStatusUpdater';
+import { getStripeClient } from '@/lib/stripe/client';
+import type Stripe from 'stripe';
 
 type PageProps = { params: Promise<{ id: string }> };
 
@@ -42,6 +44,48 @@ const STATUS_LABELS: Record<string, string> = {
   refunded: 'Remboursée',
 };
 
+type StripeBillingLink = {
+  invoiceUrl: string | null;
+  invoicePdf: string | null;
+  receiptUrl: string | null;
+  label: string;
+};
+
+async function getStripeBillingLink(sessionId: string | null): Promise<StripeBillingLink | null> {
+  if (!sessionId || !process.env.STRIPE_SECRET_KEY) return null;
+
+  try {
+    const session = await getStripeClient().checkout.sessions.retrieve(sessionId, {
+      expand: ['invoice', 'payment_intent.latest_charge'],
+    });
+
+    const invoice =
+      typeof session.invoice === 'object' && session.invoice
+        ? session.invoice
+        : null;
+    const paymentIntent =
+      typeof session.payment_intent === 'object' && session.payment_intent
+        ? session.payment_intent
+        : null;
+    const latestCharge =
+      paymentIntent &&
+      typeof paymentIntent.latest_charge === 'object' &&
+      paymentIntent.latest_charge
+        ? (paymentIntent.latest_charge as Stripe.Charge)
+        : null;
+
+    return {
+      invoiceUrl: invoice?.hosted_invoice_url ?? null,
+      invoicePdf: invoice?.invoice_pdf ?? null,
+      receiptUrl: latestCharge?.receipt_url ?? null,
+      label: invoice ? `Facture ${invoice.number ?? ''}`.trim() : 'Reçu Stripe',
+    };
+  } catch (error) {
+    console.error('[Admin order Stripe billing]', error);
+    return null;
+  }
+}
+
 export default async function OrderDetailPage({ params }: PageProps) {
   const { id } = await params;
   const order = await getOrderById(id);
@@ -50,6 +94,7 @@ export default async function OrderDetailPage({ params }: PageProps) {
 
   const customer = order.customers as OrderCustomer | null;
   const shipping = order.shipping_address as OrderShippingAddress | null;
+  const billingLink = await getStripeBillingLink(order.stripe_session_id);
 
   return (
     <div className="space-y-6">
@@ -195,6 +240,37 @@ export default async function OrderDetailPage({ params }: PageProps) {
                 <span className="text-jungle-600 font-medium">
                   {STATUS_LABELS[order.status ?? 'pending']}
                 </span>
+              </div>
+              <div className="pt-3">
+                {billingLink?.invoiceUrl || billingLink?.receiptUrl ? (
+                  <div className="space-y-2">
+                    <a
+                      href={billingLink.invoiceUrl || billingLink.receiptUrl || '#'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 rounded-lg bg-jungle-700 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-jungle-800"
+                    >
+                      <FileText size={15} />
+                      {billingLink.invoiceUrl ? 'Voir la facture Stripe' : 'Voir le reçu Stripe'}
+                      <ExternalLink size={13} />
+                    </a>
+                    {billingLink.invoicePdf && (
+                      <a
+                        href={billingLink.invoicePdf}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50"
+                      >
+                        Télécharger le PDF
+                        <ExternalLink size={13} />
+                      </a>
+                    )}
+                  </div>
+                ) : (
+                  <p className="rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-400">
+                    Facture Stripe non disponible pour cette commande.
+                  </p>
+                )}
               </div>
             </div>
           </div>

@@ -239,6 +239,16 @@ export async function POST(req: NextRequest) {
       payment_method_types: ['card'],
       line_items: lineItems,
       ...(discounts ? { discounts } : {}),
+      invoice_creation: {
+        enabled: true,
+        invoice_data: {
+          description: 'Commande Island Dreams',
+          footer: 'Merci pour votre commande chez Island Dreams.',
+          metadata: {
+            source: 'island-dreams-web',
+          },
+        },
+      },
       customer_creation: 'always',
       customer_email: customer.email.trim(),
       phone_number_collection: {
