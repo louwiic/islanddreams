@@ -26,6 +26,7 @@ import {
   HelpCircle,
   QrCode,
   Star,
+  ClipboardList,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -50,6 +51,7 @@ const navigation: (NavItem | NavGroup)[] = [
   {
     label: 'Contenu',
     items: [
+      { name: 'Planning', href: '/admin/planning', icon: ClipboardList },
       { name: 'Blog', href: '/admin/blog', icon: FileText },
       { name: 'Bannières', href: '/admin/banners', icon: Megaphone },
       { name: 'FAQ', href: '/admin/faq', icon: HelpCircle },

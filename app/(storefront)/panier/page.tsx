@@ -375,8 +375,20 @@ export default function PanierPage() {
             {giftOffer?.enabled && giftOffer.minAmount && giftOffer.product && (
               <div className="overflow-hidden rounded-xl border border-sun-200 bg-sun-50">
                 <div className="flex items-start gap-3 p-4">
-                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-jungle-800 text-cream">
-                    <Gift size={18} />
+                  <div className="relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-xl bg-white text-jungle-800 ring-1 ring-sun-200">
+                    {giftOffer.product.image ? (
+                      <Image
+                        src={giftOffer.product.image}
+                        alt={giftOffer.product.imageAlt || giftOffer.product.name}
+                        fill
+                        className="object-contain p-1"
+                        sizes="48px"
+                      />
+                    ) : (
+                      <div className="grid h-full w-full place-items-center bg-jungle-800 text-cream">
+                        <Gift size={18} />
+                      </div>
+                    )}
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-black uppercase tracking-[0.12em] text-ink">
