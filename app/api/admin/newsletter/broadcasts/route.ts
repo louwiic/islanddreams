@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createBroadcast, listBroadcasts, removeBroadcast } from '@/lib/email/resend';
+import {
+  addContactToAudience,
+  createBroadcast,
+  listBroadcasts,
+  removeBroadcast,
+} from '@/lib/email/resend';
+import { getNewsletterRecipients } from '@/lib/newsletter/recipients';
 
 // GET — liste des campagnes
 export async function GET() {
@@ -15,12 +21,29 @@ export async function GET() {
 // POST — créer une campagne
 export async function POST(req: NextRequest) {
   try {
-    const { subject, html } = await req.json();
+    const { subject, html, recipientSources } = await req.json();
     if (!subject || !html) {
       return NextResponse.json({ error: 'Sujet et contenu requis' }, { status: 400 });
     }
+
+    const { emails, groups } = await getNewsletterRecipients(recipientSources);
+    if (emails.length === 0) {
+      return NextResponse.json({ error: 'Aucun destinataire actif pour cette sélection' }, { status: 400 });
+    }
+
+    for (const email of emails) {
+      await addContactToAudience(email);
+    }
+
     const broadcast = await createBroadcast(subject, html);
-    return NextResponse.json({ broadcast });
+    return NextResponse.json({
+      broadcast,
+      recipientsCount: emails.length,
+      recipientsGroups: groups.map((group) => ({
+        source: group.source,
+        count: group.emails.length,
+      })),
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Erreur inconnue';
     return NextResponse.json({ error: message }, { status: 500 });
