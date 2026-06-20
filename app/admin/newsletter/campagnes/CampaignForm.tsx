@@ -2,10 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { CheckSquare, Eye, EyeOff, Loader2, Save } from 'lucide-react';
+import { CheckSquare, Eye, EyeOff, Loader2, Save, Send } from 'lucide-react';
 
 type Props = {
-  initial?: { id: string; name: string };
+  initial?: {
+    id: string;
+    name: string;
+    content?: string;
+    recipientSources?: RecipientSource[];
+  };
 };
 
 type RecipientSource = 'newsletter' | 'contacts' | 'contest';
@@ -20,43 +25,69 @@ type RecipientGroup = {
 
 const defaultSubject = 'Fête des pères : un cadeau offert dès 25 € d’achat';
 
-const defaultNewsletterHtml = `<div style="font-family:Arial,sans-serif;color:#1a2e3b;line-height:1.6;">
-  <p style="margin:0 0 10px;color:#c7483c;font-weight:bold;text-transform:uppercase;letter-spacing:.08em;">En ce moment</p>
-  <h1 style="margin:0 0 12px;font-size:28px;line-height:1.15;color:#173f46;">Un cadeau offert pour la fête des pères</h1>
-  <p style="margin:0 0 18px;font-size:16px;color:#4f5f68;">
-    À l’occasion de la fête des pères, Island Dreams glisse un petit souvenir péi dans votre commande.
-  </p>
-
-  <div style="margin:22px 0;padding:18px;border-radius:18px;background:#f8efe0;border:1px solid #f4d276;">
-    <img src="REMPLACER_PAR_URL_IMAGE_DU_CADEAU" alt="Cadeau offert Island Dreams" style="display:block;width:100%;max-width:420px;margin:0 auto 16px;border-radius:14px;">
-    <h2 style="margin:0 0 8px;font-size:22px;color:#173f46;">Un porte-clés Island Dreams offert</h2>
-    <p style="margin:0;color:#4f5f68;">
-      Dès <strong>25 € d’achat</strong>, recevez automatiquement un cadeau offert dans votre commande.
-      Aucun code nécessaire, il sera ajouté si le montant minimum est atteint.
+const defaultNewsletterHtml = `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;color:#1a2e3b;line-height:1.6;">
+  <div style="text-align:center;margin:0 0 22px;">
+    <p style="display:inline-block;margin:0 0 14px;padding:7px 12px;border-radius:999px;background:#f5efe0;color:#2a5a3a;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.16em;">
+      Offre spéciale fête des pères
+    </p>
+    <h1 style="margin:0 auto 12px;max-width:460px;color:#1a2e3b;font-size:30px;line-height:1.12;font-weight:900;">
+      Un cadeau péi offert dès 25 € d’achat
+    </h1>
+    <p style="margin:0 auto;max-width:470px;color:#55636c;font-size:15px;">
+      En ce moment, à l’occasion de la fête des pères, Island Dreams ajoute automatiquement un porte-clés souvenir dans votre commande.
     </p>
   </div>
 
-  <p style="margin:0 0 18px;color:#4f5f68;">
-    Magnets, stickers, déco ou souvenirs 974 : c’est le bon moment pour faire plaisir à un papa qui aime La Réunion.
-  </p>
+  <div style="overflow:hidden;margin:0 0 22px;border-radius:16px;border:1px solid #ead7aa;background:#fbf4e5;">
+    <div style="background:#173f46;padding:14px 18px;text-align:center;">
+      <p style="margin:0;color:#f5efe0;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.18em;">
+        Cadeau débloqué à partir de 25 €
+      </p>
+    </div>
+    <div style="padding:22px 18px 20px;text-align:center;">
+      <img src="https://sgxilglkeupxpnzkzqfq.supabase.co/storage/v1/object/public/product-images/porte-cles-974/1780942290879.webp" alt="Porte-clés Island Dreams offert" style="display:block;width:100%;max-width:360px;margin:0 auto 18px;border-radius:14px;border:1px solid rgba(26,46,59,.08);box-shadow:0 12px 24px rgba(26,46,59,.14);">
+      <h2 style="margin:0 0 8px;color:#1a2e3b;font-size:21px;line-height:1.25;font-weight:900;">
+        Porte-clés Island Dreams offert
+      </h2>
+      <p style="margin:0 auto;max-width:420px;color:#55636c;font-size:14px;">
+        Aucun code à saisir : si votre panier atteint <strong style="color:#1a2e3b;">25 € d’achat</strong>, le cadeau est ajouté à votre commande.
+      </p>
+    </div>
+  </div>
 
-  <a href="https://www.islanddreams.re/boutique" style="display:inline-block;background:#173f46;color:#fff;text-decoration:none;padding:13px 22px;border-radius:999px;font-weight:bold;">
-    Découvrir la boutique
-  </a>
+  <div style="margin:0 0 22px;padding:18px;border-radius:14px;background:#f7f7f7;border:1px solid #eeeeee;">
+    <p style="margin:0 0 8px;color:#1a2e3b;font-size:15px;font-weight:800;">
+      Une idée simple pour faire plaisir
+    </p>
+    <p style="margin:0;color:#58666f;font-size:14px;">
+      Magnets, stickers, déco ou souvenirs 974 : choisissez un cadeau qui rappelle La Réunion, nous glissons le petit plus dans le colis.
+    </p>
+  </div>
 
-  <p style="margin:18px 0 0;font-size:12px;color:#7b8790;">
-    Offre valable selon stock disponible. Expédié en moins de 48h par Island Dreams, puis acheminement assuré par La Poste.
-  </p>
+  <div style="text-align:center;margin:0 0 20px;">
+    <a href="https://www.islanddreams.re/boutique" style="display:inline-block;background:#2a5a3a;color:#f5efe0;text-decoration:none;padding:14px 24px;border-radius:999px;font-size:14px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;">
+      Découvrir la boutique
+    </a>
+  </div>
+
+  <div style="border-top:1px solid #eeeeee;padding-top:14px;">
+    <p style="margin:0;color:#7b8790;font-size:12px;text-align:center;">
+      Offre valable selon stock disponible. Expédié en moins de 48h par Island Dreams, puis acheminement assuré par La Poste.
+    </p>
+  </div>
 </div>`;
 
 export function CampaignForm({ initial }: Props) {
   const router = useRouter();
   const [subject, setSubject] = useState(initial?.name ?? defaultSubject);
-  const [content, setContent] = useState(defaultNewsletterHtml);
-  const [recipientSources, setRecipientSources] = useState<RecipientSource[]>(['newsletter']);
+  const [content, setContent] = useState(initial?.content || defaultNewsletterHtml);
+  const [recipientSources, setRecipientSources] = useState<RecipientSource[]>(
+    initial?.recipientSources?.length ? initial.recipientSources : ['newsletter']
+  );
   const [recipientGroups, setRecipientGroups] = useState<RecipientGroup[]>([]);
   const [preview, setPreview] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -89,27 +120,41 @@ export function CampaignForm({ initial }: Props) {
     });
   };
 
-  const handleSave = async () => {
+  const handleSave = async (sendAfterSave = false) => {
     if (!subject.trim() || !content.trim()) return;
     setSaving(true);
+    setSending(sendAfterSave);
     setError('');
     try {
-      // Si édition : supprimer l'ancien brouillon puis recréer
-      if (initial?.id) {
-        await fetch('/api/admin/newsletter/broadcasts', {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: initial.id }),
-        });
-      }
-
       const res = await fetch('/api/admin/newsletter/broadcasts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subject, html: content, recipientSources }),
+        body: JSON.stringify({ id: initial?.id, subject, html: content, recipientSources }),
       });
 
       if (res.ok) {
+        const data = await res.json();
+        const broadcastId = data.id || data.broadcast?.id || initial?.id;
+
+        if (sendAfterSave) {
+          if (!broadcastId) {
+            setError('Brouillon enregistré, mais ID manquant pour l’envoi.');
+            return;
+          }
+
+          const sendRes = await fetch('/api/admin/newsletter/broadcasts/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: broadcastId }),
+          });
+          const sendData = await sendRes.json();
+
+          if (!sendRes.ok) {
+            setError(sendData.error || 'Brouillon enregistré, mais envoi impossible.');
+            return;
+          }
+        }
+
         router.push('/admin/newsletter/campagnes');
         router.refresh();
       } else {
@@ -120,6 +165,7 @@ export function CampaignForm({ initial }: Props) {
       setError('Erreur de connexion');
     } finally {
       setSaving(false);
+      setSending(false);
     }
   };
 
@@ -229,12 +275,20 @@ export function CampaignForm({ initial }: Props) {
       {/* Actions */}
       <div className="flex items-center gap-3 pt-2">
         <button
-          onClick={handleSave}
+          onClick={() => handleSave(false)}
           disabled={saving || !subject.trim() || !content.trim()}
           className="flex items-center gap-2 px-5 py-2.5 bg-jungle-600 text-white rounded-lg text-sm font-semibold hover:bg-jungle-700 transition-colors disabled:opacity-50"
         >
-          {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-          {saving ? 'Enregistrement…' : 'Enregistrer le brouillon'}
+          {saving && !sending ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+          {saving && !sending ? 'Enregistrement…' : 'Enregistrer le brouillon'}
+        </button>
+        <button
+          onClick={() => handleSave(true)}
+          disabled={saving || !subject.trim() || !content.trim()}
+          className="flex items-center gap-2 px-5 py-2.5 bg-coral-500 text-white rounded-lg text-sm font-semibold hover:bg-coral-600 transition-colors disabled:opacity-50"
+        >
+          {sending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+          {sending ? 'Envoi…' : 'Enregistrer et envoyer'}
         </button>
         <button
           onClick={() => router.push('/admin/newsletter/campagnes')}

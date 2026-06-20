@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getBroadcast } from '@/lib/email/resend';
+import { getLocalBroadcastDraft } from '@/lib/newsletter/broadcast-drafts';
 
 export default async function EditCampaignPage({
   params,
@@ -17,6 +18,7 @@ export default async function EditCampaignPage({
   }
 
   if (!broadcast) notFound();
+  const localDraft = await getLocalBroadcastDraft(broadcast.id);
 
   if (broadcast.status === 'sent' || broadcast.status === 'queued') {
     return (
@@ -81,12 +83,17 @@ export default async function EditCampaignPage({
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-200 p-6">
-        {/* Resend ne retourne pas le HTML du brouillon — on repart de zéro */}
-        <p className="text-xs text-gray-400 mb-4 bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2">
-          Le contenu HTML n&apos;est pas récupérable depuis Resend. Re-saisi le contenu ci-dessous — l&apos;ancien brouillon sera remplacé.
-        </p>
-        {/* Import dynamique pour éviter le problème de SSR */}
-        <CampaignFormWrapper id={broadcast.id} name={broadcast.name} />
+        {!localDraft && (
+          <p className="mb-4 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2 text-xs text-gray-500">
+            Ce brouillon a été créé avant la sauvegarde locale du contenu. Les prochains brouillons
+            pourront être repris avec leur HTML et leurs destinataires.
+          </p>
+        )}
+        <CampaignFormWrapper
+          id={broadcast.id}
+          name={broadcast.name}
+          localDraft={localDraft}
+        />
       </div>
     </div>
   );
@@ -94,7 +101,25 @@ export default async function EditCampaignPage({
 
 // Import client-side
 import { CampaignForm } from '../CampaignForm';
+import type { LocalBroadcastDraft } from '@/lib/newsletter/broadcast-drafts';
 
-function CampaignFormWrapper({ id, name }: { id: string; name: string }) {
-  return <CampaignForm initial={{ id, name }} />;
+function CampaignFormWrapper({
+  id,
+  name,
+  localDraft,
+}: {
+  id: string;
+  name: string;
+  localDraft: LocalBroadcastDraft | null;
+}) {
+  return (
+    <CampaignForm
+      initial={{
+        id,
+        name: localDraft?.subject || name,
+        content: localDraft?.html || '',
+        recipientSources: localDraft?.recipientSources,
+      }}
+    />
+  );
 }

@@ -86,6 +86,16 @@ export async function createBroadcast(subject: string, html: string) {
   return data;
 }
 
+export async function updateBroadcast(id: string, subject: string, html: string) {
+  const { data, error } = await resend.broadcasts.update(id, {
+    subject,
+    name: subject,
+    html,
+  });
+  if (error) throw new Error(error.message);
+  return data;
+}
+
 export async function sendBroadcast(broadcastId: string) {
   const { data, error } = await resend.broadcasts.send(broadcastId);
   if (error) throw new Error(error.message);

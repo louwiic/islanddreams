@@ -4,7 +4,9 @@ import {
   createBroadcast,
   listBroadcasts,
   removeBroadcast,
+  updateBroadcast,
 } from '@/lib/email/resend';
+import { deleteLocalBroadcastDraft, saveLocalBroadcastDraft } from '@/lib/newsletter/broadcast-drafts';
 import { getNewsletterRecipients } from '@/lib/newsletter/recipients';
 
 // GET — liste des campagnes
@@ -21,7 +23,7 @@ export async function GET() {
 // POST — créer une campagne
 export async function POST(req: NextRequest) {
   try {
-    const { subject, html, recipientSources } = await req.json();
+    const { id, subject, html, recipientSources } = await req.json();
     if (!subject || !html) {
       return NextResponse.json({ error: 'Sujet et contenu requis' }, { status: 400 });
     }
@@ -35,9 +37,24 @@ export async function POST(req: NextRequest) {
       await addContactToAudience(email);
     }
 
-    const broadcast = await createBroadcast(subject, html);
+    const broadcast = id
+      ? await updateBroadcast(id, subject, html)
+      : await createBroadcast(subject, html);
+    const draftId = id || broadcast?.id;
+
+    if (draftId) {
+      await saveLocalBroadcastDraft({
+        id: draftId,
+        subject,
+        html,
+        recipientSources,
+        updatedAt: new Date().toISOString(),
+      });
+    }
+
     return NextResponse.json({
       broadcast,
+      id: draftId,
       recipientsCount: emails.length,
       recipientsGroups: groups.map((group) => ({
         source: group.source,
@@ -56,6 +73,7 @@ export async function DELETE(req: NextRequest) {
     const { id } = await req.json();
     if (!id) return NextResponse.json({ error: 'ID requis' }, { status: 400 });
     await removeBroadcast(id);
+    await deleteLocalBroadcastDraft(id);
     return NextResponse.json({ ok: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Erreur inconnue';
