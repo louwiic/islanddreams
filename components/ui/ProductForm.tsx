@@ -55,18 +55,19 @@ function GiftVoucherForm({ product }: { product: Props['product'] }) {
   const { addItem } = useCart();
   const [amount, setAmount] = useState('25');
   const [customAmount, setCustomAmount] = useState('');
-  const [isGift, setIsGift] = useState(false);
-  const [recipientName, setRecipientName] = useState('');
-  const [recipientEmail, setRecipientEmail] = useState('');
-  const [expiresAt, setExpiresAt] = useState(defaultExpiryDate());
+  const [showGiftRequest, setShowGiftRequest] = useState(false);
+  const [requestName, setRequestName] = useState('');
+  const [requestEmail, setRequestEmail] = useState('');
+  const [requestMessage, setRequestMessage] = useState('');
+  const [requestStatus, setRequestStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [added, setAdded] = useState(false);
 
+  const expiresAt = defaultExpiryDate();
   const selectedAmount = amount === 'custom'
     ? Number(customAmount.replace(',', '.'))
     : Number(amount);
   const validAmount = Number.isFinite(selectedAmount) && selectedAmount >= 10 && selectedAmount <= 500;
-  const validExpiry = /^\d{4}-\d{2}-\d{2}$/.test(expiresAt);
-  const canAdd = validAmount && validExpiry;
+  const canAdd = validAmount;
 
   const handleAdd = () => {
     if (!canAdd) return;
@@ -74,8 +75,7 @@ function GiftVoucherForm({ product }: { product: Props['product'] }) {
     const roundedAmount = Math.round(selectedAmount * 100) / 100;
     const labelParts = [
       `Bon d'achat ${roundedAmount.toFixed(2)} €`,
-      isGift ? 'à offrir' : null,
-      expiresAt ? `valable jusqu'au ${new Date(`${expiresAt}T12:00:00`).toLocaleDateString('fr-FR')}` : null,
+      `valable 1 an`,
     ].filter(Boolean);
 
     const item: CartItem = {
@@ -91,9 +91,7 @@ function GiftVoucherForm({ product }: { product: Props['product'] }) {
       maxQuantity: 1,
       voucher: {
         amount: roundedAmount,
-        isGift,
-        recipientName: recipientName.trim() || undefined,
-        recipientEmail: recipientEmail.trim() || undefined,
+        isGift: false,
         expiresAt,
       },
     };
@@ -101,6 +99,35 @@ function GiftVoucherForm({ product }: { product: Props['product'] }) {
     addItem(item);
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
+  };
+
+  const handleGiftRequest = async () => {
+    if (!requestName.trim() || !requestEmail.trim() || !validAmount) return;
+    setRequestStatus('sending');
+    try {
+      const roundedAmount = Math.round(selectedAmount * 100) / 100;
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nom: requestName.trim(),
+          email: requestEmail.trim(),
+          objet: "Demande bon d'achat à offrir",
+          message: [
+            `Le client souhaite offrir un bon d'achat de ${roundedAmount.toFixed(2)} €.`,
+            '',
+            requestMessage.trim() ? `Message client : ${requestMessage.trim()}` : null,
+            '',
+            'Merci de le recontacter pour personnaliser le bon cadeau.',
+          ].filter(Boolean).join('\n'),
+        }),
+      });
+      if (!res.ok) throw new Error('request failed');
+      setRequestStatus('sent');
+      setRequestMessage('');
+    } catch {
+      setRequestStatus('error');
+    }
   };
 
   return (
@@ -114,7 +141,7 @@ function GiftVoucherForm({ product }: { product: Props['product'] }) {
             Bon d&apos;achat numérique
           </p>
           <p className="mt-1 text-sm leading-relaxed text-ink/65">
-            Choisissez le montant, ajoutez une date limite, puis un code unique sera généré après paiement.
+            Choisissez le montant, puis un code unique valable 1 an sera généré après paiement.
           </p>
         </div>
       </div>
@@ -166,46 +193,6 @@ function GiftVoucherForm({ product }: { product: Props['product'] }) {
         )}
       </div>
 
-      <label className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-3 text-sm font-semibold text-ink">
-        <input
-          type="checkbox"
-          checked={isGift}
-          onChange={(e) => setIsGift(e.target.checked)}
-          className="h-4 w-4 rounded border-gray-300 text-jungle-700 focus:ring-jungle-500"
-        />
-        Offrir ce bon d&apos;achat
-      </label>
-
-      {isGift && (
-        <div className="grid gap-3 sm:grid-cols-2">
-          <input
-            type="text"
-            value={recipientName}
-            onChange={(e) => setRecipientName(e.target.value)}
-            placeholder="Nom du destinataire"
-            className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-jungle-500/20"
-          />
-          <input
-            type="email"
-            value={recipientEmail}
-            onChange={(e) => setRecipientEmail(e.target.value)}
-            placeholder="Email du destinataire (optionnel)"
-            className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-jungle-500/20"
-          />
-        </div>
-      )}
-
-      <div>
-        <label className="text-sm font-semibold text-ink">Date limite d&apos;usage</label>
-        <input
-          type="date"
-          value={expiresAt}
-          min={new Date().toISOString().slice(0, 10)}
-          onChange={(e) => setExpiresAt(e.target.value)}
-          className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-jungle-500/20"
-        />
-      </div>
-
       <button
         type="button"
         onClick={handleAdd}
@@ -230,6 +217,70 @@ function GiftVoucherForm({ product }: { product: Props['product'] }) {
           </>
         )}
       </button>
+
+      <div className="rounded-xl border border-gray-200 bg-white p-3">
+        <button
+          type="button"
+          onClick={() => setShowGiftRequest((value) => !value)}
+          className="w-full text-left text-sm font-bold text-jungle-800 hover:text-jungle-900"
+        >
+          Je souhaite offrir ce bon d&apos;achat
+        </button>
+        <p className="mt-1 text-xs leading-relaxed text-ink/55">
+          Pour un bon cadeau personnalisé, envoyez une demande. Nous vous recontacterons.
+        </p>
+
+        {showGiftRequest && (
+          <div className="mt-3 space-y-2">
+            <div className="grid gap-2 sm:grid-cols-2">
+              <input
+                type="text"
+                value={requestName}
+                onChange={(e) => setRequestName(e.target.value)}
+                placeholder="Votre nom"
+                className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-jungle-500/20"
+              />
+              <input
+                type="email"
+                value={requestEmail}
+                onChange={(e) => setRequestEmail(e.target.value)}
+                placeholder="Votre email"
+                className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-jungle-500/20"
+              />
+            </div>
+            <textarea
+              value={requestMessage}
+              onChange={(e) => setRequestMessage(e.target.value)}
+              placeholder="Message ou précision pour le bon cadeau"
+              rows={3}
+              className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-jungle-500/20"
+            />
+            <button
+              type="button"
+              onClick={handleGiftRequest}
+              disabled={
+                requestStatus === 'sending' ||
+                !requestName.trim() ||
+                !requestEmail.trim() ||
+                !validAmount
+              }
+              className="w-full rounded-xl bg-jungle-800 px-4 py-2 text-sm font-bold uppercase tracking-wider text-cream transition-colors hover:bg-jungle-900 disabled:opacity-40"
+            >
+              {requestStatus === 'sending' ? 'Envoi...' : 'Envoyer ma demande'}
+            </button>
+            {requestStatus === 'sent' && (
+              <p className="text-xs font-semibold text-jungle-700">
+                Demande envoyée. Nous vous recontacterons rapidement.
+              </p>
+            )}
+            {requestStatus === 'error' && (
+              <p className="text-xs font-semibold text-coral-500">
+                Impossible d&apos;envoyer la demande pour le moment.
+              </p>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
