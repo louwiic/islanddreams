@@ -27,6 +27,7 @@ import {
   QrCode,
   Star,
   ClipboardList,
+  Gift,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -44,6 +45,7 @@ const navigation: (NavItem | NavGroup)[] = [
       { name: 'Textile', href: '/admin/textile', icon: Shirt },
       { name: 'Commandes', href: '/admin/commandes', icon: ShoppingCart },
       { name: 'Clients', href: '/admin/clients', icon: Users },
+      { name: 'Bons d’achat', href: '/admin/bons-achat', icon: Gift },
       { name: 'Livraison', href: '/admin/livraison', icon: Truck },
     ],
   },
