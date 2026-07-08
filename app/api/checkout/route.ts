@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getStripeClient } from '@/lib/stripe/client';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { calculateShipping } from '@/lib/actions/shipping';
 import type { CartItem } from '@/lib/cart/types';
 
 type CheckoutBody = {
@@ -27,6 +28,23 @@ function settingToString(value: unknown) {
   if (typeof value === 'boolean') return String(value);
   if (typeof value === 'number') return String(value);
   return '';
+}
+
+function isVoucherItem(item: CartItem) {
+  return ['bon-d-achat', 'bon-achat', 'carte-cadeau'].includes(item.slug) || Boolean(item.voucher);
+}
+
+function getVoucherAmount(item: CartItem) {
+  const amount = Number(item.voucher?.amount ?? item.price);
+  if (!Number.isFinite(amount)) return null;
+  return Math.round(amount * 100) / 100;
+}
+
+function isValidVoucherExpiry(value?: string) {
+  if (!value) return false;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const expiry = new Date(`${value}T23:59:59.999Z`).getTime();
+  return Number.isFinite(expiry) && expiry >= Date.now();
 }
 
 export async function POST(req: NextRequest) {
@@ -58,7 +76,7 @@ export async function POST(req: NextRequest) {
     const productIds = items.map((i) => i.productId);
     const { data: dbProducts, error: dbError } = await supabase
       .from('products')
-      .select('id, name, price, sale_price, manage_stock, stock_quantity, in_stock')
+      .select('id, name, price, sale_price, manage_stock, stock_quantity, in_stock, weight_grams')
       .in('id', productIds);
 
     if (dbError || !dbProducts) {
@@ -68,8 +86,14 @@ export async function POST(req: NextRequest) {
     const productMap = new Map(dbProducts.map((p) => [p.id, p]));
     const validatedSubtotal = items.reduce((sum, item) => {
       const dbProd = productMap.get(item.productId);
-      const unitPrice = dbProd ? dbProd.sale_price ?? dbProd.price : 0;
+      const unitPrice = isVoucherItem(item)
+        ? (getVoucherAmount(item) ?? 0)
+        : dbProd ? dbProd.sale_price ?? dbProd.price : 0;
       return sum + unitPrice * item.quantity;
+    }, 0);
+    const validatedWeightG = items.reduce((sum, item) => {
+      const dbProd = productMap.get(item.productId);
+      return sum + (dbProd?.weight_grams ?? 0) * item.quantity;
     }, 0);
 
     // Vérifications : prix + stock
@@ -93,6 +117,28 @@ export async function POST(req: NextRequest) {
             {
               error: `Stock insuffisant pour "${dbProd.name}" (dispo : ${dbProd.stock_quantity})`,
             },
+            { status: 400 },
+          );
+        }
+      }
+
+      if (isVoucherItem(item)) {
+        const voucherAmount = getVoucherAmount(item);
+        if (!voucherAmount || voucherAmount < 10 || voucherAmount > 500) {
+          return NextResponse.json(
+            { error: 'Le montant du bon d’achat doit être compris entre 10 € et 500 €' },
+            { status: 400 },
+          );
+        }
+        if (item.quantity !== 1) {
+          return NextResponse.json(
+            { error: 'Un bon d’achat doit être ajouté au panier à l’unité' },
+            { status: 400 },
+          );
+        }
+        if (!isValidVoucherExpiry(item.voucher?.expiresAt)) {
+          return NextResponse.json(
+            { error: 'La date limite du bon d’achat est invalide ou déjà passée' },
             { status: 400 },
           );
         }
@@ -164,7 +210,9 @@ export async function POST(req: NextRequest) {
     const lineItems = items.map((item) => {
       const dbProd = productMap.get(item.productId)!;
       // Prix réel : promo si dispo, sinon prix de base
-      const unitPrice = dbProd.sale_price ?? dbProd.price;
+      const voucherAmount = isVoucherItem(item) ? getVoucherAmount(item) : null;
+      const unitPrice = voucherAmount ?? dbProd.sale_price ?? dbProd.price;
+      const voucher = item.voucher;
 
       return {
         price_data: {
@@ -176,6 +224,11 @@ export async function POST(req: NextRequest) {
               productId: item.productId,
               variantId: item.variantId || '',
               variantLabel: item.variantLabel || '',
+              voucherAmount: voucherAmount ? String(voucherAmount) : '',
+              voucherIsGift: voucher?.isGift ? 'true' : 'false',
+              voucherExpiresAt: voucher?.expiresAt || '',
+              voucherRecipientName: voucher?.recipientName || '',
+              voucherRecipientEmail: voucher?.recipientEmail || '',
             },
           },
           unit_amount: Math.round(unitPrice * 100),
@@ -188,14 +241,20 @@ export async function POST(req: NextRequest) {
     let selectedShippingCost = 0;
     let selectedShippingName = '';
     if (shippingMethodId) {
-      const { data: method } = await supabase
-        .from('shipping_methods')
-        .select('name, cost')
-        .eq('id', shippingMethodId)
-        .single();
+      const availableShipping = await calculateShipping(
+        customer.address.country || 'RE',
+        customer.address.postalCode.trim(),
+        validatedWeightG
+      );
+      const method = availableShipping
+        ?.flatMap((option) => option.methods)
+        .find((option) => option.id === shippingMethodId);
 
       if (!method) {
-        return NextResponse.json({ error: 'Mode de livraison introuvable' }, { status: 400 });
+        return NextResponse.json(
+          { error: 'Mode de livraison indisponible pour cette adresse ou ce poids' },
+          { status: 400 }
+        );
       }
 
       selectedShippingCost = method.cost;
@@ -207,7 +266,16 @@ export async function POST(req: NextRequest) {
             currency: 'eur',
             product_data: {
               name: `Livraison — ${method.name}`,
-              metadata: { productId: '', variantId: '', variantLabel: '' },
+              metadata: {
+                productId: '',
+                variantId: '',
+                variantLabel: '',
+                voucherAmount: '',
+                voucherIsGift: 'false',
+                voucherExpiresAt: '',
+                voucherRecipientName: '',
+                voucherRecipientEmail: '',
+              },
             },
             unit_amount: Math.round(method.cost * 100),
           },

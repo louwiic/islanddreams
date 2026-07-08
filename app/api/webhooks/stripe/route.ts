@@ -1,9 +1,92 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { randomBytes } from 'crypto';
 import { getStripeClient } from '@/lib/stripe/client';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { sendEmail } from '@/lib/email/send';
 import { orderConfirmation, orderNotificationAdmin } from '@/lib/email/templates';
 import type Stripe from 'stripe';
+
+type OrderItemInsert = {
+  order_id: string;
+  product_id: string | null;
+  variant_id: string | null;
+  variant_label: string | null;
+  product_name: string;
+  quantity: number;
+  unit_price: number;
+  total: number;
+};
+
+function formatDateFr(value?: string | null) {
+  if (!value) return null;
+  const date = new Date(`${value}T12:00:00`);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleDateString('fr-FR');
+}
+
+function expiryToStripeTimestamp(value?: string | null) {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return undefined;
+  const date = new Date(`${value}T23:59:59.999Z`);
+  if (Number.isNaN(date.getTime())) return undefined;
+  return Math.floor(date.getTime() / 1000);
+}
+
+function generateVoucherCode() {
+  return `ID${randomBytes(4).toString('hex').toUpperCase()}`;
+}
+
+async function createVoucherPromotionCode(params: {
+  amount: number;
+  expiresAt?: string | null;
+  orderId: string;
+  sessionId: string;
+  recipientName?: string | null;
+  recipientEmail?: string | null;
+}) {
+  const stripe = getStripeClient();
+  const coupon = await stripe.coupons.create({
+    amount_off: Math.round(params.amount * 100),
+    currency: 'eur',
+    duration: 'once',
+    name: `Bon d'achat Island Dreams ${params.amount.toFixed(2)} €`,
+    metadata: {
+      source: 'island-dreams-voucher',
+      orderId: params.orderId,
+      stripeSessionId: params.sessionId,
+      recipientName: params.recipientName || '',
+      recipientEmail: params.recipientEmail || '',
+    },
+  });
+
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const code = generateVoucherCode();
+    try {
+      const promotionCode = await stripe.promotionCodes.create({
+        promotion: {
+          type: 'coupon',
+          coupon: coupon.id,
+        },
+        code,
+        max_redemptions: 1,
+        expires_at: expiryToStripeTimestamp(params.expiresAt),
+        metadata: {
+          source: 'island-dreams-voucher',
+          orderId: params.orderId,
+          stripeSessionId: params.sessionId,
+          amount: params.amount.toFixed(2),
+          recipientName: params.recipientName || '',
+          recipientEmail: params.recipientEmail || '',
+        },
+      });
+      return promotionCode.code;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '';
+      if (!message.toLowerCase().includes('code')) throw error;
+    }
+  }
+
+  throw new Error('Impossible de générer un code bon d’achat unique');
+}
 
 export async function POST(req: NextRequest) {
   const body = await req.text();
@@ -147,19 +230,47 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   }
 
   // Créer les lignes de commande
-  const orderItems = lineItems.data.map((li) => {
+  const orderItems: OrderItemInsert[] = [];
+  for (const li of lineItems.data) {
     const product = li.price?.product as Stripe.Product | undefined;
-    return {
+    const productMetadata = product?.metadata ?? {};
+    const voucherAmount = Number(productMetadata.voucherAmount || 0);
+    const voucherExpiresAt = productMetadata.voucherExpiresAt || null;
+    let productName = li.description || 'Produit';
+    let variantLabel = productMetadata.variantLabel || null;
+
+    if (Number.isFinite(voucherAmount) && voucherAmount > 0) {
+      const code = await createVoucherPromotionCode({
+        amount: voucherAmount,
+        expiresAt: voucherExpiresAt,
+        orderId: order.id,
+        sessionId: session.id,
+        recipientName: productMetadata.voucherRecipientName || null,
+        recipientEmail: productMetadata.voucherRecipientEmail || null,
+      });
+      const expiresLabel = formatDateFr(voucherExpiresAt);
+      const recipientLabel = productMetadata.voucherRecipientName
+        ? ` — pour ${productMetadata.voucherRecipientName}`
+        : '';
+      productName = `Bon d'achat ${voucherAmount.toFixed(2)} € — code ${code}`;
+      variantLabel = [
+        `Code : ${code}`,
+        expiresLabel ? `Valable jusqu'au ${expiresLabel}` : null,
+        productMetadata.voucherIsGift === 'true' ? `À offrir${recipientLabel}` : null,
+      ].filter(Boolean).join(' — ');
+    }
+
+    orderItems.push({
       order_id: order.id,
-      product_id: product?.metadata?.productId || null,
-      variant_id: product?.metadata?.variantId || null,
-      variant_label: product?.metadata?.variantLabel || null,
-      product_name: li.description || 'Produit',
+      product_id: productMetadata.productId || null,
+      variant_id: productMetadata.variantId || null,
+      variant_label: variantLabel,
+      product_name: productName,
       quantity: li.quantity ?? 1,
       unit_price: (li.price?.unit_amount ?? 0) / 100,
       total: ((li.price?.unit_amount ?? 0) * (li.quantity ?? 1)) / 100,
-    };
-  });
+    });
+  }
 
   if (metadata.giftProductId && metadata.giftProductName) {
     orderItems.push({

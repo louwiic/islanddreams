@@ -6,6 +6,7 @@ import {
   Truck,
   MapPin,
   Save,
+  RefreshCw,
   ToggleLeft,
   ToggleRight,
   Pen,
@@ -17,6 +18,7 @@ import {
   updateShippingMethod,
   createShippingMethod,
   deleteShippingMethod,
+  installMetropoleColissimoRates,
   toggleShippingZone,
   type ShippingZone,
 } from '@/lib/actions/shipping';
@@ -35,6 +37,7 @@ export function ShippingManager({
   const [addingToZone, setAddingToZone] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
   const [newCost, setNewCost] = useState('');
+  const [setupMessage, setSetupMessage] = useState('');
 
   const handleToggleZone = async (zoneId: string, enabled: boolean) => {
     await toggleShippingZone(zoneId, !enabled);
@@ -80,12 +83,45 @@ export function ShippingManager({
     router.refresh();
   };
 
+  const handleInstallMetropoleRates = async () => {
+    setSaving(true);
+    setSetupMessage('');
+    const result = await installMetropoleColissimoRates();
+    setSaving(false);
+    if (result?.error) {
+      setSetupMessage(result.error);
+      return;
+    }
+    setSetupMessage(`${result.count ?? 0} tranches Colissimo métropole installées.`);
+    router.refresh();
+  };
+
   return (
     <div className="space-y-6 max-w-3xl">
-      <p className="text-sm text-gray-500">
-        Configuration des zones et tarifs de livraison, identiques à votre
-        boutique WooCommerce.
-      </p>
+      <div className="rounded-xl border border-gray-200 bg-white p-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="font-semibold text-ink">Tarifs Colissimo métropole</h2>
+            <p className="mt-1 text-sm text-gray-500">
+              Installe les tranches Colissimo Eco Outre-mer 2026 pour les adresses en France métropolitaine.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleInstallMetropoleRates}
+            disabled={saving}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-jungle-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-jungle-700 disabled:opacity-50"
+          >
+            <RefreshCw size={15} className={saving ? 'animate-spin' : ''} />
+            Installer / mettre à jour
+          </button>
+        </div>
+        {setupMessage && (
+          <p className={cn('mt-3 text-sm', setupMessage.includes('installées') ? 'text-jungle-600' : 'text-coral-600')}>
+            {setupMessage}
+          </p>
+        )}
+      </div>
 
       {zones.map((zone) => (
         <div
@@ -194,6 +230,11 @@ export function ShippingManager({
                         {method.free_above && (
                           <p className="text-[10px] text-jungle-600">
                             Gratuit au dessus de {method.free_above} €
+                          </p>
+                        )}
+                        {(method.min_weight_g || method.max_weight_g) && (
+                          <p className="text-[10px] text-gray-400">
+                            {method.min_weight_g ?? 0} g → {method.max_weight_g ?? '∞'} g
                           </p>
                         )}
                       </div>

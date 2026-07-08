@@ -18,6 +18,8 @@ export type ShippingZone = {
     name: string;
     cost: number;
     free_above: number | null;
+    min_weight_g?: number | null;
+    max_weight_g?: number | null;
     requires_signature: boolean | null;
     enabled: boolean | null;
     sort_order: number | null;
@@ -114,13 +116,21 @@ export async function calculateShipping(
 
   const allMethods = (rawMethods ?? []) as unknown as { id: string; name: string; cost: number; requires_signature: boolean | null; zone_id: string; min_weight_g: number | null; max_weight_g: number | null }[];
 
+  const normalizedCountry = country.toUpperCase();
+
   // Séparer méthodes avec poids (La Poste) et sans poids (livraison propre)
   const isWeightBased = (m: { min_weight_g: number | null; max_weight_g: number | null }) =>
     m.min_weight_g != null || m.max_weight_g != null;
 
-  // Décider du mode : < 1000g → La Poste, >= 1000g → livraison propre
-  const usePostal = cartWeightG != null && cartWeightG > 0 && cartWeightG < 1000;
-  const useOwnDelivery = cartWeightG == null || cartWeightG === 0 || cartWeightG >= 1000;
+  // Réunion : garder la logique existante. Métropole : toujours proposer les tranches Colissimo au poids.
+  const usePostal =
+    normalizedCountry === 'FR'
+      ? cartWeightG != null && cartWeightG > 0
+      : cartWeightG != null && cartWeightG > 0 && cartWeightG < 1000;
+  const useOwnDelivery =
+    normalizedCountry === 'FR'
+      ? cartWeightG == null || cartWeightG === 0
+      : cartWeightG == null || cartWeightG === 0 || cartWeightG >= 1000;
 
   const result: ShippingOption[] = [];
 
@@ -201,6 +211,94 @@ export async function createShippingMethod(
 
   revalidatePath('/admin/livraison');
   return { success: true };
+}
+
+/* ── Installer / mettre à jour Colissimo Réunion → métropole ─────── */
+
+const METRO_COLISSIMO_RATES_2026 = [
+  { maxWeightG: 500, cost: 8.41 },
+  { maxWeightG: 1000, cost: 11.73 },
+  { maxWeightG: 2000, cost: 14.77 },
+  { maxWeightG: 5000, cost: 24.8 },
+  { maxWeightG: 10000, cost: 39.24 },
+  { maxWeightG: 15000, cost: 79.42 },
+  { maxWeightG: 30000, cost: 91.53 },
+];
+
+export async function installMetropoleColissimoRates() {
+  const supabase = createAdminClient();
+
+  const { data: existingZone, error: zoneReadError } = await supabase
+    .from('shipping_zones')
+    .select('id')
+    .eq('name', 'France métropolitaine')
+    .maybeSingle();
+
+  if (zoneReadError) return { error: zoneReadError.message };
+
+  let zoneId = existingZone?.id;
+  if (!zoneId) {
+    const { data: createdZone, error: zoneCreateError } = await supabase
+      .from('shipping_zones')
+      .insert({
+        name: 'France métropolitaine',
+        description: 'Livraison Colissimo Eco Outre-mer depuis La Réunion vers la France métropolitaine.',
+        enabled: true,
+        sort_order: 50,
+      })
+      .select('id')
+      .single();
+
+    if (zoneCreateError) return { error: zoneCreateError.message };
+    zoneId = createdZone.id;
+  }
+
+  const { data: existingPostcode } = await supabase
+    .from('shipping_zone_postcodes')
+    .select('id')
+    .eq('zone_id', zoneId)
+    .eq('country', 'FR')
+    .eq('postcode_pattern', '*')
+    .maybeSingle();
+
+  if (!existingPostcode) {
+    const { error: postcodeError } = await supabase.from('shipping_zone_postcodes').insert({
+      zone_id: zoneId,
+      country: 'FR',
+      postcode_pattern: '*',
+    });
+    if (postcodeError) return { error: postcodeError.message };
+  }
+
+  const { error: deleteError } = await supabase
+    .from('shipping_methods')
+    .delete()
+    .eq('zone_id', zoneId)
+    .ilike('name', 'Colissimo Eco Outre-mer%');
+
+  if (deleteError) return { error: deleteError.message };
+
+  const rows = METRO_COLISSIMO_RATES_2026.map((rate, index) => ({
+    zone_id: zoneId,
+    name: `Colissimo Eco Outre-mer jusqu’à ${rate.maxWeightG >= 1000 ? `${rate.maxWeightG / 1000} kg` : `${rate.maxWeightG} g`}`,
+    cost: rate.cost,
+    free_above: null,
+    requires_signature: false,
+    enabled: true,
+    sort_order: index + 1,
+    min_weight_g: index === 0 ? 1 : METRO_COLISSIMO_RATES_2026[index - 1].maxWeightG + 1,
+    max_weight_g: rate.maxWeightG,
+  }));
+
+  const { error: insertError } = await supabase
+    .from('shipping_methods')
+    .insert(rows as never);
+
+  if (insertError) return { error: insertError.message };
+
+  revalidatePath('/admin/livraison');
+  revalidatePath('/panier');
+  return { success: true, count: rows.length };
 }
 
 /* ── Supprimer une méthode de livraison ─────────────────── */

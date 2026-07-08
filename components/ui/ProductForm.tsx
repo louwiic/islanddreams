@@ -1,7 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { Check, Gift, ShoppingBag } from 'lucide-react';
 import { AddToCartButton } from './AddToCartButton';
+import { useCart } from '@/lib/cart/CartProvider';
+import type { CartItem } from '@/lib/cart/types';
 
 type Variant = {
   id: string;
@@ -36,6 +39,199 @@ type Props = {
 
 function combinationKey(combo: Record<string, string>) {
   return JSON.stringify(Object.fromEntries(Object.entries(combo).sort()));
+}
+
+function defaultExpiryDate() {
+  const date = new Date();
+  date.setFullYear(date.getFullYear() + 1);
+  return date.toISOString().slice(0, 10);
+}
+
+function isVoucherProduct(slug: string) {
+  return ['bon-d-achat', 'bon-achat', 'carte-cadeau'].includes(slug);
+}
+
+function GiftVoucherForm({ product }: { product: Props['product'] }) {
+  const { addItem } = useCart();
+  const [amount, setAmount] = useState('25');
+  const [customAmount, setCustomAmount] = useState('');
+  const [isGift, setIsGift] = useState(false);
+  const [recipientName, setRecipientName] = useState('');
+  const [recipientEmail, setRecipientEmail] = useState('');
+  const [expiresAt, setExpiresAt] = useState(defaultExpiryDate());
+  const [added, setAdded] = useState(false);
+
+  const selectedAmount = amount === 'custom'
+    ? Number(customAmount.replace(',', '.'))
+    : Number(amount);
+  const validAmount = Number.isFinite(selectedAmount) && selectedAmount >= 10 && selectedAmount <= 500;
+  const validExpiry = /^\d{4}-\d{2}-\d{2}$/.test(expiresAt);
+  const canAdd = validAmount && validExpiry;
+
+  const handleAdd = () => {
+    if (!canAdd) return;
+
+    const roundedAmount = Math.round(selectedAmount * 100) / 100;
+    const labelParts = [
+      `Bon d'achat ${roundedAmount.toFixed(2)} €`,
+      isGift ? 'à offrir' : null,
+      expiresAt ? `valable jusqu'au ${new Date(`${expiresAt}T12:00:00`).toLocaleDateString('fr-FR')}` : null,
+    ].filter(Boolean);
+
+    const item: CartItem = {
+      productId: product.id,
+      variantId: `voucher-${roundedAmount}-${expiresAt}-${Date.now()}`,
+      slug: product.slug,
+      name: product.name,
+      variantLabel: labelParts.join(' — '),
+      price: roundedAmount,
+      quantity: 1,
+      image: product.image,
+      weightGrams: 0,
+      maxQuantity: 1,
+      voucher: {
+        amount: roundedAmount,
+        isGift,
+        recipientName: recipientName.trim() || undefined,
+        recipientEmail: recipientEmail.trim() || undefined,
+        expiresAt,
+      },
+    };
+
+    addItem(item);
+    setAdded(true);
+    setTimeout(() => setAdded(false), 2000);
+  };
+
+  return (
+    <div className="space-y-5 rounded-2xl border border-sun-200 bg-sun-50/60 p-4">
+      <div className="flex items-start gap-3">
+        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-jungle-800 text-cream">
+          <Gift size={20} />
+        </div>
+        <div>
+          <p className="text-sm font-black uppercase tracking-[0.12em] text-ink">
+            Bon d&apos;achat numérique
+          </p>
+          <p className="mt-1 text-sm leading-relaxed text-ink/65">
+            Choisissez le montant, ajoutez une date limite, puis un code unique sera généré après paiement.
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <label className="text-sm font-semibold text-ink">Montant</label>
+        <div className="mt-2 grid grid-cols-4 gap-2">
+          {['25', '50', '75', '100'].map((value) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setAmount(value)}
+              className={`rounded-xl border px-3 py-2 text-sm font-bold transition-colors ${
+                amount === value
+                  ? 'border-jungle-700 bg-jungle-700 text-cream'
+                  : 'border-gray-200 bg-white text-ink hover:border-jungle-300'
+              }`}
+            >
+              {value} €
+            </button>
+          ))}
+        </div>
+        <div className="mt-2 flex gap-2">
+          <button
+            type="button"
+            onClick={() => setAmount('custom')}
+            className={`rounded-xl border px-3 py-2 text-sm font-bold transition-colors ${
+              amount === 'custom'
+                ? 'border-jungle-700 bg-jungle-700 text-cream'
+                : 'border-gray-200 bg-white text-ink hover:border-jungle-300'
+            }`}
+          >
+            Autre
+          </button>
+          <input
+            type="number"
+            min="10"
+            max="500"
+            step="1"
+            value={customAmount}
+            onFocus={() => setAmount('custom')}
+            onChange={(e) => setCustomAmount(e.target.value)}
+            placeholder="Montant libre"
+            className="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-jungle-500/20"
+          />
+        </div>
+        {!validAmount && (
+          <p className="mt-1 text-xs text-coral-500">Montant autorisé : 10 € à 500 €.</p>
+        )}
+      </div>
+
+      <label className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-3 text-sm font-semibold text-ink">
+        <input
+          type="checkbox"
+          checked={isGift}
+          onChange={(e) => setIsGift(e.target.checked)}
+          className="h-4 w-4 rounded border-gray-300 text-jungle-700 focus:ring-jungle-500"
+        />
+        Offrir ce bon d&apos;achat
+      </label>
+
+      {isGift && (
+        <div className="grid gap-3 sm:grid-cols-2">
+          <input
+            type="text"
+            value={recipientName}
+            onChange={(e) => setRecipientName(e.target.value)}
+            placeholder="Nom du destinataire"
+            className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-jungle-500/20"
+          />
+          <input
+            type="email"
+            value={recipientEmail}
+            onChange={(e) => setRecipientEmail(e.target.value)}
+            placeholder="Email du destinataire (optionnel)"
+            className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-jungle-500/20"
+          />
+        </div>
+      )}
+
+      <div>
+        <label className="text-sm font-semibold text-ink">Date limite d&apos;usage</label>
+        <input
+          type="date"
+          value={expiresAt}
+          min={new Date().toISOString().slice(0, 10)}
+          onChange={(e) => setExpiresAt(e.target.value)}
+          className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-jungle-500/20"
+        />
+      </div>
+
+      <button
+        type="button"
+        onClick={handleAdd}
+        disabled={!canAdd}
+        className={`flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold uppercase tracking-wider transition-all ${
+          !canAdd
+            ? 'bg-gray-200 text-gray-400'
+            : added
+              ? 'bg-jungle-500 text-white'
+              : 'bg-jungle-700 text-cream hover:bg-jungle-800'
+        }`}
+      >
+        {added ? (
+          <>
+            <Check size={18} />
+            Ajouté au panier
+          </>
+        ) : (
+          <>
+            <ShoppingBag size={18} />
+            Ajouter — {validAmount ? selectedAmount.toFixed(2) : '0.00'} €
+          </>
+        )}
+      </button>
+    </div>
+  );
 }
 
 export function ProductForm({ product, attributes, variants }: Props) {
@@ -78,6 +274,10 @@ export function ProductForm({ product, attributes, variants }: Props) {
   const variantLabel = selectedVariant
     ? Object.values(selected).join(' / ')
     : undefined;
+
+  if (isVoucherProduct(product.slug)) {
+    return <GiftVoucherForm product={product} />;
+  }
 
   return (
     <div>

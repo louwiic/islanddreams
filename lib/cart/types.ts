@@ -9,6 +9,13 @@ export type CartItem = {
   image?: string;
   weightGrams?: number;
   maxQuantity?: number;
+  voucher?: {
+    amount: number;
+    isGift: boolean;
+    recipientName?: string;
+    recipientEmail?: string;
+    expiresAt?: string;
+  };
 };
 
 export type Cart = {
