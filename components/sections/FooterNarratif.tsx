@@ -6,20 +6,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { track } from '@vercel/analytics/react';
-
-const NAV_LINKS = [
-  { label: 'BOUTIQUE',             href: '/boutique' },
-  { label: 'À PROPOS',             href: '/a-propos' },
-  { label: 'DÉCOUVRIR LA RÉUNION', href: '/decouvrir-la-reunion' },
-  { label: 'CONTACT',              href: '/contact' },
-];
-
-const LEGAL_LINKS = [
-  { label: 'Mentions légales',             href: '/mentions-legales' },
-  { label: 'Politique de confidentialité', href: '/politique-de-confidentialite' },
-  { label: 'Politique de cookies',         href: '/politique-de-cookies' },
-  { label: 'CGV',                          href: '/cgv' },
-];
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 function SocialBtn({ href, label, children }: { href: string; label: string; children: React.ReactNode }) {
   return (
@@ -50,6 +37,7 @@ function TornEdge({ fromColor, toColor }: { fromColor: string; toColor: string }
 }
 
 function NewsletterForm() {
+  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'ok' | 'error'>('idle');
 
@@ -78,7 +66,7 @@ function NewsletterForm() {
   if (status === 'ok') {
     return (
       <p className="text-sm text-sun-400 font-semibold text-center">
-        Merci ! Vérifie ta boîte mail 🌴
+        {t('footer.thanks')}
       </p>
     );
   }
@@ -103,9 +91,9 @@ function NewsletterForm() {
         </button>
       </div>
       <p className="text-center text-[10px] leading-relaxed text-cream/50">
-        En m’inscrivant, j’accepte de recevoir les emails Island Dreams. Désinscription en un clic.{' '}
+        {t('footer.newsletterConsent')}{' '}
         <Link href="/politique-de-confidentialite" className="underline hover:text-cream">
-          Confidentialité
+          {t('footer.privacy')}
         </Link>
       </p>
     </form>
@@ -113,6 +101,15 @@ function NewsletterForm() {
 }
 
 export function FooterNarratif() {
+  const { t } = useLanguage();
+  const navLinks = [
+    { label: t('footer.shop'), href: '/boutique' }, { label: t('footer.about'), href: '/a-propos' },
+    { label: t('footer.discover'), href: '/decouvrir-la-reunion' }, { label: t('footer.contact'), href: '/contact' },
+  ];
+  const legalLinks = [
+    { label: t('footer.legal'), href: '/mentions-legales' }, { label: t('footer.privacyPolicy'), href: '/politique-de-confidentialite' },
+    { label: t('footer.cookies'), href: '/politique-de-cookies' }, { label: t('footer.terms'), href: '/cgv' },
+  ];
   return (
     <footer>
       {/* Bord déchiré : section précédente (cream) → footer teal */}
@@ -154,7 +151,7 @@ export function FooterNarratif() {
               href="/boutique"
               className="inline-block bg-sun-400 text-ink text-sm font-bold px-6 py-2.5 rounded-full hover:bg-sun-300 transition-colors tracking-wide"
             >
-              Voir la boutique
+              {t('footer.viewShop')}
             </Link>
           </div>
 
@@ -169,13 +166,13 @@ export function FooterNarratif() {
                 Kréol Mail
               </p>
               <p className="text-cream/60 text-xs mb-3">
-                -10% sur ta première commande + nos nouveautés
+                {t('footer.firstOrder')}
               </p>
               <NewsletterForm />
             </div>
 
             <nav className="flex flex-col items-center gap-5" aria-label="Footer navigation">
-              {NAV_LINKS.map((link) => (
+              {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
@@ -225,7 +222,7 @@ export function FooterNarratif() {
               href="/contact"
               className="inline-block border-2 border-cream/40 text-cream text-sm font-bold px-6 py-2.5 rounded-full hover:border-sun-400 hover:text-sun-400 transition-colors tracking-wide"
             >
-              Nous contacter
+              {t('footer.contactUs')}
             </Link>
           </div>
         </div>
@@ -238,10 +235,10 @@ export function FooterNarratif() {
               className="text-cream font-black text-lg uppercase tracking-wide mb-4"
               style={{ fontFamily: 'var(--font-heading, serif)' }}
             >
-              Liens utiles
+              {t('footer.useful')}
             </h3>
             <ul className="flex flex-col gap-2">
-              {LEGAL_LINKS.map((l) => (
+              {legalLinks.map((l) => (
                 <li key={l.href}>
                   <Link href={l.href} className="text-cream/60 text-sm hover:text-cream transition-colors">
                     {l.label}
@@ -255,7 +252,7 @@ export function FooterNarratif() {
 
         {/* ── Ligne copyright ── */}
         <div className="max-w-6xl mx-auto px-6 py-4 text-center text-xs text-cream/30 border-t border-cream/10">
-          <p>Un site fait à La Réunion (974). 2026 Island Dreams.</p>
+          <p>{t('footer.made')}</p>
         </div>
       </div>
 

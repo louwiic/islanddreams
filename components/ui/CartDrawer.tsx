@@ -5,10 +5,12 @@ import Link from 'next/link';
 import { X, Minus, Plus, Trash2, ShoppingBag } from 'lucide-react';
 import { useCart } from '@/lib/cart/CartProvider';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 export function CartDrawer() {
   const { items, total, count, isOpen, closeCart, removeItem, updateQuantity } =
     useCart();
+  const { t } = useLanguage();
   const handleCheckout = () => {
     closeCart();
     window.location.href = '/panier';
@@ -36,7 +38,7 @@ export function CartDrawer() {
           <div className="flex items-center gap-2">
             <ShoppingBag size={18} className="text-ink" />
             <h2 className="font-semibold text-ink">
-              Panier
+              {t('cart.title')}
               {count > 0 && (
                 <span className="ml-1.5 text-sm text-gray-400 font-normal">
                   ({count})
@@ -58,12 +60,12 @@ export function CartDrawer() {
             <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
               <ShoppingBag size={28} className="text-gray-300" />
             </div>
-            <p className="text-sm text-gray-500">Votre panier est vide</p>
+            <p className="text-sm text-gray-500">{t('cart.empty')}</p>
             <button
               onClick={closeCart}
               className="px-5 py-2 bg-jungle-600 text-white text-sm font-medium rounded-lg hover:bg-jungle-700 transition-colors"
             >
-              Continuer mes achats
+              {t('cart.continue')}
             </button>
           </div>
         ) : (
@@ -167,26 +169,26 @@ export function CartDrawer() {
             {/* Footer */}
             <div className="border-t border-gray-100 px-5 py-4 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">Sous-total</span>
+                <span className="text-sm text-gray-500">{t('cart.subtotal')}</span>
                 <span className="text-lg font-bold text-ink">
                   {total.toFixed(2)} €
                 </span>
               </div>
               <p className="text-xs text-gray-400">
-                Frais de livraison calculés au checkout
+                {t('cart.shipping')}
               </p>
               <button
                 onClick={handleCheckout}
                 className="w-full py-3 bg-jungle-700 hover:bg-jungle-800 text-cream text-sm font-bold uppercase tracking-wider rounded-xl transition-colors flex items-center justify-center gap-2"
               >
-                Commander — {total.toFixed(2)} €
+                {t('cart.checkout', { total: total.toFixed(2) })}
               </button>
               <Link
                 href="/panier"
                 onClick={closeCart}
                 className="block w-full py-2 text-sm text-jungle-600 hover:text-jungle-700 transition-colors text-center font-medium"
               >
-                Voir le panier complet
+                {t('cart.view')}
               </Link>
             </div>
           </>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Analytics } from '@vercel/analytics/react';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 type ConsentValue = 'accepted' | 'rejected' | null;
 
@@ -23,6 +24,7 @@ function saveConsent(value: Exclude<ConsentValue, null>) {
 }
 
 export function CookieConsent() {
+  const { t } = useLanguage();
   const [consent, setConsent] = useState<ConsentValue>(null);
   const [ready, setReady] = useState(false);
   const [customizing, setCustomizing] = useState(false);
@@ -52,17 +54,16 @@ export function CookieConsent() {
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div className="min-w-0">
               <p className="text-sm font-black uppercase tracking-[0.12em] text-ink">
-                Gestion des cookies
+                {t('cookies.title')}
               </p>
               <p className="mt-2 text-sm leading-relaxed text-ink/70">
-                Nous utilisons des cookies nécessaires au fonctionnement du site et, avec votre
-                accord, des cookies de mesure d&apos;audience pour améliorer Island Dreams.
+                {t('cookies.description')}
               </p>
               <Link
                 href="/politique-de-cookies"
                 className="mt-2 inline-flex text-xs font-semibold text-jungle-700 underline-offset-4 hover:underline"
               >
-                Lire la politique de cookies
+                {t('cookies.read')}
               </Link>
 
               {customizing && (
@@ -70,9 +71,9 @@ export function CookieConsent() {
                   <label className="flex items-start gap-3 text-sm text-ink/75">
                     <input type="checkbox" checked disabled className="mt-1" />
                     <span>
-                      <strong className="text-ink">Cookies nécessaires</strong>
+                      <strong className="text-ink">{t('cookies.necessary')}</strong>
                       <span className="block text-xs text-ink/55">
-                        Panier, sécurité, paiement et préférences indispensables.
+                        {t('cookies.necessaryHelp')}
                       </span>
                     </span>
                   </label>
@@ -84,9 +85,9 @@ export function CookieConsent() {
                       className="mt-1"
                     />
                     <span>
-                      <strong className="text-ink">Mesure d&apos;audience</strong>
+                      <strong className="text-ink">{t('cookies.analytics')}</strong>
                       <span className="block text-xs text-ink/55">
-                        Statistiques anonymisées pour comprendre les pages consultées.
+                        {t('cookies.analyticsHelp')}
                       </span>
                     </span>
                   </label>
@@ -101,7 +102,7 @@ export function CookieConsent() {
                   onClick={() => choose(analyticsEnabled ? 'accepted' : 'rejected')}
                   className="rounded-xl bg-jungle-700 px-4 py-2.5 text-sm font-bold text-cream transition-colors hover:bg-jungle-800"
                 >
-                  Enregistrer
+                  {t('cookies.save')}
                 </button>
               ) : (
                 <button
@@ -109,7 +110,7 @@ export function CookieConsent() {
                   onClick={() => choose('accepted')}
                   className="rounded-xl bg-jungle-700 px-4 py-2.5 text-sm font-bold text-cream transition-colors hover:bg-jungle-800"
                 >
-                  Accepter
+                  {t('cookies.accept')}
                 </button>
               )}
               <button
@@ -117,7 +118,7 @@ export function CookieConsent() {
                 onClick={() => choose('rejected')}
                 className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-bold text-ink transition-colors hover:bg-gray-50"
               >
-                Refuser
+                {t('cookies.reject')}
               </button>
               {!customizing && (
                 <button
@@ -125,7 +126,7 @@ export function CookieConsent() {
                   onClick={() => setCustomizing(true)}
                   className="rounded-xl px-4 py-2.5 text-sm font-bold text-jungle-700 transition-colors hover:bg-jungle-50"
                 >
-                  Personnaliser
+                  {t('cookies.customize')}
                 </button>
               )}
             </div>

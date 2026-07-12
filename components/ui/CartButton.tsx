@@ -2,15 +2,17 @@
 
 import { ShoppingBag } from 'lucide-react';
 import { useCart } from '@/lib/cart/CartProvider';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 export function CartButton() {
   const { count, toggleCart } = useCart();
+  const { t } = useLanguage();
 
   return (
     <button
       onClick={toggleCart}
       className="relative p-2 text-cream/90 hover:text-sun-400 transition-colors"
-      aria-label={`Panier (${count} article${count > 1 ? 's' : ''})`}
+      aria-label={t('cart.label', { count })}
     >
       <ShoppingBag size={20} />
       {count > 0 && (

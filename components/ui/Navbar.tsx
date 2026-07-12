@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { CartButton } from './CartButton';
+import { LanguageSwitcher } from './LanguageSwitcher';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 type NavFeaturedCategory = {
   slug: string;
@@ -11,24 +13,6 @@ type NavFeaturedCategory = {
   nav_label: string | null;
   nav_color: string | null;
 } | null;
-
-const leftLinks = [
-  { label: 'Accueil', href: '/' },
-  { label: 'Boutique', href: '/boutique' },
-  { label: 'Découvrir La Réunion', href: '/decouvrir-la-reunion' },
-  { label: 'Blog', href: '/blog' },
-];
-
-const rightLinks = [
-  { label: 'À propos', href: '/a-propos' },
-  { label: 'Contact', href: '/contact' },
-  { label: 'Mon compte', href: '/compte' },
-];
-
-// Visible dans le menu mobile uniquement
-const mobileOnlyLinks = [
-  { label: 'Découvrir la Réunion', href: '/decouvrir-la-reunion', color: null, featured: false },
-];
 
 export function Navbar({
   featuredCategory,
@@ -40,6 +24,15 @@ export function Navbar({
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const navRef = useRef<HTMLElement>(null);
+  const { t } = useLanguage();
+  const leftLinks = [
+    { label: t('nav.home'), href: '/' }, { label: t('nav.shop'), href: '/boutique' },
+    { label: t('nav.discover'), href: '/decouvrir-la-reunion' }, { label: t('nav.blog'), href: '/blog' },
+  ];
+  const rightLinks = [
+    { label: t('nav.about'), href: '/a-propos' }, { label: t('nav.contact'), href: '/contact' },
+    { label: t('nav.account'), href: '/compte' },
+  ];
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -63,7 +56,6 @@ export function Navbar({
   const allMobileLinks = [
     ...leftNav,
     ...rightLinks.map((l) => ({ ...l, color: null, featured: false })),
-    ...mobileOnlyLinks,
   ];
 
   return (
@@ -135,17 +127,19 @@ export function Navbar({
               <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-sun-400 transition-all duration-300 group-hover:w-full" />
             </Link>
           ))}
+          <LanguageSwitcher />
           <CartButton />
         </div>
 
         {/* Panier + Burger — mobile */}
         <div className="lg:hidden flex items-center gap-1">
+          <LanguageSwitcher />
           <CartButton />
         </div>
         <button
           className="lg:hidden flex flex-col gap-[5px] p-2 group"
           onClick={() => setMobileOpen(!mobileOpen)}
-          aria-label="Menu"
+          aria-label={t('nav.menu')}
         >
           <span
             className={`block w-6 h-[2px] bg-cream transition-all duration-300 ${

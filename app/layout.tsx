@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Fraunces, Inter, Oswald, Londrina_Solid, Barlow_Semi_Condensed } from 'next/font/google';
 import { CookieConsent } from '@/components/ui/CookieConsent';
+import { LanguageProvider } from '@/lib/i18n/LanguageProvider';
 import './globals.css';
 
 const fraunces = Fraunces({
@@ -127,8 +128,10 @@ export default function RootLayout({
             }),
           }}
         />
-        {children}
-        <CookieConsent />
+        <LanguageProvider>
+          {children}
+          <CookieConsent />
+        </LanguageProvider>
       </body>
     </html>
   );
