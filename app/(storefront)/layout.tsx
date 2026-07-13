@@ -218,7 +218,7 @@ export default async function StorefrontLayout({
       {children}
       <Script
         defer
-        data-domain="peibox.fr"
+        data-domain="islanddreams.re"
         src="https://analytics.peibox.fr/js/script.js"
         strategy="afterInteractive"
       />
