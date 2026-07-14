@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { randomBytes } from 'crypto';
+import { randomBytes, randomUUID } from 'crypto';
 import { getStripeClient } from '@/lib/stripe/client';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { sendEmail } from '@/lib/email/send';
 import { orderConfirmation, orderNotificationAdmin } from '@/lib/email/templates';
 import type Stripe from 'stripe';
+import type { QrConversion } from '@/lib/actions/qr';
 
 type OrderItemInsert = {
   order_id: string;
@@ -110,6 +111,11 @@ export async function POST(req: NextRequest) {
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session;
     await handleCheckoutCompleted(session);
+  }
+  if (event.type === 'charge.refunded') {
+    const charge = event.data.object as Stripe.Charge;
+    const paymentIntentId = typeof charge.payment_intent === 'string' ? charge.payment_intent : charge.payment_intent?.id;
+    if (paymentIntentId) await cancelAffiliateConversion(paymentIntentId);
   }
 
   return NextResponse.json({ received: true });
@@ -313,6 +319,39 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   console.log(`✓ Commande créée: ${order.id} — ${total}€`);
 
+  if (metadata.affiliateCampaignId && metadata.affiliatePartnerEmail) {
+    const commissionRate = Number(metadata.affiliateCommissionRate || 0);
+    const commissionBase = Math.max(0, total - shippingCost);
+    if (Number.isFinite(commissionRate) && commissionRate > 0) {
+      const { data: conversionsRow } = await supabase
+        .from('shop_settings')
+        .select('value')
+        .eq('key', 'qr_conversions')
+        .maybeSingle();
+      const conversions = Array.isArray(conversionsRow?.value)
+        ? (conversionsRow.value as unknown as QrConversion[])
+        : [];
+      if (!conversions.some((conversion) => conversion.stripeSessionId === session.id)) {
+        const conversion: QrConversion = {
+          id: randomUUID(),
+          campaignId: metadata.affiliateCampaignId,
+          partnerEmail: metadata.affiliatePartnerEmail.toLowerCase(),
+          orderId: order.id,
+          stripeSessionId: session.id,
+          orderTotal: total,
+          commissionRate,
+          commissionAmount: Math.round(commissionBase * commissionRate) / 100,
+          status: 'pending',
+          createdAt: new Date().toISOString(),
+        };
+        await supabase.from('shop_settings').upsert(
+          { key: 'qr_conversions', value: [...conversions, conversion] },
+          { onConflict: 'key' },
+        );
+      }
+    }
+  }
+
   // ── Enregistrer l'usage du code promo ───────────────────────────
   const promoCodeUsed = metadata.promoCode;
   console.log(`[PROMO-WEBHOOK] metadata.promoCode="${promoCodeUsed}", email="${email}"`);
@@ -365,4 +404,30 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const adminEmail = process.env.ADMIN_EMAIL || 'contact@islanddreams.re';
   const adminTpl = orderNotificationAdmin(emailOrderData);
   await sendEmail({ to: adminEmail, ...adminTpl });
+}
+
+async function cancelAffiliateConversion(paymentIntentId: string) {
+  const supabase = createAdminClient();
+  const { data: order } = await supabase
+    .from('orders')
+    .select('id')
+    .eq('stripe_payment_intent', paymentIntentId)
+    .maybeSingle();
+  if (!order) return;
+
+  const { data: row } = await supabase
+    .from('shop_settings')
+    .select('value')
+    .eq('key', 'qr_conversions')
+    .maybeSingle();
+  const conversions = Array.isArray(row?.value) ? (row.value as unknown as QrConversion[]) : [];
+  const next = conversions.map((conversion) =>
+    conversion.orderId === order.id && conversion.status !== 'paid'
+      ? { ...conversion, status: 'cancelled' as const }
+      : conversion,
+  );
+  await supabase.from('shop_settings').upsert(
+    { key: 'qr_conversions', value: next },
+    { onConflict: 'key' },
+  );
 }

@@ -12,6 +12,7 @@ import { DemoVideoWidget, type DemoVideoConfig } from '@/components/shop/DemoVid
 import { GiftOfferFloatingPopup } from '@/components/shop/GiftOfferFloatingPopup';
 import { EventBanner, getActiveBanner } from '@/components/sections/EventBanner';
 import { ContestPopup, type ContestPopupConfig } from '@/components/ui/ContestPopup';
+import { QrJourneyTracker } from '@/components/shop/QrJourneyTracker';
 
 export const dynamic = 'force-dynamic';
 
@@ -213,6 +214,7 @@ export default async function StorefrontLayout({
 
   return (
     <CartProvider>
+      <QrJourneyTracker />
       <EventBanner banner={activeBanner} />
       <Navbar featuredCategory={featuredCategory} hasEventBanner={Boolean(activeBanner)} />
       {children}

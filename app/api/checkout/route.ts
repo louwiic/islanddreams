@@ -3,6 +3,7 @@ import { getStripeClient } from '@/lib/stripe/client';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { calculateShipping } from '@/lib/actions/shipping';
 import type { CartItem } from '@/lib/cart/types';
+import type { QrCampaign } from '@/lib/actions/qr';
 
 type CheckoutBody = {
   items: CartItem[];
@@ -71,6 +72,29 @@ export async function POST(req: NextRequest) {
     }
 
     const supabase = createAdminClient();
+
+    const attributionCampaignId = req.cookies.get('islanddreams_qr_attribution')?.value || '';
+    let affiliateMetadata = {
+      affiliateCampaignId: '',
+      affiliatePartnerEmail: '',
+      affiliateCommissionRate: '',
+    };
+    if (attributionCampaignId) {
+      const { data: qrSettings } = await supabase
+        .from('shop_settings')
+        .select('value')
+        .eq('key', 'qr_campaigns')
+        .maybeSingle();
+      const campaigns = Array.isArray(qrSettings?.value) ? (qrSettings.value as unknown as QrCampaign[]) : [];
+      const campaign = campaigns.find((item) => item.id === attributionCampaignId);
+      if (campaign?.isActive && campaign.partnerEnabled && campaign.partnerEmail && (campaign.commissionRate ?? 0) > 0) {
+        affiliateMetadata = {
+          affiliateCampaignId: campaign.id,
+          affiliatePartnerEmail: campaign.partnerEmail.toLowerCase(),
+          affiliateCommissionRate: String(campaign.commissionRate),
+        };
+      }
+    }
 
     // ── Valider les prix et le stock depuis la BDD ──────────────────────
     const productIds = items.map((i) => i.productId);
@@ -341,6 +365,7 @@ export async function POST(req: NextRequest) {
         shippingPostalCode: customer.address.postalCode.trim(),
         shippingCountry: customer.address.country || 'RE',
         ...giftMetadata,
+        ...affiliateMetadata,
       },
     });
 

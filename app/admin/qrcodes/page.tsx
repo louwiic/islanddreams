@@ -1,8 +1,8 @@
-import { getQrCampaigns, getQrStats } from '@/lib/actions/qr';
+import { getQrCampaigns, getQrConversions, getQrStats } from '@/lib/actions/qr';
 import { QrCampaignsClient } from './QrCampaignsClient';
 
 export default async function QrCodesAdminPage() {
-  const [campaigns, stats] = await Promise.all([getQrCampaigns(), getQrStats()]);
+  const [campaigns, stats, conversions] = await Promise.all([getQrCampaigns(), getQrStats(), getQrConversions()]);
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.islanddreams.re';
 
   return (
@@ -18,6 +18,7 @@ export default async function QrCodesAdminPage() {
         initialCampaigns={campaigns}
         initialStats={stats}
         siteUrl={siteUrl.replace(/\/$/, '')}
+        initialConversions={conversions}
       />
     </div>
   );

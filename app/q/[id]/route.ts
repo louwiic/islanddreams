@@ -64,5 +64,15 @@ export async function GET(req: NextRequest, { params }: PageProps) {
     .from('shop_settings')
     .upsert({ key: 'qr_stats', value: nextStats }, { onConflict: 'key' });
 
-  return NextResponse.redirect(addTrackingParams(campaign.destinationUrl, req.url, campaign));
+  const response = NextResponse.redirect(addTrackingParams(campaign.destinationUrl, req.url, campaign));
+  if (campaign.partnerEnabled && campaign.partnerEmail) {
+    response.cookies.set('islanddreams_qr_attribution', campaign.id, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: (campaign.attributionDays ?? 30) * 24 * 60 * 60,
+    });
+  }
+  return response;
 }

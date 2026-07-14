@@ -5,7 +5,9 @@ import { Copy, Download, Loader2, Plus, QrCode, Save, Trash2 } from 'lucide-reac
 import {
   deleteQrCampaign,
   saveQrCampaign,
+  updateQrConversionStatus,
   type QrCampaign,
+  type QrConversion,
   type QrCampaignStats,
 } from '@/lib/actions/qr';
 
@@ -13,6 +15,7 @@ type Props = {
   initialCampaigns: QrCampaign[];
   initialStats: Record<string, QrCampaignStats>;
   siteUrl: string;
+  initialConversions: QrConversion[];
 };
 
 function qrImageUrl(value: string) {
@@ -40,14 +43,20 @@ function formatDate(value: string | null | undefined) {
   }).format(new Date(value));
 }
 
-export function QrCampaignsClient({ initialCampaigns, initialStats, siteUrl }: Props) {
+export function QrCampaignsClient({ initialCampaigns, initialStats, initialConversions, siteUrl }: Props) {
   const [campaigns, setCampaigns] = useState(initialCampaigns);
   const [stats, setStats] = useState(initialStats);
+  const [conversions, setConversions] = useState(initialConversions);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [sourceTag, setSourceTag] = useState('');
   const [destinationUrl, setDestinationUrl] = useState('/');
   const [isActive, setIsActive] = useState(true);
+  const [partnerEnabled, setPartnerEnabled] = useState(false);
+  const [partnerName, setPartnerName] = useState('');
+  const [partnerEmail, setPartnerEmail] = useState('');
+  const [commissionRate, setCommissionRate] = useState('10');
+  const [attributionDays, setAttributionDays] = useState('30');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [isPending, startTransition] = useTransition();
@@ -63,6 +72,11 @@ export function QrCampaignsClient({ initialCampaigns, initialStats, siteUrl }: P
     setSourceTag('');
     setDestinationUrl('/');
     setIsActive(true);
+    setPartnerEnabled(false);
+    setPartnerName('');
+    setPartnerEmail('');
+    setCommissionRate('10');
+    setAttributionDays('30');
   };
 
   const handleEdit = (campaign: QrCampaign) => {
@@ -71,6 +85,11 @@ export function QrCampaignsClient({ initialCampaigns, initialStats, siteUrl }: P
     setSourceTag(campaign.sourceTag);
     setDestinationUrl(campaign.destinationUrl);
     setIsActive(campaign.isActive);
+    setPartnerEnabled(Boolean(campaign.partnerEnabled));
+    setPartnerName(campaign.partnerName || '');
+    setPartnerEmail(campaign.partnerEmail || '');
+    setCommissionRate(String(campaign.commissionRate ?? 10));
+    setAttributionDays(String(campaign.attributionDays ?? 30));
     setMessage('');
     setError('');
   };
@@ -85,6 +104,11 @@ export function QrCampaignsClient({ initialCampaigns, initialStats, siteUrl }: P
         sourceTag,
         destinationUrl,
         isActive,
+        partnerEnabled,
+        partnerName,
+        partnerEmail,
+        commissionRate: Number(commissionRate),
+        attributionDays: Number(attributionDays),
       });
 
       if (result.error || !result.campaign) {
@@ -205,6 +229,36 @@ export function QrCampaignsClient({ initialCampaigns, initialStats, siteUrl }: P
             {isPending ? <Loader2 size={16} className="animate-spin" /> : editingId ? <Save size={16} /> : <Plus size={16} />}
             {editingId ? 'Enregistrer' : 'Créer'}
           </button>
+          <div className="md:col-span-3 rounded-xl border border-jungle-100 bg-jungle-50/50 p-4">
+            <label className="flex items-center gap-2 text-sm font-semibold text-jungle-800">
+              <input
+                type="checkbox"
+                checked={partnerEnabled}
+                onChange={(event) => setPartnerEnabled(event.target.checked)}
+              />
+              QR partenaire / apporteur d’affaires
+            </label>
+            {partnerEnabled && (
+              <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-gray-600">Nom du gîte</label>
+                  <input value={partnerName} onChange={(event) => setPartnerName(event.target.value)} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm" placeholder="Gîte du Volcan" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-gray-600">Email autorisé</label>
+                  <input type="email" value={partnerEmail} onChange={(event) => setPartnerEmail(event.target.value)} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm" placeholder="gerant@gite.re" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-gray-600">Commission (%)</label>
+                  <input type="number" min="0.01" max="100" step="0.01" value={commissionRate} onChange={(event) => setCommissionRate(event.target.value)} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-gray-600">Attribution (jours)</label>
+                  <input type="number" min="1" max="365" value={attributionDays} onChange={(event) => setAttributionDays(event.target.value)} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm" />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
         {(message || error) && (
           <div className="px-6 pb-5 text-sm">
@@ -212,6 +266,19 @@ export function QrCampaignsClient({ initialCampaigns, initialStats, siteUrl }: P
             {error && <p className="text-coral-600">{error}</p>}
           </div>
         )}
+      </section>
+
+      <section className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+        <div className="border-b border-gray-100 px-6 py-4">
+          <h2 className="font-semibold text-ink">Ventes et commissions partenaires</h2>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-gray-50 text-gray-500"><tr><th className="px-4 py-3">Partenaire</th><th className="px-4 py-3">Commande</th><th className="px-4 py-3">Vente</th><th className="px-4 py-3">Commission</th><th className="px-4 py-3">Statut</th><th className="px-4 py-3">Action</th></tr></thead>
+            <tbody>{conversions.map((conversion) => <tr key={conversion.id} className="border-t border-gray-100"><td className="px-4 py-3">{conversion.partnerEmail}</td><td className="px-4 py-3 font-mono">{conversion.orderId.slice(0, 8).toUpperCase()}</td><td className="px-4 py-3">{conversion.orderTotal.toFixed(2)} €</td><td className="px-4 py-3 font-semibold">{conversion.commissionAmount.toFixed(2)} €</td><td className="px-4 py-3">{conversion.status}</td><td className="px-4 py-3"><select value={conversion.status} onChange={(event) => { const status = event.target.value as QrConversion['status']; startTransition(async () => { const result = await updateQrConversionStatus(conversion.id, status); if (!result.error) setConversions((current) => current.map((item) => item.id === conversion.id ? { ...item, status } : item)); }); }} className="rounded-lg border border-gray-200 px-2 py-1"><option value="pending">En attente</option><option value="approved">Validée</option><option value="paid">Payée</option><option value="cancelled">Annulée</option></select></td></tr>)}</tbody>
+          </table>
+          {conversions.length === 0 && <p className="p-8 text-center text-sm text-gray-400">Aucune vente partenaire pour le moment.</p>}
+        </div>
       </section>
 
       <section className="space-y-4">
@@ -247,6 +314,11 @@ export function QrCampaignsClient({ initialCampaigns, initialStats, siteUrl }: P
                       {!campaign.isActive && (
                         <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
                           Inactif
+                        </span>
+                      )}
+                      {campaign.partnerEnabled && (
+                        <span className="rounded-full bg-sun-100 px-2 py-0.5 text-xs font-medium text-ink">
+                          {campaign.partnerName || campaign.partnerEmail} · {campaign.commissionRate}%
                         </span>
                       )}
                     </div>
