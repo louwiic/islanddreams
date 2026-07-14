@@ -4,12 +4,14 @@ import { useState } from 'react';
 import { ChevronDown, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 type FaqItem = { id: string; question: string; answer: string };
 
 const HOME_LIMIT = 6;
 
 export function HomeFaq({ items }: { items: FaqItem[] }) {
+  const { t } = useLanguage();
   const [openId, setOpenId] = useState<string | null>(null);
 
   if (items.length === 0) return null;
@@ -20,10 +22,10 @@ export function HomeFaq({ items }: { items: FaqItem[] }) {
     <section className="bg-cream py-16 px-6">
       <div className="max-w-3xl mx-auto">
         <h2 className="font-[family-name:var(--font-oswald)] text-3xl md:text-4xl font-bold text-ink text-center uppercase tracking-wide mb-3">
-          Mi répon zot question
+          {t('home.faq.title')}
         </h2>
         <p className="text-center text-gray-500 text-sm mb-10 italic">
-          Tout ce que vous devez savoir sur Island Dreams
+          {t('home.faq.subtitle')}
         </p>
 
         <div className="space-y-3">
@@ -72,7 +74,7 @@ export function HomeFaq({ items }: { items: FaqItem[] }) {
             className="flex items-center justify-between px-5 py-4 bg-jungle-600 hover:bg-jungle-700 text-white rounded-xl shadow-sm transition-colors"
           >
             <span className="text-sm md:text-base font-semibold">
-              Vous avez encore des questions ?
+              {t('home.faq.more')}
             </span>
             <ArrowRight size={18} className="shrink-0" />
           </Link>

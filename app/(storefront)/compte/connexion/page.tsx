@@ -5,10 +5,12 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Loader2, Eye, EyeOff, LogIn, UserPlus } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 type Mode = 'login' | 'signup';
 
 export default function ConnexionPage() {
+  const { t } = useLanguage();
   const searchParams = useSearchParams();
   const router = useRouter();
   const redirect = searchParams.get('redirect') ?? '/compte';
@@ -48,10 +50,10 @@ export default function ConnexionPage() {
                 setWooCustomer(true);
                 setError(null);
               } else {
-                setError('Email ou mot de passe incorrect.');
+                setError(t('auth.wrong'));
               }
             } catch {
-              setError('Email ou mot de passe incorrect.');
+              setError(t('auth.wrong'));
             }
           } else {
             setError(error.message);
@@ -73,10 +75,10 @@ export default function ConnexionPage() {
           setError(error.message);
         } else if (data.user && data.user.identities?.length === 0) {
           // Compte déjà existant
-          setError('Un compte existe déjà avec cet email. Connectez-vous ou réinitialisez votre mot de passe.');
+          setError(t('auth.exists'));
         } else {
           setSuccess(
-            'Un email de confirmation vous a été envoyé. Cliquez sur le lien pour activer votre compte.'
+            t('auth.confirmation')
           );
         }
       }
@@ -102,7 +104,7 @@ export default function ConnexionPage() {
                   : 'text-ink/60 hover:text-ink'
               }`}
             >
-              {m === 'login' ? <><LogIn size={15} /> Se connecter</> : <><UserPlus size={15} /> Créer un compte</>}
+              {m === 'login' ? <><LogIn size={15} /> {t('auth.login')}</> : <><UserPlus size={15} /> {t('auth.signup')}</>}
             </button>
           ))}
         </div>
@@ -110,7 +112,7 @@ export default function ConnexionPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-ink mb-1.5">
-              Email
+              {t('contact.email')}
             </label>
             <input
               type="email"
@@ -124,7 +126,7 @@ export default function ConnexionPage() {
 
           <div>
             <label className="block text-sm font-medium text-ink mb-1.5">
-              Mot de passe
+              {t('auth.password')}
             </label>
             <div className="relative">
               <input
@@ -177,24 +179,24 @@ export default function ConnexionPage() {
             ) : mode === 'login' ? (
               'Se connecter'
             ) : (
-              'Créer mon compte'
+              t('auth.signup')
             )}
           </button>
         </form>
 
         {mode === 'login' && (
           <p className="mt-4 text-center text-sm text-ink/40">
-            Mot de passe oublié ?{' '}
+            {t('auth.forgot')}{' '}
             <Link href="/compte/mot-de-passe-oublie" className="underline hover:text-ink transition-colors">
-              Réinitialiser
+              {t('auth.reset')}
             </Link>
           </p>
         )}
 
         <p className="mt-6 text-center text-xs text-ink/30">
-          Pas encore de commande ?{' '}
+          {t('auth.noOrder')}{' '}
           <Link href="/boutique" className="underline hover:text-ink/60 transition-colors">
-            Découvrir la boutique
+            {t('auth.discover')}
           </Link>
         </p>
       </div>

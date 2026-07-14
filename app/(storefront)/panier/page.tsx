@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { useCart } from '@/lib/cart/CartProvider';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 type ShippingMethod = {
   id: string;
@@ -47,6 +48,7 @@ type GiftOffer = {
 };
 
 export default function PanierPage() {
+  const { t } = useLanguage();
   const { items, total, count, removeItem, updateQuantity } = useCart();
   const [checkoutStep, setCheckoutStep] = useState(1);
   const [customerInfo, setCustomerInfo] = useState({
@@ -223,7 +225,7 @@ export default function PanierPage() {
       if (data.url) {
         window.location.href = data.url;
       } else {
-        alert(data.error || 'Erreur lors de la création du paiement');
+        alert(data.error || t('checkout.paymentError'));
         setCheckingOut(false);
       }
     } catch {
@@ -239,9 +241,9 @@ export default function PanierPage() {
           <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-6">
             <ShoppingBag size={32} className="text-gray-300" />
           </div>
-          <h1 className="text-2xl font-bold text-ink">Votre panier est vide</h1>
+          <h1 className="text-2xl font-bold text-ink">{t('cart.empty')}</h1>
           <p className="mt-3 text-gray-500">
-            Découvrez nos souvenirs de La Réunion
+            {t('checkout.emptySubtitle')}
           </p>
           <Link
             href="/boutique"
@@ -266,7 +268,7 @@ export default function PanierPage() {
             <ArrowLeft size={18} className="text-gray-500" />
           </Link>
           <h1 className="text-2xl font-bold text-ink">
-            Panier ({count} article{count > 1 ? 's' : ''})
+            {t('cart.label', { count })}
           </h1>
         </div>
 
@@ -392,12 +394,12 @@ export default function PanierPage() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-black uppercase tracking-[0.12em] text-ink">
-                      {giftUnlocked ? 'Cadeau débloqué' : giftOffer.title || 'Un cadeau vous attend'}
+                      {giftUnlocked ? t('checkout.giftUnlocked') : giftOffer.title || t('checkout.giftWaiting')}
                     </p>
                     <p className="mt-1 text-xs leading-relaxed text-ink/65">
                       {giftUnlocked
-                        ? `${giftOffer.product.name} sera ajouté à votre commande.`
-                        : `Encore ${giftRemaining?.toFixed(2)} € pour recevoir ${giftOffer.product.name} offert.`}
+                        ? t('checkout.giftAdded', { product: giftOffer.product.name })
+                        : t('checkout.giftRemaining', { amount: giftRemaining?.toFixed(2) ?? '0', product: giftOffer.product.name })}
                     </p>
                     <div className="mt-3 h-2 overflow-hidden rounded-full bg-white">
                       <div
@@ -415,9 +417,9 @@ export default function PanierPage() {
             <div className="bg-white rounded-xl border border-gray-200 p-3">
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { step: 1, label: 'Contact', icon: User, done: contactComplete },
-                  { step: 2, label: 'Adresse', icon: Home, done: addressComplete },
-                  { step: 3, label: 'Paiement', icon: CreditCard, done: shippingComplete },
+                  { step: 1, label: t('checkout.contact'), icon: User, done: contactComplete },
+                  { step: 2, label: t('checkout.address'), icon: Home, done: addressComplete },
+                  { step: 3, label: t('checkout.payment'), icon: CreditCard, done: shippingComplete },
                 ].map(({ step, label, icon: Icon, done }) => (
                   <button
                     key={step}
@@ -440,7 +442,7 @@ export default function PanierPage() {
                       <Icon size={14} />
                     </span>
                     <span className="block text-[10px] font-bold uppercase tracking-wide">
-                      Étape {step}
+                      {t('checkout.step', { step })}
                     </span>
                     <span className="block text-xs font-semibold">{label}</span>
                   </button>
@@ -452,14 +454,14 @@ export default function PanierPage() {
               <div className="bg-white rounded-xl border border-gray-200 p-5">
                 <div className="flex items-center gap-2 mb-4">
                   <User size={16} className="text-gray-500" />
-                  <h3 className="font-semibold text-ink text-sm">Vos coordonnées</h3>
+                  <h3 className="font-semibold text-ink text-sm">{t('checkout.details')}</h3>
                 </div>
                 <div className="space-y-3">
                   <input
                     type="text"
                     value={customerInfo.name}
                     onChange={(e) => setCustomerField('name', e.target.value)}
-                    placeholder="Nom complet"
+                    placeholder={t('checkout.fullName')}
                     className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-jungle-500/30"
                   />
                   <input
@@ -469,14 +471,14 @@ export default function PanierPage() {
                       setCustomerField('email', e.target.value);
                       setPromoEmail(e.target.value);
                     }}
-                    placeholder="Email"
+                    placeholder={t('checkout.email')}
                     className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-jungle-500/30"
                   />
                   <input
                     type="tel"
                     value={customerInfo.phone}
                     onChange={(e) => setCustomerField('phone', e.target.value)}
-                    placeholder="Téléphone"
+                    placeholder={t('checkout.phone')}
                     className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-jungle-500/30"
                   />
                   <button
@@ -485,7 +487,7 @@ export default function PanierPage() {
                     disabled={!contactComplete}
                     className="w-full py-3 bg-jungle-700 hover:bg-jungle-800 text-cream text-sm font-bold uppercase tracking-wider rounded-xl transition-colors disabled:opacity-40 flex items-center justify-center gap-2"
                   >
-                    Continuer
+                    {t('checkout.continue')}
                     <ArrowRight size={16} />
                   </button>
                 </div>
@@ -496,7 +498,7 @@ export default function PanierPage() {
               <div className="flex items-center gap-2 mb-4">
                 <Truck size={16} className="text-gray-500" />
                 <h3 className="font-semibold text-ink text-sm">
-                  {checkoutStep === 2 ? 'Adresse de livraison' : 'Livraison'}
+                  {checkoutStep === 2 ? t('checkout.shippingAddress') : t('checkout.shipping')}
                 </h3>
               </div>
 
@@ -505,21 +507,21 @@ export default function PanierPage() {
                   type="text"
                   value={customerInfo.addressLine1}
                   onChange={(e) => setCustomerField('addressLine1', e.target.value)}
-                  placeholder="Adresse"
+                  placeholder={t('checkout.address')}
                   className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-jungle-500/30"
                 />
                 <input
                   type="text"
                   value={customerInfo.addressLine2}
                   onChange={(e) => setCustomerField('addressLine2', e.target.value)}
-                  placeholder="Complément d'adresse (optionnel)"
+                  placeholder={t('checkout.address2')}
                   className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-jungle-500/30"
                 />
                 <input
                   type="text"
                   value={customerInfo.city}
                   onChange={(e) => setCustomerField('city', e.target.value)}
-                  placeholder="Ville"
+                  placeholder={t('checkout.city')}
                   className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-jungle-500/30"
                 />
                 <div className="flex flex-wrap gap-2">
@@ -531,15 +533,15 @@ export default function PanierPage() {
                     }}
                     className="px-2 py-2 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-jungle-500/30"
                   >
-                    <option value="RE">La Réunion</option>
-                    <option value="FR">France</option>
+                    <option value="RE">{t('checkout.reunion')}</option>
+                    <option value="FR">{t('checkout.france')}</option>
                   </select>
                   <input
                     type="text"
                     value={postalCode}
                     onChange={(e) => setPostalCode(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && calculateShipping()}
-                    placeholder="Code postal"
+                    placeholder={t('checkout.postalCode')}
                     className="flex-1 min-w-[100px] px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-jungle-500/30"
                   />
                   <button
@@ -576,10 +578,10 @@ export default function PanierPage() {
                 {shippingOptions && (
                   <div className="rounded-xl border border-jungle-100 bg-jungle-50/70 px-4 py-3 text-xs leading-relaxed text-jungle-800">
                     <p className="font-semibold text-ink">
-                      Petits colis expédiés sous 48h ouvrées
+                      {t('checkout.shipTitle')}
                     </p>
                     <p className="mt-1 text-jungle-800/75">
-                      Island Dreams prépare et remet le colis au transporteur. L&apos;acheminement est ensuite assuré par La Poste selon ses délais.
+                      {t('checkout.shipHelp')}
                     </p>
                   </div>
                 )}
@@ -630,7 +632,7 @@ export default function PanierPage() {
 
                 {!shippingOptions && !shippingError && (
                   <p className="text-xs text-gray-400">
-                    Complétez l’adresse à l’étape 2 pour calculer les frais
+                    {t('checkout.completeAddress')}
                   </p>
                 )}
               </div>
@@ -638,7 +640,7 @@ export default function PanierPage() {
 
             {/* Code promo */}
             <div className={cn('bg-white rounded-xl border border-gray-200 p-5', checkoutStep !== 3 && 'hidden')}>
-              <h3 className="font-semibold text-ink text-sm mb-3">Code promo</h3>
+              <h3 className="font-semibold text-ink text-sm mb-3">{t('checkout.promo')}</h3>
               <div className="space-y-2">
                 <input
                   type="email"
@@ -648,7 +650,7 @@ export default function PanierPage() {
                     if (promoStatus !== 'idle') setPromoStatus('idle');
                   }}
                   onKeyDown={(e) => e.key === 'Enter' && validatePromo()}
-                  placeholder="Votre email"
+                  placeholder={t('checkout.yourEmail')}
                   className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-jungle-500/30"
                 />
                 <div className="flex gap-2">
@@ -679,17 +681,17 @@ export default function PanierPage() {
               )}
               {promoStatus === 'invalid' && (
                 <p className="text-xs text-coral-500 mt-2">
-                  Code invalide ou expiré
+                  {t('checkout.invalidPromo')}
                 </p>
               )}
               {promoStatus === 'already_used' && (
                 <p className="text-xs text-coral-500 mt-2">
-                  Ce code a déjà été utilisé avec cet email
+                  {t('checkout.usedPromo')}
                 </p>
               )}
               {promoStatus === 'not_subscribed' && (
                 <p className="text-xs text-coral-500 mt-2">
-                  Ce code est réservé aux abonnés newsletter
+                  {t('checkout.newsletterPromo')}
                 </p>
               )}
             </div>
@@ -697,27 +699,27 @@ export default function PanierPage() {
             {/* Total */}
             <div className={cn('bg-white rounded-xl border border-gray-200 p-5 space-y-3', checkoutStep !== 3 && 'hidden')}>
               <div className="flex justify-between text-sm text-gray-500">
-                <span>Sous-total</span>
+                <span>{t('cart.subtotal')}</span>
                 <span>{total.toFixed(2)} €</span>
               </div>
               {promoStatus === 'valid' && discountAmount > 0 && (
                 <div className="flex justify-between text-sm text-green-600">
-                  <span>Code promo ({promoLabel})</span>
+                  <span>{t('checkout.promo')} ({promoLabel})</span>
                   <span>-{discountAmount.toFixed(2)} €</span>
                 </div>
               )}
               <div className="flex justify-between text-sm text-gray-500">
-                <span>Livraison</span>
+                <span>{t('checkout.shipping')}</span>
                 <span>
                   {shippingOptions
                     ? selectedMethod
                       ? `${shippingCost.toFixed(2)} €`
-                      : 'Sélectionnez'
+                      : t('checkout.select')
                     : '—'}
                 </span>
               </div>
               <div className="flex justify-between text-lg font-bold text-ink pt-3 border-t border-gray-100">
-                <span>Total</span>
+                <span>{t('checkout.total')}</span>
                 <span>{grandTotal.toFixed(2)} €</span>
               </div>
 
@@ -732,7 +734,7 @@ export default function PanierPage() {
                     Redirection...
                   </>
                 ) : (
-                  `Commander — ${grandTotal.toFixed(2)} €`
+                  t('cart.checkout', { total: grandTotal.toFixed(2) })
                 )}
               </button>
 

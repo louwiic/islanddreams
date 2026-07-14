@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 type FaqItem = { id: string; question: string; answer: string };
 type ImageItem = { id?: string; url: string; alt: string | null };
@@ -17,10 +18,11 @@ type Props = {
 };
 
 export function ProductTabs({ description, images, faqs, productName, weightGrams }: Props) {
+  const { t } = useLanguage();
   const tabs: { key: string; label: string }[] = [];
-  if (description) tabs.push({ key: 'description', label: 'Description' });
-  if (images.length > 1) tabs.push({ key: 'galerie', label: 'Galerie' });
-  if (faqs.length > 0) tabs.push({ key: 'faq', label: 'FAQ' });
+  if (description) tabs.push({ key: 'description', label: t('product.description') });
+  if (images.length > 1) tabs.push({ key: 'galerie', label: t('product.gallery') });
+  if (faqs.length > 0) tabs.push({ key: 'faq', label: t('product.faq') });
 
   const [active, setActive] = useState(tabs[0]?.key ?? 'description');
   const [openFaqId, setOpenFaqId] = useState<string | null>(null);
@@ -62,7 +64,7 @@ export function ProductTabs({ description, images, faqs, productName, weightGram
             {weightGrams && weightGrams > 0 && (
               <div className="mt-6 flex items-center gap-2 text-sm text-gray-500">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a3 3 0 0 0-3 3v1h6V6a3 3 0 0 0-3-3Z"/><path d="M4 8h16l-1.5 12a2 2 0 0 1-2 2H7.5a2 2 0 0 1-2-2L4 8Z"/></svg>
-                <span>Poids : {weightGrams >= 1000 ? `${(weightGrams / 1000).toFixed(1)} kg` : `${weightGrams} g`}</span>
+                <span>{t('product.weight', { weight: weightGrams >= 1000 ? `${(weightGrams / 1000).toFixed(1)} kg` : `${weightGrams} g` })}</span>
               </div>
             )}
           </div>

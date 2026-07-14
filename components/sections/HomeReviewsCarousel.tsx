@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 export type HomeReview = {
   id: string;
@@ -29,6 +30,7 @@ function ReviewStars({ rating }: { rating: number }) {
 }
 
 export function HomeReviewsCarousel({ reviews }: { reviews: HomeReview[] }) {
+  const { t } = useLanguage();
   const viewportRef = useRef<HTMLDivElement>(null);
   const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -62,17 +64,17 @@ export function HomeReviewsCarousel({ reviews }: { reviews: HomeReview[] }) {
     <section className="bg-cream py-16 px-0 overflow-hidden">
       <div className="px-6 text-center">
         <h2 className="font-[family-name:var(--font-oswald)] text-3xl md:text-4xl font-bold text-ink uppercase tracking-wide mb-3">
-          Zot i aim Island Dreams
+          {t('home.reviews.title')}
         </h2>
         <p className="text-gray-500 text-sm mb-10 italic">
-          Les retours des clients après leur commande
+          {t('home.reviews.subtitle')}
         </p>
       </div>
 
       <div
         ref={viewportRef}
         className="no-scrollbar overflow-x-auto scroll-smooth"
-        aria-label="Avis clients"
+        aria-label={t('home.reviews.label')}
       >
         <div className="flex w-max gap-4 px-[calc(50vw-9.5rem)] sm:px-[calc(50vw-12rem)] md:px-[calc(50vw-14rem)]">
           {reviews.map((review, index) => (

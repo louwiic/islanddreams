@@ -2,8 +2,10 @@
 
 import { useState } from 'react';
 import { Send, CheckCircle } from 'lucide-react';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 export function ContactForm() {
+  const { t } = useLanguage();
   const [form, setForm] = useState({
     nom: '', telephone: '', email: '', objet: '', message: '', rgpd: false,
   });
@@ -16,7 +18,7 @@ export function ContactForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.rgpd) { setError('Veuillez accepter la politique de confidentialité.'); return; }
+    if (!form.rgpd) { setError(t('contact.consentError')); return; }
     setLoading(true);
     setError('');
     try {
@@ -29,7 +31,7 @@ export function ContactForm() {
       if (data.error) { setError(data.error); return; }
       setSuccess(true);
     } catch {
-      setError('Une erreur est survenue, réessaie.');
+      setError(t('contact.error'));
     } finally {
       setLoading(false);
     }
@@ -39,15 +41,15 @@ export function ContactForm() {
     return (
       <div className="bg-white rounded-3xl border border-ink/8 shadow-sm px-8 py-12 flex flex-col items-center text-center gap-4">
         <CheckCircle size={48} className="text-jungle-600" />
-        <h3 className="font-black text-ink text-xl">Message envoyé&nbsp;!</h3>
+        <h3 className="font-black text-ink text-xl">{t('contact.sent')}</h3>
         <p className="text-ink/55 text-sm leading-relaxed">
-          Merci de nous avoir contacté. On revient vers toi sous 24–48h.
+          {t('contact.thanks')}
         </p>
         <button
           onClick={() => { setSuccess(false); setForm({ nom:'', telephone:'', email:'', objet:'', message:'', rgpd:false }); }}
           className="mt-2 text-xs text-ink/40 hover:text-ink underline transition-colors"
         >
-          Envoyer un autre message
+          {t('contact.another')}
         </button>
       </div>
     );
@@ -60,13 +62,13 @@ export function ContactForm() {
       onSubmit={handleSubmit}
       className="bg-white rounded-3xl border border-ink/8 shadow-sm px-6 py-8 md:px-8 flex flex-col gap-4"
     >
-      <h2 className="font-black text-ink text-lg mb-1">Envoie-nous un message</h2>
+      <h2 className="font-black text-ink text-lg mb-1">{t('contact.send')}</h2>
 
       {/* Nom + Téléphone */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-semibold text-ink/50 uppercase tracking-wider">
-            Nom / Prénom <span className="text-coral-500">*</span>
+            {t('contact.name')} <span className="text-coral-500">*</span>
           </label>
           <input
             type="text"
@@ -79,7 +81,7 @@ export function ContactForm() {
         </div>
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-semibold text-ink/50 uppercase tracking-wider">
-            Téléphone
+            {t('contact.phone')}
           </label>
           <input
             type="tel"
@@ -94,7 +96,7 @@ export function ContactForm() {
       {/* Email */}
       <div className="flex flex-col gap-1.5">
         <label className="text-xs font-semibold text-ink/50 uppercase tracking-wider">
-          Email <span className="text-coral-500">*</span>
+          {t('contact.email')} <span className="text-coral-500">*</span>
         </label>
         <input
           type="email"
@@ -115,7 +117,7 @@ export function ContactForm() {
           type="text"
           value={form.objet}
           onChange={e => set('objet', e.target.value)}
-          placeholder="Question sur une commande, partenariat…"
+          placeholder={t('contact.subject')}
           className={inputCls}
         />
       </div>
@@ -123,7 +125,7 @@ export function ContactForm() {
       {/* Message */}
       <div className="flex flex-col gap-1.5">
         <label className="text-xs font-semibold text-ink/50 uppercase tracking-wider">
-          Message <span className="text-coral-500">*</span>
+          {t('contact.message')} <span className="text-coral-500">*</span>
         </label>
         <textarea
           required
@@ -144,8 +146,7 @@ export function ContactForm() {
           className="mt-0.5 shrink-0 accent-jungle-700 w-4 h-4"
         />
         <span className="text-[11px] text-ink/45 leading-relaxed group-hover:text-ink/60 transition-colors">
-          En cochant cette case, j&apos;accepte que mes données personnelles soient utilisées
-          pour me recontacter dans le cadre de ma demande.{' '}
+          {t('contact.consent')}{' '}
           <a href="/politique-de-confidentialite" className="underline hover:text-ink">
             Politique de confidentialité
           </a>
@@ -162,7 +163,7 @@ export function ContactForm() {
         className="flex items-center justify-center gap-2 w-full py-3.5 bg-jungle-700 hover:bg-jungle-800 text-cream font-bold text-sm uppercase tracking-wider rounded-xl shadow transition-colors disabled:opacity-50"
       >
         <Send size={15} />
-        {loading ? 'Envoi en cours…' : 'Envoyer'}
+        {loading ? t('contact.sending') : t('contact.send')}
       </button>
     </form>
   );

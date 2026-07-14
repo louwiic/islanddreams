@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { XCircle, ArrowLeft, ShoppingBag } from 'lucide-react';
+import { TranslatedText } from '@/components/i18n/TranslatedText';
 
 export default function CheckoutCancelPage() {
   return (
@@ -12,12 +13,11 @@ export default function CheckoutCancelPage() {
         </div>
 
         <h1 className="text-2xl md:text-3xl font-bold text-ink">
-          Commande annulée
+          <TranslatedText id="cancel.title" />
         </h1>
 
         <p className="mt-4 text-gray-600 leading-relaxed">
-          Pas de souci — votre panier est toujours là.
-          Vous pouvez reprendre votre commande quand vous voulez.
+          <TranslatedText id="cancel.message" />
         </p>
 
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -26,7 +26,7 @@ export default function CheckoutCancelPage() {
             className="flex items-center gap-2 px-6 py-3 bg-jungle-700 text-cream text-sm font-bold uppercase tracking-wider rounded-xl hover:bg-jungle-800 transition-colors"
           >
             <ShoppingBag size={16} />
-            Retour à la boutique
+            <TranslatedText id="common.backShop" />
           </Link>
           <Link
             href="/"

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import useEmblaCarousel from 'embla-carousel-react';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 const CATEGORY_LABELS: Record<string, string> = {
   magnets: 'Magnets',
@@ -25,6 +26,7 @@ export type CarouselProduct = {
 };
 
 export function ProductCarousel({ products }: { products: CarouselProduct[] }) {
+  const { t } = useLanguage();
   // Extraire les catégories uniques depuis les vrais produits
   const availableCategories = useMemo(() => {
     const cats = new Set(products.map((p) => p.category ?? 'uncategorized'));
@@ -95,10 +97,10 @@ export function ProductCarousel({ products }: { products: CarouselProduct[] }) {
         {/* Titre */}
         <div className="text-center mb-3 md:mb-4">
           <h2 className="title-chunky text-2xl md:text-4xl lg:text-6xl">
-            {selectedVille ? `LES SOUVENIRS DE ${selectedVille.toUpperCase()}` : 'NOUT BOUTIK'}
+            {selectedVille ? t('home.products.cityTitle', { city: selectedVille.toUpperCase() }) : t('home.products.title')}
           </h2>
           <p className="mt-1.5 text-ink/70 text-xs md:text-sm italic max-w-2xl mx-auto">
-            Stickers, magnets, serviettes de bain, plaques décoratives — il existe plusieurs façons de mettre en valeur vos communes préférées avec les produits Island Dreams aux designs exclusifs&nbsp;! Gardez ou offrez des souvenirs de la Réunion.
+            {t('home.products.description')}
           </p>
         </div>
 
@@ -117,7 +119,7 @@ export function ProductCarousel({ products }: { products: CarouselProduct[] }) {
                   : 'text-ink/50 hover:text-ink border-b-2 border-transparent'
               }`}
             >
-              {cat}
+              {cat === 'Tout' ? t('home.products.all') : cat === 'Non classé' ? t('home.products.uncategorized') : cat}
             </button>
           ))}
 
@@ -138,7 +140,7 @@ export function ProductCarousel({ products }: { products: CarouselProduct[] }) {
           <button
             onClick={scrollPrev}
             className="absolute left-0 md:-left-2 top-1/2 -translate-y-1/2 z-20 hover:scale-110 transition-transform"
-            aria-label="Produit précédent"
+            aria-label={t('home.products.previous')}
           >
             <Image
               src="/images/ui/arrow.svg"
@@ -177,7 +179,7 @@ export function ProductCarousel({ products }: { products: CarouselProduct[] }) {
                       ) : (
                         <div className="w-full h-full rounded-xl bg-gray-100 flex items-center justify-center">
                           <span className="text-gray-400 text-sm">
-                            Pas d&apos;image
+                            {t('home.products.noImage')}
                           </span>
                         </div>
                       )}
@@ -207,7 +209,7 @@ export function ProductCarousel({ products }: { products: CarouselProduct[] }) {
                       </div>
 
                       <span className="mt-auto px-4 py-2 md:px-5 md:py-2.5 bg-jungle-700 group-hover:bg-jungle-800 text-cream text-xs md:text-sm font-bold uppercase tracking-wider rounded-full transition-colors">
-                        Découvrir
+                        {t('home.products.discover')}
                       </span>
                     </div>
                   </Link>
@@ -220,7 +222,7 @@ export function ProductCarousel({ products }: { products: CarouselProduct[] }) {
           <button
             onClick={scrollNext}
             className="absolute right-0 md:-right-2 top-1/2 -translate-y-1/2 z-20 hover:scale-110 transition-transform"
-            aria-label="Produit suivant"
+            aria-label={t('home.products.next')}
           >
             <Image
               src="/images/ui/arrow.svg"

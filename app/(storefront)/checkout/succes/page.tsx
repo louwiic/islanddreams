@@ -3,6 +3,7 @@ import { CheckCircle, ShoppingBag, ArrowRight, MapPin } from 'lucide-react';
 import { getStripeClient } from '@/lib/stripe/client';
 import { createClient } from '@/lib/supabase/server';
 import { CartClearer } from './CartClearer';
+import { TranslatedText } from '@/components/i18n/TranslatedText';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function fetchSession(sessionId: string): Promise<any | null> {
@@ -46,11 +47,10 @@ export default async function CheckoutSuccessPage({
             <CheckCircle size={40} className="text-jungle-600" />
           </div>
           <h1 className="text-2xl md:text-3xl font-bold text-ink">
-            Merci pour votre commande&nbsp;!
+            <TranslatedText id="success.title" />
           </h1>
           <p className="mt-3 text-ink/60 leading-relaxed">
-            Votre paiement a été confirmé. Vous recevrez un email de confirmation
-            avec le suivi de livraison.
+            <TranslatedText id="success.subtitle" />
           </p>
         </div>
 
@@ -59,7 +59,7 @@ export default async function CheckoutSuccessPage({
           <div className="bg-white rounded-2xl shadow-sm border border-ink/8 overflow-hidden mb-5">
             <div className="px-5 py-4 border-b border-ink/8">
               <h2 className="font-semibold text-ink text-sm uppercase tracking-wider">
-                Récapitulatif
+                <TranslatedText id="success.summary" />
               </h2>
             </div>
             <ul className="divide-y divide-ink/6">
@@ -77,7 +77,7 @@ export default async function CheckoutSuccessPage({
                         )}
                       </p>
                       {(li.quantity ?? 1) > 1 && (
-                        <p className="text-xs text-ink/40 mt-0.5">Qté : {li.quantity}</p>
+                        <p className="text-xs text-ink/40 mt-0.5"><TranslatedText id="success.quantity" values={{ quantity: li.quantity ?? 1 }} /></p>
                       )}
                     </div>
                     <span className="text-sm font-bold text-ink shrink-0">
@@ -89,7 +89,7 @@ export default async function CheckoutSuccessPage({
             </ul>
             {total && (
               <div className="px-5 py-4 bg-jungle-50 flex justify-between items-center">
-                <span className="font-bold text-ink">Total payé</span>
+                <span className="font-bold text-ink"><TranslatedText id="success.paid" /></span>
                 <span className="font-black text-jungle-700 text-lg">{total} €</span>
               </div>
             )}
@@ -121,7 +121,7 @@ export default async function CheckoutSuccessPage({
         {isLoggedIn ? (
           <div className="p-5 bg-jungle-50 border border-jungle-200 rounded-2xl text-center mb-4">
             <p className="text-sm font-medium text-jungle-800">
-              Commande enregistrée dans votre compte
+              <TranslatedText id="success.saved" />
             </p>
             <Link
               href="/compte"
@@ -136,13 +136,13 @@ export default async function CheckoutSuccessPage({
               Retrouvez vos commandes facilement
             </p>
             <p className="text-xs text-jungle-600 mt-1 mb-3">
-              Créez un compte avec votre email — vos achats y seront automatiquement liés.
+              <TranslatedText id="success.createHelp" />
             </p>
             <Link
               href="/compte/connexion"
               className="inline-block px-4 py-2 bg-jungle-700 text-cream text-xs font-bold rounded-lg hover:bg-jungle-800 transition-colors"
             >
-              Créer mon compte
+              <TranslatedText id="success.createAccount" />
             </Link>
           </div>
         )}
@@ -150,7 +150,7 @@ export default async function CheckoutSuccessPage({
         {/* Message péi */}
         <div className="p-5 bg-jungle-600 rounded-2xl text-center mb-8">
           <p className="text-cream font-medium text-sm">
-            Un bout de péi est en route vers chez vous. 🌺
+            <TranslatedText id="success.message" />
           </p>
         </div>
 
@@ -176,4 +176,3 @@ export default async function CheckoutSuccessPage({
     </main>
   );
 }
-

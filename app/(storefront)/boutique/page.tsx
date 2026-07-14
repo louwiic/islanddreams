@@ -5,6 +5,8 @@ import { Search, ChevronRight } from 'lucide-react';
 import { getPublishedProducts } from '@/lib/queries/products';
 import { cn } from '@/lib/utils';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { TranslatedText } from '@/components/i18n/TranslatedText';
+import { TranslatedInput } from '@/components/i18n/TranslatedInput';
 
 export const metadata: Metadata = {
   title: 'Boutique — Cadeaux personnalisés Réunion 974 | Island Dreams',
@@ -38,10 +40,10 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 const SORT_OPTIONS = [
-  { value: 'recent', label: 'Plus récents' },
-  { value: 'price-asc', label: 'Prix croissant' },
-  { value: 'price-desc', label: 'Prix décroissant' },
-  { value: 'name', label: 'Nom A-Z' },
+  { value: 'recent', label: 'shop.sortRecent' as const },
+  { value: 'price-asc', label: 'shop.sortPriceAsc' as const },
+  { value: 'price-desc', label: 'shop.sortPriceDesc' as const },
+  { value: 'name', label: 'shop.sortName' as const },
 ];
 
 type Props = {
@@ -151,14 +153,14 @@ export default async function BoutiquePage({ searchParams }: Props) {
         {/* Breadcrumb */}
         <nav className="max-w-7xl mx-auto flex items-center gap-2 text-sm mb-6">
           <Link href="/" className="text-ink/40 hover:text-ink transition-colors">
-            Accueil
+            <TranslatedText id="nav.home" />
           </Link>
           <ChevronRight size={14} className="text-ink/25" />
-          <span className="text-ink font-medium">Boutique</span>
+          <span className="text-ink font-medium"><TranslatedText id="shop.title" /></span>
         </nav>
       <div className="max-w-7xl mx-auto">
         <h1 className="title-chunky text-3xl md:text-5xl text-center mb-8">
-          NOUT BOUTIK
+          <TranslatedText id="home.products.title" />
         </h1>
 
         {/* Barre filtres */}
@@ -169,11 +171,11 @@ export default async function BoutiquePage({ searchParams }: Props) {
               size={16}
               className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
             />
-            <input
+            <TranslatedInput
               type="text"
               name="q"
               defaultValue={query}
-              placeholder="Rechercher un produit..."
+              placeholderId="shop.search"
               className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-jungle-500/20 focus:border-jungle-500 bg-white"
             />
             {activeCategory !== 'tous' && (
@@ -189,7 +191,7 @@ export default async function BoutiquePage({ searchParams }: Props) {
 
           {/* Tri */}
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500">Trier :</span>
+            <span className="text-xs text-gray-500"><TranslatedText id="shop.sort" /></span>
             <div className="flex gap-1">
               {SORT_OPTIONS.map((opt) => (
                 <Link
@@ -202,7 +204,7 @@ export default async function BoutiquePage({ searchParams }: Props) {
                       : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
                   )}
                 >
-                  {opt.label}
+                  <TranslatedText id={opt.label} />
                 </Link>
               ))}
             </div>
@@ -220,7 +222,7 @@ export default async function BoutiquePage({ searchParams }: Props) {
                 : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
             )}
           >
-            Tout ({allProducts.length})
+            <TranslatedText id="home.products.all" /> ({allProducts.length})
           </Link>
           {eventCollection && (
             <Link
@@ -259,7 +261,7 @@ export default async function BoutiquePage({ searchParams }: Props) {
         {/* Résultats */}
         {query && (
           <p className="text-sm text-gray-500 mb-4">
-            {filtered.length} résultat{filtered.length > 1 ? 's' : ''} pour &quot;{query}&quot;
+            <TranslatedText id="shop.results" values={{ count: filtered.length, query }} />
             {activeEvent
               ? ` dans ${eventCollection?.title ?? activeEvent}`
               : activeCategory !== 'tous' && ` dans ${CATEGORY_LABELS[activeCategory] ?? activeCategory}`}
@@ -269,13 +271,13 @@ export default async function BoutiquePage({ searchParams }: Props) {
         {filtered.length === 0 ? (
           <div className="text-center py-16">
             <p className="text-gray-400 text-sm">
-              Aucun produit trouvé.
+              <TranslatedText id="shop.empty" />
             </p>
             <Link
               href="/boutique"
               className="mt-4 inline-block text-sm text-jungle-600 hover:underline"
             >
-              Voir tous les produits
+              <TranslatedText id="shop.all" />
             </Link>
           </div>
         ) : (

@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { MapPin, X, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 type Product = {
   id: string;
@@ -70,6 +71,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 /* ── Composant ───────────────────────────────────────────── */
 
 export function VillesBlock({ products }: { products: Product[] }) {
+  const { t } = useLanguage();
   const [selectedVille, setSelectedVille] = useState<string | null>(null);
 
   // Grouper les produits par ville
@@ -105,7 +107,7 @@ export function VillesBlock({ products }: { products: Product[] }) {
         {/* Titre */}
         <div className="text-center mb-10 md:mb-14">
           <h2 className="title-chunky text-2xl md:text-4xl lg:text-5xl">
-            NOUT ZÎL
+            {t('home.cities.title')}
           </h2>
           <p className="mt-3 text-ink/60 text-sm md:text-base italic max-w-xl mx-auto">
             Chaque commune a ses souvenirs. Retrouve ta ville.

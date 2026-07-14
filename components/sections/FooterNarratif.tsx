@@ -260,10 +260,10 @@ export function FooterNarratif() {
       <div className="bg-jungle-800 text-cream/70 text-center py-5 px-6">
         <p className="font-black uppercase tracking-wider text-sm mb-1 text-cream"
            style={{ fontFamily: 'var(--font-heading, serif)' }}>
-          Des souvenirs pensés, dessinés et imprimés à La Réunion.
+          {t('home.footer.tagline')}
         </p>
         <p className="text-cream/50 text-xs">
-          Livraison France métropolitaine &amp; DOM · contact@islanddreams.re
+          {t('home.footer.delivery')}
         </p>
         <p className="text-cream/30 text-[10px] mt-3">
           Fait avec ❤️ par{' '}

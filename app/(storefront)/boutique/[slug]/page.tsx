@@ -6,6 +6,7 @@ import { getProductBySlug } from '@/lib/actions/products';
 import { ProductForm } from '@/components/ui/ProductForm';
 import { ProductGallery } from '@/components/ui/ProductGallery';
 import { ProductTabs } from '@/components/ui/ProductTabs';
+import { TranslatedText } from '@/components/i18n/TranslatedText';
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -89,11 +90,11 @@ export default async function ProductPage({ params }: PageProps) {
         {/* Breadcrumb */}
         <nav className="max-w-6xl mx-auto flex items-center gap-2 text-sm mb-6">
           <Link href="/" className="text-ink/40 hover:text-ink transition-colors">
-            Accueil
+            <TranslatedText id="nav.home" />
           </Link>
           <ChevronRight size={14} className="text-ink/25" />
           <Link href="/boutique" className="text-ink/40 hover:text-ink transition-colors">
-            Boutique
+            <TranslatedText id="shop.title" />
           </Link>
           <ChevronRight size={14} className="text-ink/25" />
           <Link
@@ -150,10 +151,10 @@ export default async function ProductPage({ params }: PageProps) {
             {/* Stock global */}
             <div className="mt-6">
               {product.in_stock ? (
-                <p className="text-sm text-jungle-600 font-medium">En stock</p>
+                <p className="text-sm text-jungle-600 font-medium"><TranslatedText id="product.inStock" /></p>
               ) : (
                 <p className="text-sm text-coral-500 font-medium">
-                  Rupture de stock
+                  <TranslatedText id="product.outOfStock" />
                 </p>
               )}
             </div>

@@ -4,8 +4,10 @@ import Image from 'next/image';
 import { mapMagnets } from '@/lib/data/communes';
 import { BubbleDesktop } from './BubbleDesktop';
 import { BubbleMobile } from './BubbleMobile';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 export function FridgeCollection() {
+  const { t } = useLanguage();
 
   const handleCommuneClick = () => {
     const carousel = document.getElementById('product-carousel');
@@ -32,12 +34,10 @@ export function FridgeCollection() {
       <div className="relative z-10 max-w-6xl mx-auto">
         <div className="text-center mb-10 md:mb-14">
           <h2 className="title-chunky text-4xl md:text-6xl lg:text-7xl">
-            COLLECTIONNEZ VOS
-            <br />
-            MAGNETS PÉI
+            {t('home.fridge.title')}
           </h2>
           <p className="mt-5 text-ink/70 text-base md:text-xl italic max-w-xl mx-auto">
-            Découvre le trésor que cache ta commune, clique sur la tienne&nbsp;!
+            {t('home.fridge.subtitle')}
           </p>
         </div>
 
@@ -45,7 +45,7 @@ export function FridgeCollection() {
           <div className="relative" id="fridge-door">
             <Image
               src="/images/map/carte-reunion.webp"
-              alt="Carte illustrée de La Réunion"
+              alt={t('home.fridge.mapAlt')}
               width={1228}
               height={1080}
               className="w-full h-auto"
@@ -58,7 +58,7 @@ export function FridgeCollection() {
                 className="fridge-target absolute z-10 cursor-pointer rounded-full hover:ring-2 hover:ring-sun-400 hover:ring-offset-2 transition-all"
                 data-commune-id={commune.id}
                 onClick={handleCommuneClick}
-                aria-label={`Voir les magnets — ${commune.name}`}
+                aria-label={t('home.fridge.viewMagnets', { name: commune.name })}
                 style={{
                   left: `${commune.mapTarget.x}%`,
                   top: `${commune.mapTarget.y}%`,
@@ -91,7 +91,7 @@ export function FridgeCollection() {
 
         {/* "Scrolle" — Desktop seulement */}
         <p className="hidden md:block text-center mt-8 text-ink/50 text-xs md:text-sm italic">
-          Scrolle pour voir la collection se composer sur la carte
+          {t('home.fridge.scroll')}
         </p>
       </div>
     </section>

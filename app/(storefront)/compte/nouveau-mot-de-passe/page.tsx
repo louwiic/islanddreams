@@ -4,8 +4,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 export default function NewPasswordPage() {
+  const { t } = useLanguage();
   const router = useRouter();
   const [password, setPassword] = useState('');
   const [showPwd, setShowPwd] = useState(false);
@@ -40,7 +42,7 @@ export default function NewPasswordPage() {
               minLength={6}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Nouveau mot de passe (min. 6 caractères)"
+              placeholder={t('auth.newPassword')}
               className="w-full px-4 py-3 pr-11 rounded-xl border border-ink/15 bg-white text-ink text-sm focus:outline-none focus:ring-2 focus:ring-jungle-500"
             />
             <button

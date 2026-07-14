@@ -6,6 +6,7 @@
 import { useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { gsap, ScrollTrigger, registerGsapPlugins } from '@/lib/animations/gsap-setup';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 const BIRDS = [
   { id: 'b1', size: 130, top: '6%',  right: '6%',  delay: 0,   duration: 3.8, rotRange: 4 },
@@ -14,6 +15,7 @@ const BIRDS = [
 ];
 
 export function Hero() {
+  const { t } = useLanguage();
   const heroRef   = useRef<HTMLElement>(null);
   const magnetRef = useRef<HTMLDivElement>(null);
   const birdsRef  = useRef<(HTMLDivElement | null)[]>([]);
@@ -200,7 +202,7 @@ export function Hero() {
       {/* Illustration hero */}
       <Image
         src="/images/hero/hero3.png"
-        alt="Mémé créole et ti-marmaille dans la jungle péi"
+        alt={t('home.hero.alt')}
         fill
         priority
         className="object-cover object-center md:object-top"
@@ -234,7 +236,7 @@ export function Hero() {
         ref={magnetRef}
         className="absolute left-1/2 top-[22%] md:top-[28%] -translate-x-1/2 -translate-y-1/2 z-20"
         id="hero-magnet-974"
-        aria-label="Magnet principal 974 Île de la Réunion"
+        aria-label={t('home.hero.magnetLabel')}
       >
         <div
           className="magnet-flash absolute inset-0 rounded-full opacity-0 bg-white blur-2xl pointer-events-none"
@@ -250,7 +252,7 @@ export function Hero() {
         />
         <Image
           src="/images/magnets/magnet-974.webp"
-          alt="Magnet 974 Île de la Réunion"
+          alt={t('home.hero.magnetLabel')}
           width={825}
           height={810}
           className="relative w-[220px] md:w-[300px] h-auto drop-shadow-2xl"
@@ -266,7 +268,7 @@ export function Hero() {
           IN SOUVNIR…
         </h1>
         <p className="mt-3 md:mt-4 text-cream text-base md:text-xl italic font-light drop-shadow-lg">
-          Un bout de péi à garder, à offrir.
+          {t('home.hero.tagline')}
         </p>
         <p className="mt-1 md:mt-2 text-cream/60 text-[10px] md:text-xs uppercase tracking-[0.3em]">
           Island Dreams · 974

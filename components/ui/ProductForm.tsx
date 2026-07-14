@@ -5,6 +5,7 @@ import { Check, Gift, ShoppingBag } from 'lucide-react';
 import { AddToCartButton } from './AddToCartButton';
 import { useCart } from '@/lib/cart/CartProvider';
 import type { CartItem } from '@/lib/cart/types';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 type Variant = {
   id: string;
@@ -286,6 +287,7 @@ function GiftVoucherForm({ product }: { product: Props['product'] }) {
 }
 
 export function ProductForm({ product, attributes, variants }: Props) {
+  const { t } = useLanguage();
   const [selected, setSelected] = useState<Record<string, string>>({});
 
   const hasVariants = attributes.length > 0 && variants.length > 0;
@@ -388,7 +390,7 @@ export function ProductForm({ product, attributes, variants }: Props) {
       {/* Sélection incomplète */}
       {hasVariants && !allSelected && (
         <p className="text-sm text-ink/50 mb-4">
-          Sélectionnez {attributes.map((a) => a.name.toLowerCase()).join(' et ')} pour continuer.
+          {t('product.select', { attributes: attributes.map((a) => a.name.toLowerCase()).join(' / ') })}
         </p>
       )}
 

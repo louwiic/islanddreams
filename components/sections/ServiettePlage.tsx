@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { TextileMobileCarousel } from './TextileMobileCarousel';
 import { StampFrame } from '@/components/ui/StampFrame';
+import { TranslatedText } from '@/components/i18n/TranslatedText';
 
 type TextileItem = {
   id: string;
@@ -71,10 +72,10 @@ export async function ServiettePlage() {
         {/* Titre */}
         <div className="text-center">
           <h2 className="title-chunky-light text-4xl md:text-6xl lg:text-7xl">
-            Allon bat un karé la mer
+            <TranslatedText id="home.textile.title" />
           </h2>
           <p className="mt-2 text-cream/90 text-base md:text-lg italic font-light drop-shadow">
-            Découvrir nos articles textiles
+            <TranslatedText id="home.textile.subtitle" />
           </p>
         </div>
 
@@ -121,7 +122,7 @@ export async function ServiettePlage() {
                 Attend, on a quelque chose pour toi&nbsp;!
               </p>
               <p id="bubble-msg-2" className="absolute inset-0 flex items-center justify-center text-ink font-bold text-[12px] md:text-sm leading-snug text-center opacity-0 px-4">
-                Découvre nos articles pour aller à la playa&nbsp;!
+                <TranslatedText id="home.textile.pitch" />
               </p>
               <div
                 className="absolute top-1/2 -left-3 w-5 h-5 bg-white border-b-2 border-l-2 border-ink"
@@ -143,7 +144,7 @@ export async function ServiettePlage() {
                   href={item.product_link}
                   className="inline-flex items-center gap-2 px-6 py-2.5 bg-sun-400 hover:bg-sun-300 text-ink text-sm font-bold uppercase tracking-wider rounded-full shadow transition-colors"
                 >
-                  Découvrir
+                  <TranslatedText id="home.textile.discover" />
                 </Link>
               </div>
             ))}
@@ -167,7 +168,7 @@ export async function ServiettePlage() {
             href="/boutique"
             className="inline-flex items-center gap-2 px-7 py-3 bg-sun-400 hover:bg-sun-300 text-ink font-bold text-sm uppercase tracking-wider rounded-full shadow-lg transition-colors"
           >
-            Découvrir la collection
+            <TranslatedText id="home.textile.collection" />
           </Link>
         </div>
 

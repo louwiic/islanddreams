@@ -3,8 +3,10 @@
 import { useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { gsap, registerGsapPlugins } from '@/lib/animations/gsap-setup';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 export function FrizeLivraison() {
+  const { t } = useLanguage();
   const sectionRef = useRef<HTMLElement>(null);
   const carRef     = useRef<HTMLDivElement>(null);
   const textRef    = useRef<HTMLDivElement>(null);
@@ -96,10 +98,10 @@ export function FrizeLivraison() {
           className="absolute left-3 md:left-5 top-[18%] md:top-[20%] z-10"
         >
           <p className="title-chunky-light text-xl md:text-3xl lg:text-4xl leading-tight text-ink whitespace-nowrap">
-            Ti koli expédié sous 48h ouvrées
+            {t('home.shipping.title')}
           </p>
           <p className="text-ink/55 text-[10px] md:text-xs font-semibold uppercase tracking-widest mt-0.5">
-            Acheminement ensuite assuré par La Poste
+            {t('home.shipping.subtitle')}
           </p>
         </div>
 
@@ -127,7 +129,7 @@ export function FrizeLivraison() {
           ))}
           <Image
             src="/images/sections/camion-taxi.png"
-            alt="Camion taxi péi"
+            alt={t('home.shipping.truckAlt')}
             width={400}
             height={220}
             className="w-full h-auto"

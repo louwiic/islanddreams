@@ -3,10 +3,12 @@
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 type FaqItem = { id: string; question: string; answer: string };
 
 export function ProductFaq({ items }: { items: FaqItem[] }) {
+  const { t } = useLanguage();
   const [openId, setOpenId] = useState<string | null>(null);
 
   if (items.length === 0) return null;
@@ -14,7 +16,7 @@ export function ProductFaq({ items }: { items: FaqItem[] }) {
   return (
     <div className="mt-8 pt-8 border-t border-gray-200">
       <h2 className="text-sm font-bold text-ink uppercase tracking-wider mb-4">
-        Questions fréquentes
+        {t('product.frequentQuestions')}
       </h2>
       <div className="space-y-2">
         {items.map((faq) => {

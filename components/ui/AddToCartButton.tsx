@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ShoppingBag, Check, Minus, Plus } from 'lucide-react';
 import { useCart } from '@/lib/cart/CartProvider';
 import type { CartItem } from '@/lib/cart/types';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 type Props = {
   product: {
@@ -24,6 +25,7 @@ type Props = {
 };
 
 export function AddToCartButton({ product, variantId, variantLabel, disabled }: Props) {
+  const { t } = useLanguage();
   const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
@@ -57,7 +59,7 @@ export function AddToCartButton({ product, variantId, variantLabel, disabled }: 
         disabled
         className="w-full py-3 bg-gray-200 text-gray-500 text-sm font-bold uppercase tracking-wider rounded-xl cursor-not-allowed"
       >
-        Rupture de stock
+        {t('product.outOfStock')}
       </button>
     );
   }
@@ -66,7 +68,7 @@ export function AddToCartButton({ product, variantId, variantLabel, disabled }: 
     <div className="space-y-3">
       {/* Quantité */}
       <div className="flex items-center gap-3">
-        <span className="text-sm text-gray-600">Quantité</span>
+        <span className="text-sm text-gray-600">{t('product.quantity')}</span>
         <div className="flex items-center border border-gray-200 rounded-lg">
           <button
             onClick={() => setQuantity((q) => Math.max(1, q - 1))}
@@ -102,12 +104,12 @@ export function AddToCartButton({ product, variantId, variantLabel, disabled }: 
         {added ? (
           <>
             <Check size={18} />
-            Ajouté au panier
+            {t('product.added')}
           </>
         ) : (
           <>
             <ShoppingBag size={18} />
-            Ajouter au panier — {(price * quantity).toFixed(2)} €
+            {t('product.add', { total: (price * quantity).toFixed(2) })}
           </>
         )}
       </button>
