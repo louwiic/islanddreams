@@ -41,11 +41,16 @@ export async function proxy(request: NextRequest) {
   );
 
   const { data: { user } } = await supabase.auth.getUser();
-  const adminEmails = (process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || 'contact@islanddreams.re')
+  const configuredAdminEmails = (process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || '')
     .split(',')
     .map((email) => email.trim().toLowerCase())
     .filter(Boolean);
-  const isAdmin = Boolean(user?.email && adminEmails.includes(user.email.toLowerCase()));
+  const adminEmails = new Set([
+    ...configuredAdminEmails,
+    'admin@islanddreams.re',
+    'contact@islanddreams.re',
+  ]);
+  const isAdmin = Boolean(user?.email && adminEmails.has(user.email.toLowerCase()));
 
   // Protéger /admin
   if (isAdminRoute && !user) {
