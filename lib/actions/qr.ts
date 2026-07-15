@@ -2,6 +2,8 @@
 
 import { revalidatePath } from 'next/cache';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { createClient } from '@/lib/supabase/server';
+import { getAdminEmails, requireAdmin } from '@/lib/auth/admin';
 import type { Json } from '@/lib/supabase/types';
 
 export type QrCampaign = {
@@ -85,24 +87,109 @@ async function setSettingValue(key: string, value: unknown) {
     .upsert({ key, value: value as Json }, { onConflict: 'key' });
 }
 
+async function getQrAccess() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const email = user?.email?.toLowerCase();
+  if (!email) throw new Error('Authentification requise.');
+  return { email, isAdmin: getAdminEmails().has(email) };
+}
+
 export async function getQrCampaigns() {
-  return asArray(await getSettingValue(CAMPAIGNS_KEY));
+  const access = await getQrAccess();
+  const campaigns = asArray(await getSettingValue(CAMPAIGNS_KEY));
+  return access.isAdmin
+    ? campaigns
+    : campaigns.filter((campaign) => campaign.partnerEnabled && campaign.partnerEmail?.toLowerCase() === access.email);
 }
 
 export async function getQrStats() {
-  return asStats(await getSettingValue(STATS_KEY));
+  const access = await getQrAccess();
+  const allCampaigns = asArray(await getSettingValue(CAMPAIGNS_KEY));
+  const allowedCampaignIds = new Set(
+    (access.isAdmin
+      ? allCampaigns
+      : allCampaigns.filter((campaign) => campaign.partnerEnabled && campaign.partnerEmail?.toLowerCase() === access.email))
+      .map((campaign) => campaign.id),
+  );
+  const legacy = asStats(await getSettingValue(STATS_KEY));
+  const db = createAdminClient() as any;
+  const { data: events, error } = await db
+    .from('qr_events')
+    .select('campaign_id,event_type,path,created_at')
+    .order('created_at', { ascending: true });
+  if (error || !Array.isArray(events)) {
+    return Object.fromEntries(Object.entries(legacy).filter(([campaignId]) => allowedCampaignIds.has(campaignId)));
+  }
+
+  const stats = structuredClone(legacy);
+  for (const event of events) {
+    const campaignId = String(event.campaign_id || '');
+    if (!campaignId) continue;
+    const current = stats[campaignId] ?? { total: 0, lastScannedAt: null, days: {} };
+    const createdAt = String(event.created_at || new Date().toISOString());
+    if (event.event_type === 'scan') {
+      const day = createdAt.slice(0, 10);
+      current.total += 1;
+      current.lastScannedAt = createdAt;
+      current.days = { ...current.days, [day]: (current.days?.[day] ?? 0) + 1 };
+    } else if (event.event_type === 'page_view') {
+      const path = String(event.path || '/');
+      current.pageViews = (current.pageViews ?? 0) + 1;
+      current.paths = { ...current.paths, [path]: (current.paths?.[path] ?? 0) + 1 };
+    }
+    stats[campaignId] = current;
+  }
+  return Object.fromEntries(Object.entries(stats).filter(([campaignId]) => allowedCampaignIds.has(campaignId)));
 }
 
 export async function getQrConversions() {
+  const access = await getQrAccess();
+  const allCampaigns = asArray(await getSettingValue(CAMPAIGNS_KEY));
+  const allowedCampaignIds = new Set(
+    (access.isAdmin
+      ? allCampaigns
+      : allCampaigns.filter((campaign) => campaign.partnerEnabled && campaign.partnerEmail?.toLowerCase() === access.email))
+      .map((campaign) => campaign.id),
+  );
   const value = await getSettingValue(CONVERSIONS_KEY);
-  return Array.isArray(value) ? (value as unknown as QrConversion[]) : [];
+  const legacy = (Array.isArray(value) ? (value as unknown as QrConversion[]) : [])
+    .filter((conversion) => allowedCampaignIds.has(conversion.campaignId));
+  const db = createAdminClient() as any;
+  const { data: rows, error } = await db
+    .from('qr_partner_conversions')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (error || !Array.isArray(rows)) return legacy;
+
+  const tableRows: QrConversion[] = rows.filter((row: any) => allowedCampaignIds.has(row.campaign_id)).map((row: any) => ({
+    id: row.id,
+    campaignId: row.campaign_id,
+    partnerEmail: row.partner_email,
+    orderId: row.order_id,
+    stripeSessionId: row.stripe_session_id,
+    orderTotal: Number(row.order_total),
+    commissionRate: Number(row.commission_rate),
+    commissionAmount: Number(row.commission_amount),
+    status: row.status,
+    createdAt: row.created_at,
+  }));
+  const byStripeSession = new Map(legacy.map((conversion) => [conversion.stripeSessionId, conversion]));
+  for (const conversion of tableRows) byStripeSession.set(conversion.stripeSessionId, conversion);
+  return [...byStripeSession.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
 export async function updateQrConversionStatus(id: string, status: QrConversion['status']) {
+  await requireAdmin();
   if (!['pending', 'approved', 'cancelled', 'paid'].includes(status)) {
     return { error: 'Statut invalide.' };
   }
   const conversions = await getQrConversions();
+  const db = createAdminClient() as any;
+  await db
+    .from('qr_partner_conversions')
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq('id', id);
   await setSettingValue(
     CONVERSIONS_KEY,
     conversions.map((conversion) => conversion.id === id ? { ...conversion, status } : conversion),
@@ -124,6 +211,7 @@ export async function saveQrCampaign(input: {
   commissionRate?: number;
   attributionDays?: number;
 }) {
+  await requireAdmin();
   const name = input.name.trim();
   const sourceTag = slugify(input.sourceTag || name);
   const destinationUrl = input.destinationUrl.trim();
@@ -165,6 +253,7 @@ export async function saveQrCampaign(input: {
 }
 
 export async function deleteQrCampaign(id: string) {
+  await requireAdmin();
   const [campaigns, stats] = await Promise.all([getQrCampaigns(), getQrStats()]);
   await setSettingValue(
     CAMPAIGNS_KEY,
