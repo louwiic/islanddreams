@@ -323,6 +323,24 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     const commissionRate = Number(metadata.affiliateCommissionRate || 0);
     const commissionBase = Math.max(0, total - shippingCost);
     if (Number.isFinite(commissionRate) && commissionRate > 0) {
+      const conversionPayload = {
+        campaign_id: metadata.affiliateCampaignId,
+        partner_email: metadata.affiliatePartnerEmail.toLowerCase(),
+        order_id: order.id,
+        stripe_session_id: session.id,
+        order_total: total,
+        commission_rate: commissionRate,
+        commission_amount: Math.round(commissionBase * commissionRate) / 100,
+        status: 'pending',
+      };
+      const { error: conversionInsertError } = await (supabase as any)
+        .from('qr_partner_conversions')
+        .upsert(conversionPayload, { onConflict: 'stripe_session_id', ignoreDuplicates: true });
+
+      if (!conversionInsertError) {
+        console.log(`[QR-AFFILIATION] Conversion enregistrée pour ${session.id}`);
+      } else {
+        // Compatibilité tant que la migration qr_partner_conversions n'est pas appliquée.
       const { data: conversionsRow } = await supabase
         .from('shop_settings')
         .select('value')
@@ -348,6 +366,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
           { key: 'qr_conversions', value: [...conversions, conversion] },
           { onConflict: 'key' },
         );
+      }
       }
     }
   }

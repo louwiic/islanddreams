@@ -17,6 +17,12 @@ export async function POST(request: NextRequest) {
   const campaign = campaigns.find((item) => item.id === campaignId);
   if (!campaign?.isActive || !campaign.partnerEnabled) return NextResponse.json({ tracked: false });
 
+  const { error: eventError } = await (supabase as any)
+    .from('qr_events')
+    .insert({ campaign_id: campaignId, event_type: 'page_view', path });
+  if (!eventError) return NextResponse.json({ tracked: true });
+
+  // Compatibilité tant que la migration qr_events n'est pas encore appliquée.
   const stats = statsRow?.value && typeof statsRow.value === 'object' && !Array.isArray(statsRow.value)
     ? (statsRow.value as unknown as Record<string, QrCampaignStats>)
     : {};

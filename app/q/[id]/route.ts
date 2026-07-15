@@ -40,6 +40,25 @@ export async function GET(req: NextRequest, { params }: PageProps) {
 
   const now = new Date();
   const day = now.toISOString().slice(0, 10);
+  const { error: eventError } = await (supabase as any)
+    .from('qr_events')
+    .insert({ campaign_id: id, event_type: 'scan', created_at: now.toISOString() });
+
+  if (!eventError) {
+    const response = NextResponse.redirect(addTrackingParams(campaign.destinationUrl, req.url, campaign));
+    if (campaign.partnerEnabled && campaign.partnerEmail) {
+      response.cookies.set('islanddreams_qr_attribution', campaign.id, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: (campaign.attributionDays ?? 30) * 24 * 60 * 60,
+      });
+    }
+    return response;
+  }
+
+  // Compatibilité tant que la migration qr_events n'est pas encore appliquée.
   const { data: statsRow } = await supabase
     .from('shop_settings')
     .select('value')
