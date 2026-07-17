@@ -172,7 +172,7 @@ export default function PanierPage() {
       const res = await fetch('/api/promo/validate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: promoCode.trim().toUpperCase(), email: promoEmail.trim() }),
+        body: JSON.stringify({ code: promoCode.trim().toUpperCase(), email: promoEmail.trim(), cartTotal: total }),
       });
       const data = await res.json();
       if (data.valid) {

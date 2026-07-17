@@ -321,7 +321,14 @@ export async function POST(req: NextRequest) {
         limit: 1,
       });
       if (promoCodes.data.length > 0) {
-        discounts = [{ promotion_code: promoCodes.data[0].id }];
+        const promotion = promoCodes.data[0];
+        const validFrom = promotion.metadata?.validFrom ? new Date(promotion.metadata.validFrom) : null;
+        if (validFrom && !Number.isNaN(validFrom.getTime()) && validFrom.getTime() > Date.now()) {
+          return NextResponse.json({ error: 'Ce code promo n’est pas encore actif.' }, { status: 400 });
+        }
+        discounts = [{ promotion_code: promotion.id }];
+      } else {
+        return NextResponse.json({ error: 'Code promo invalide ou expiré.' }, { status: 400 });
       }
     }
 
