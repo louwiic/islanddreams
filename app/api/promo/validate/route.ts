@@ -4,7 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function POST(req: NextRequest) {
   try {
-    const { code, email } = await req.json();
+    const { code, email, cartTotal } = await req.json();
 
     if (!code || typeof code !== 'string') {
       return NextResponse.json({ valid: false });
@@ -73,6 +73,15 @@ export async function POST(req: NextRequest) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const promo = promoCodes.data[0] as any;
     console.log(`[PROMO] Code trouvé — id: ${promo.id}, active: ${promo.active}, times_redeemed: ${promo.times_redeemed}`);
+
+    const validFrom = promo.metadata?.validFrom ? new Date(promo.metadata.validFrom) : null;
+    if (validFrom && !Number.isNaN(validFrom.getTime()) && validFrom.getTime() > Date.now()) {
+      return NextResponse.json({ valid: false, reason: 'not_started' });
+    }
+    const minimumAmount = Number(promo.restrictions?.minimum_amount || 0) / 100;
+    if (minimumAmount > 0 && Number(cartTotal || 0) < minimumAmount) {
+      return NextResponse.json({ valid: false, reason: 'minimum_amount', minimumAmount });
+    }
 
     // Récupérer le coupon ID depuis promotion.coupon
     const couponId = promo.promotion?.coupon || promo.coupon;

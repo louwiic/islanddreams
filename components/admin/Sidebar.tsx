@@ -46,6 +46,7 @@ const navigation: (NavItem | NavGroup)[] = [
       { name: 'Commandes', href: '/admin/commandes', icon: ShoppingCart },
       { name: 'Clients', href: '/admin/clients', icon: Users },
       { name: 'Bons d’achat', href: '/admin/bons-achat', icon: Gift },
+      { name: 'Codes promo', href: '/admin/codes-promo', icon: Tag },
       { name: 'Livraison', href: '/admin/livraison', icon: Truck },
     ],
   },

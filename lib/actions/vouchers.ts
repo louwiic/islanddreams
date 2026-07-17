@@ -4,6 +4,7 @@ import { randomBytes } from 'crypto';
 import { revalidatePath } from 'next/cache';
 import type Stripe from 'stripe';
 import { getStripeClient } from '@/lib/stripe/client';
+import { requireAdmin } from '@/lib/auth/admin';
 
 const ADMIN_VOUCHER_SOURCE = 'island-dreams-admin-voucher';
 
@@ -71,6 +72,7 @@ function mapPromotionCode(promo: Stripe.PromotionCode): AdminVoucher | null {
 }
 
 export async function getAdminVouchers(): Promise<AdminVoucher[]> {
+  await requireAdmin();
   const stripe = getStripeClient();
   const promos = await stripe.promotionCodes.list({
     limit: 100,
@@ -84,6 +86,7 @@ export async function getAdminVouchers(): Promise<AdminVoucher[]> {
 }
 
 export async function createAdminVoucher(input: CreateAdminVoucherInput) {
+  await requireAdmin();
   const amount = parseAmount(input.amount);
   if (!amount || amount < 1 || amount > 1000) {
     return { error: 'Montant invalide. Utilisez un montant entre 1 € et 1000 €.' };
@@ -144,6 +147,7 @@ export async function createAdminVoucher(input: CreateAdminVoucherInput) {
 }
 
 export async function deactivateAdminVoucher(id: string) {
+  await requireAdmin();
   const stripe = getStripeClient();
   const promo = await stripe.promotionCodes.update(id, { active: false });
   revalidatePath('/admin/bons-achat');
