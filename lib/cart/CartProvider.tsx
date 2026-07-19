@@ -92,6 +92,7 @@ type CartContextType = Cart & {
   removeItem: (productId: string, variantId?: string) => void;
   updateQuantity: (productId: string, quantity: number, variantId?: string) => void;
   clearCart: () => void;
+  replaceCart: (items: CartItem[]) => void;
   isOpen: boolean;
   openCart: () => void;
   closeCart: () => void;
@@ -153,6 +154,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'CLEAR' });
   }, []);
 
+  const replaceCart = useCallback((items: CartItem[]) => {
+    dispatch({ type: 'HYDRATE', items });
+  }, []);
+
   return (
     <CartContext.Provider
       value={{
@@ -161,6 +166,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         removeItem,
         updateQuantity,
         clearCart,
+        replaceCart,
         isOpen,
         openCart: () => setIsOpen(true),
         closeCart: () => setIsOpen(false),
