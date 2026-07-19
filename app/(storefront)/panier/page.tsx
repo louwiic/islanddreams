@@ -49,7 +49,7 @@ type GiftOffer = {
 
 export default function PanierPage() {
   const { t } = useLanguage();
-  const { items, total, count, removeItem, updateQuantity } = useCart();
+  const { items, total, count, removeItem, updateQuantity, replaceCart } = useCart();
   const [checkoutStep, setCheckoutStep] = useState(1);
   const [customerInfo, setCustomerInfo] = useState({
     name: '',
@@ -72,6 +72,8 @@ export default function PanierPage() {
   const [promoLabel, setPromoLabel] = useState('');
   const [promoDiscount, setPromoDiscount] = useState<{ percentOff?: number; amountOff?: number } | null>(null);
   const [giftOffer, setGiftOffer] = useState<GiftOffer | null>(null);
+  const [cartReminderConsent, setCartReminderConsent] = useState(false);
+  const [recoveryToken, setRecoveryToken] = useState('');
 
   // Poids total du panier
   const cartWeightG = items.reduce((sum, item) => sum + (item.weightGrams ?? 0) * item.quantity, 0);
@@ -165,6 +167,41 @@ export default function PanierPage() {
     };
   }, []);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tokenFromUrl = params.get('recover');
+    const storedToken = localStorage.getItem('island-dreams-recovery-token');
+    const token = tokenFromUrl || storedToken || crypto.randomUUID();
+    localStorage.setItem('island-dreams-recovery-token', token);
+    setRecoveryToken(token);
+    if (!tokenFromUrl) return;
+    fetch(`/api/cart-recovery?token=${encodeURIComponent(tokenFromUrl)}`)
+      .then((response) => response.json())
+      .then((data) => {
+        if (Array.isArray(data.items)) replaceCart(data.items);
+        if (data.email) {
+          setCustomerField('email', data.email);
+          setPromoEmail(data.email);
+        }
+        if (data.customerName) setCustomerField('name', data.customerName);
+        setCartReminderConsent(true);
+      })
+      .catch(() => undefined);
+  }, [replaceCart]);
+
+  useEffect(() => {
+    const validEmail = /^\S+@\S+\.\S+$/.test(customerInfo.email.trim());
+    if (!cartReminderConsent || !recoveryToken || !validEmail || items.length === 0) return;
+    const timeout = window.setTimeout(() => {
+      fetch('/api/cart-recovery', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: recoveryToken, email: customerInfo.email, customerName: customerInfo.name, items, total, consent: true }),
+      }).catch(() => undefined);
+    }, 1200);
+    return () => window.clearTimeout(timeout);
+  }, [cartReminderConsent, recoveryToken, customerInfo.email, customerInfo.name, items, total]);
+
   const validatePromo = async () => {
     if (!promoCode.trim() || !promoEmail.trim()) return;
     setPromoStatus('loading');
@@ -219,6 +256,7 @@ export default function PanierPage() {
             },
           },
           promoCode: promoStatus === 'valid' ? promoCode.trim().toUpperCase() : undefined,
+          recoveryToken: cartReminderConsent ? recoveryToken : undefined,
         }),
       });
       const data = await res.json();
@@ -474,6 +512,23 @@ export default function PanierPage() {
                     placeholder={t('checkout.email')}
                     className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-jungle-500/30"
                   />
+                  <label className="flex items-start gap-2 rounded-lg bg-gray-50 p-3 text-xs text-gray-600">
+                    <input
+                      type="checkbox"
+                      checked={cartReminderConsent}
+                      onChange={(event) => {
+                        const consent = event.target.checked;
+                        setCartReminderConsent(consent);
+                        if (!consent && recoveryToken) {
+                          fetch(`/api/cart-recovery?token=${encodeURIComponent(recoveryToken)}`, {
+                            method: 'DELETE',
+                          }).catch(() => undefined);
+                        }
+                      }}
+                      className="mt-0.5 rounded border-gray-300 text-jungle-600"
+                    />
+                    Recevoir au maximum deux rappels par email si je ne termine pas cette commande. Je peux arrêter ces rappels à tout moment.
+                  </label>
                   <input
                     type="tel"
                     value={customerInfo.phone}

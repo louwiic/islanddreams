@@ -9,6 +9,7 @@ type CheckoutBody = {
   items: CartItem[];
   shippingMethodId?: string;
   promoCode?: string;
+  recoveryToken?: string;
   customer?: {
     name?: string;
     email?: string;
@@ -50,7 +51,7 @@ function isValidVoucherExpiry(value?: string) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { items, shippingMethodId, promoCode, customer } = (await req.json()) as CheckoutBody;
+    const { items, shippingMethodId, promoCode, customer, recoveryToken } = (await req.json()) as CheckoutBody;
 
     if (!items || items.length === 0) {
       return NextResponse.json({ error: 'Panier vide' }, { status: 400 });
@@ -364,6 +365,7 @@ export async function POST(req: NextRequest) {
         shippingMethodName: selectedShippingName,
         shippingCost: String(selectedShippingCost),
         promoCode: promoCode ? promoCode.toUpperCase() : '',
+        recoveryToken: recoveryToken || '',
         customerName: customer.name.trim(),
         customerPhone: customer.phone.trim(),
         shippingLine1: customer.address.line1.trim(),

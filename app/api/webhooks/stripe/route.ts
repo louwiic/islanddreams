@@ -201,6 +201,15 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const shippingCost = ((session.total_details?.amount_shipping ?? 0) / 100) || metadataShippingCost;
   const total = (session.amount_total ?? 0) / 100;
 
+  if (metadata.recoveryToken) {
+    await (supabase as any).from('abandoned_carts').update({
+      status: 'completed',
+      completed_at: new Date().toISOString(),
+      next_reminder_at: null,
+      updated_at: new Date().toISOString(),
+    }).eq('recovery_token', metadata.recoveryToken);
+  }
+
   // Idempotence — ne pas créer deux fois la même commande
   const { data: existing } = await supabase
     .from('orders')

@@ -76,6 +76,17 @@ export function newsletterWelcome(email: string) {
   };
 }
 
+export function abandonedCartReminder(data: { name?: string | null; items: Array<{ name?: string; quantity?: number }>; total: number; token: string; reminderNumber: number }) {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.islanddreams.re';
+  const recoveryUrl = `${siteUrl.replace(/\/$/, '')}/panier?recover=${encodeURIComponent(data.token)}`;
+  const unsubscribe = `${siteUrl.replace(/\/$/, '')}/api/cart-recovery/unsubscribe?token=${encodeURIComponent(data.token)}`;
+  const names = (data.items || []).slice(0, 4).map((item) => `${escapeHtml(item.name || 'Article')} × ${Number(item.quantity) || 1}`).join('<br>');
+  return {
+    subject: data.reminderNumber === 1 ? 'Votre panier Island Dreams vous attend 🌴' : 'Dernier rappel pour votre panier Island Dreams',
+    html: wrap(`<h2 style="color:#1a2e3b;font-size:20px;margin:0 0 12px;">${data.reminderNumber === 1 ? 'Votre panier est toujours là' : 'Un dernier petit rappel'}</h2><p style="color:#555;line-height:1.6;">Bonjour ${escapeHtml(data.name || '')}, vous aviez sélectionné :</p><div style="background:#f7f7f7;padding:16px;border-radius:8px;line-height:1.8;color:#333;">${names}<br><strong>Total estimé : ${data.total.toFixed(2)} €</strong></div><p style="text-align:center;margin:24px 0;"><a href="${recoveryUrl}" style="display:inline-block;background:#2a5a3a;color:#fff;padding:13px 22px;border-radius:8px;text-decoration:none;font-weight:bold;">Reprendre mon panier</a></p><p style="font-size:11px;color:#999;text-align:center;">Vous avez demandé à recevoir ce rappel. <a href="${unsubscribe}" style="color:#777;">Ne plus recevoir de rappel pour ce panier</a>.</p>`),
+  };
+}
+
 // ─── Confirmation de commande ──────────────────────────────────────
 
 type OrderItem = { name: string; quantity: number; price: number };
