@@ -29,6 +29,7 @@ async function getDemoVideoSettings() {
     .in('key', [
       'demo_video_enabled',
       'demo_video_url',
+      'demo_video_secondary_preview_url',
       'demo_video_poster_url',
       'demo_video_product_slug',
       'demo_video_title',

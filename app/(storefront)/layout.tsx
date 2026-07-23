@@ -48,6 +48,7 @@ async function getDemoVideoConfig(): Promise<DemoVideoConfig | null> {
     .in('key', [
       'demo_video_enabled',
       'demo_video_url',
+      'demo_video_secondary_preview_url',
       'demo_video_poster_url',
       'demo_video_product_slug',
       'demo_video_title',
@@ -65,6 +66,7 @@ async function getDemoVideoConfig(): Promise<DemoVideoConfig | null> {
   const config: DemoVideoConfig = {
     enabled: settings.demo_video_enabled === 'true' || settings.demo_video_enabled === '1',
     videoUrl: settings.demo_video_url || '',
+    secondaryPreviewUrl: settings.demo_video_secondary_preview_url || undefined,
     posterUrl: settings.demo_video_poster_url || undefined,
     productSlug: settings.demo_video_product_slug || '',
     title: settings.demo_video_title || 'Voir le produit en action',

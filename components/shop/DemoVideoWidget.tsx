@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 export type DemoVideoConfig = {
   enabled: boolean;
   videoUrl: string;
+  secondaryPreviewUrl?: string;
   posterUrl?: string;
   productSlug: string;
   title: string;
@@ -40,6 +41,7 @@ export function DemoVideoWidget({ config }: Props) {
   const [open, setOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [added, setAdded] = useState(false);
+  const [activeVideoUrl, setActiveVideoUrl] = useState(config?.videoUrl || '');
   const [portalTarget] = useState(() =>
     typeof document === 'undefined' ? null : document.body
   );
@@ -66,6 +68,14 @@ export function DemoVideoWidget({ config }: Props) {
   const isLeft = config.position === 'bottom-left';
   const product = config.product;
   const productPrice = product ? product.salePrice || product.price : null;
+  const currentVideoUrl = activeVideoUrl || config.videoUrl;
+  const previewVideoUrl =
+    config.secondaryPreviewUrl && currentVideoUrl === config.videoUrl
+      ? config.secondaryPreviewUrl
+      : currentVideoUrl !== config.videoUrl
+        ? config.videoUrl
+        : '';
+  const previewLabel = currentVideoUrl === config.videoUrl ? 'Voir aussi' : 'Revenir a la video principale';
 
   const handleAddToCart = () => {
     if (!product || !product.inStock || productPrice == null) return;
@@ -113,7 +123,10 @@ export function DemoVideoWidget({ config }: Props) {
           </button>
           <button
             type="button"
-            onClick={() => setOpen(true)}
+            onClick={() => {
+              setActiveVideoUrl(config.videoUrl);
+              setOpen(true);
+            }}
             className="group block w-full overflow-hidden rounded-2xl text-left ring-1 ring-white/40"
             aria-label="Ouvrir la vidéo démo"
           >
@@ -155,15 +168,23 @@ export function DemoVideoWidget({ config }: Props) {
             aria-label="Fermer la vidéo"
           />
           <div className="relative z-10 flex max-h-full w-full max-w-[430px] flex-col items-center">
-            <div className="relative max-h-[calc(100svh-6rem)] w-full overflow-hidden rounded-2xl bg-black shadow-2xl ring-1 ring-white/15">
+            <div
+              className={cn(
+                'relative w-full overflow-hidden rounded-2xl bg-black shadow-2xl ring-1 ring-white/15',
+                previewVideoUrl ? 'max-h-[calc(100svh-12rem)]' : 'max-h-[calc(100svh-6rem)]'
+              )}
+            >
               <video
-                src={config.videoUrl}
-                poster={config.posterUrl}
+                src={currentVideoUrl}
+                poster={currentVideoUrl === config.videoUrl ? config.posterUrl : undefined}
                 controls
                 autoPlay
                 loop
                 playsInline
-                className="aspect-[9/16] max-h-[calc(100svh-6rem)] w-full object-cover"
+                className={cn(
+                  'aspect-[9/16] w-full object-cover',
+                  previewVideoUrl ? 'max-h-[calc(100svh-12rem)]' : 'max-h-[calc(100svh-6rem)]'
+                )}
               />
               <button
                 type="button"
@@ -243,6 +264,39 @@ export function DemoVideoWidget({ config }: Props) {
                 </Link>
               )}
             </div>
+            {previewVideoUrl ? (
+              <button
+                type="button"
+                onClick={() => setActiveVideoUrl(previewVideoUrl)}
+                className="mt-3 flex w-full items-center gap-3 rounded-xl bg-white/12 p-2 text-left text-white ring-1 ring-white/20 backdrop-blur transition-colors hover:bg-white/18"
+                aria-label={previewLabel}
+              >
+                <span className="relative block h-20 w-14 shrink-0 overflow-hidden rounded-lg bg-black ring-1 ring-white/20">
+                  <video
+                    src={previewVideoUrl}
+                    poster={previewVideoUrl === config.videoUrl ? config.posterUrl : undefined}
+                    muted
+                    loop
+                    playsInline
+                    autoPlay
+                    className="h-full w-full object-cover"
+                  />
+                  <span className="absolute inset-0 grid place-items-center bg-black/20">
+                    <span className="grid h-7 w-7 place-items-center rounded-full bg-white/90 text-ink">
+                      <Play size={13} fill="currentColor" />
+                    </span>
+                  </span>
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-xs font-black uppercase tracking-wider text-white/55">
+                    {previewLabel}
+                  </span>
+                  <span className="mt-1 line-clamp-2 block text-sm font-bold leading-tight">
+                    {currentVideoUrl === config.videoUrl ? 'Ancienne video' : config.title}
+                  </span>
+                </span>
+              </button>
+            ) : null}
             <p className="mt-3 text-xs text-white/70">Fermez la vidéo pour revenir à la boutique.</p>
           </div>
         </div>

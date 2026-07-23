@@ -71,6 +71,9 @@ export function DemoVideoSettings({ products, initialSettings }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [enabled, setEnabled] = useState(initialSettings.demo_video_enabled === 'true');
   const [videoUrl, setVideoUrl] = useState(initialSettings.demo_video_url || '');
+  const [secondaryPreviewUrl, setSecondaryPreviewUrl] = useState(
+    initialSettings.demo_video_secondary_preview_url || ''
+  );
   const [posterUrl, setPosterUrl] = useState(initialSettings.demo_video_poster_url || '');
   const [productSlug, setProductSlug] = useState(initialSettings.demo_video_product_slug || '');
   const [title, setTitle] = useState(initialSettings.demo_video_title || 'Voir le produit en action');
@@ -142,6 +145,7 @@ export function DemoVideoSettings({ products, initialSettings }: Props) {
         // Supabase peut répondre sans JSON exploitable sur un upload réussi.
       }
 
+      setSecondaryPreviewUrl((current) => current || videoUrl);
       setVideoUrl(result.url);
       setMessage(
         duration
@@ -163,6 +167,7 @@ export function DemoVideoSettings({ products, initialSettings }: Props) {
       await updateSettings({
         demo_video_enabled: String(enabled),
         demo_video_url: videoUrl.trim(),
+        demo_video_secondary_preview_url: secondaryPreviewUrl.trim(),
         demo_video_poster_url: posterUrl.trim(),
         demo_video_product_slug: productSlug,
         demo_video_title: title.trim(),
@@ -252,6 +257,19 @@ export function DemoVideoSettings({ products, initialSettings }: Props) {
             type="url"
             value={videoUrl}
             onChange={(e) => setVideoUrl(e.target.value)}
+            placeholder="https://..."
+            className="mt-2 w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-jungle-500/20 focus:border-jungle-500"
+          />
+        </details>
+
+        <details className="-mt-2 rounded-lg border border-gray-100 bg-gray-50 px-3 py-2">
+          <summary className="cursor-pointer text-xs font-medium text-gray-500">
+            Preview secondaire
+          </summary>
+          <input
+            type="url"
+            value={secondaryPreviewUrl}
+            onChange={(e) => setSecondaryPreviewUrl(e.target.value)}
             placeholder="https://..."
             className="mt-2 w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-jungle-500/20 focus:border-jungle-500"
           />
