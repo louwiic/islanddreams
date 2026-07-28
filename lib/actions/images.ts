@@ -6,6 +6,14 @@ import sharp from 'sharp';
 const MAX_WIDTH = 1200;
 const QUALITY = 80;
 const MAX_VIDEO_SIZE = 60 * 1024 * 1024;
+const PRODUCT_IMAGES_BUCKET = 'product-images';
+
+export type MediaLibraryImage = {
+  url: string;
+  alt: string;
+  label: string;
+  source: 'product' | 'storage';
+};
 
 async function compressImage(buffer: Buffer): Promise<{ data: Buffer; contentType: string; ext: string }> {
   const compressed = await sharp(buffer)
@@ -31,7 +39,7 @@ export async function uploadProductImage(
   const path = `${productSlug}/${Date.now()}.${ext}`;
 
   const { error } = await supabase.storage
-    .from('product-images')
+    .from(PRODUCT_IMAGES_BUCKET)
     .upload(path, compressed, {
       contentType,
       upsert: true,
@@ -39,7 +47,7 @@ export async function uploadProductImage(
 
   if (error) return { url: '', error: error.message };
 
-  const { data } = supabase.storage.from('product-images').getPublicUrl(path);
+  const { data } = supabase.storage.from(PRODUCT_IMAGES_BUCKET).getPublicUrl(path);
   return { url: data.publicUrl };
 }
 
@@ -57,7 +65,7 @@ export async function uploadTextileImage(
   const path = `textile/${Date.now()}.${ext}`;
 
   const { error } = await supabase.storage
-    .from('product-images')
+    .from(PRODUCT_IMAGES_BUCKET)
     .upload(path, compressed, {
       contentType,
       upsert: true,
@@ -65,7 +73,7 @@ export async function uploadTextileImage(
 
   if (error) return { url: '', error: error.message };
 
-  const { data } = supabase.storage.from('product-images').getPublicUrl(path);
+  const { data } = supabase.storage.from(PRODUCT_IMAGES_BUCKET).getPublicUrl(path);
   return { url: data.publicUrl };
 }
 
@@ -82,7 +90,7 @@ export async function uploadDemoVideo(
   const path = `demo-videos/${Date.now()}.${ext}`;
 
   const { error } = await supabase.storage
-    .from('product-images')
+    .from(PRODUCT_IMAGES_BUCKET)
     .upload(path, Buffer.from(await file.arrayBuffer()), {
       contentType: file.type,
       upsert: true,
@@ -90,7 +98,7 @@ export async function uploadDemoVideo(
 
   if (error) return { url: '', error: error.message };
 
-  const { data } = supabase.storage.from('product-images').getPublicUrl(path);
+  const { data } = supabase.storage.from(PRODUCT_IMAGES_BUCKET).getPublicUrl(path);
   return { url: data.publicUrl };
 }
 
@@ -117,4 +125,110 @@ export async function saveProductImages(
   if (error) return { error: error.message };
 
   return { success: true };
+}
+
+type ProductImageWithProduct = {
+  url: string;
+  alt: string | null;
+  product:
+    | {
+        name: string | null;
+        slug: string | null;
+      }
+    | {
+        name: string | null;
+        slug: string | null;
+      }[]
+    | null;
+};
+
+type StorageObject = {
+  name: string;
+  id: string | null;
+  metadata: Record<string, unknown> | null;
+};
+
+function getProductLabel(product: ProductImageWithProduct['product']) {
+  if (Array.isArray(product)) {
+    return product[0]?.name || product[0]?.slug || 'Produit';
+  }
+
+  return product?.name || product?.slug || 'Produit';
+}
+
+function isImageFile(path: string) {
+  return /\.(avif|gif|jpe?g|png|webp)$/i.test(path);
+}
+
+async function listStorageImages(
+  path = '',
+  limit = 250
+): Promise<MediaLibraryImage[]> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.storage
+    .from(PRODUCT_IMAGES_BUCKET)
+    .list(path, {
+      limit,
+      sortBy: { column: 'created_at', order: 'desc' },
+    });
+
+  if (error || !data) return [];
+
+  const images: MediaLibraryImage[] = [];
+
+  for (const item of data as StorageObject[]) {
+    const itemPath = path ? `${path}/${item.name}` : item.name;
+
+    if (!item.id && !isImageFile(itemPath)) {
+      images.push(...(await listStorageImages(itemPath, limit)));
+      continue;
+    }
+
+    if (!isImageFile(itemPath)) continue;
+
+    const { data: publicUrl } = supabase.storage
+      .from(PRODUCT_IMAGES_BUCKET)
+      .getPublicUrl(itemPath);
+
+    images.push({
+      url: publicUrl.publicUrl,
+      alt: item.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' '),
+      label: itemPath,
+      source: 'storage',
+    });
+  }
+
+  return images;
+}
+
+export async function getMediaLibraryImages(): Promise<{
+  images: MediaLibraryImage[];
+  error?: string;
+}> {
+  const supabase = createAdminClient();
+
+  const { data: productImages, error } = await supabase
+    .from('product_images')
+    .select('url, alt, product:product_id(name, slug)')
+    .order('created_at', { ascending: false })
+    .limit(400);
+
+  if (error) return { images: [], error: error.message };
+
+  const byUrl = new Map<string, MediaLibraryImage>();
+
+  for (const image of (productImages ?? []) as ProductImageWithProduct[]) {
+    byUrl.set(image.url, {
+      url: image.url,
+      alt: image.alt || getProductLabel(image.product),
+      label: getProductLabel(image.product),
+      source: 'product',
+    });
+  }
+
+  for (const image of await listStorageImages()) {
+    if (!byUrl.has(image.url)) byUrl.set(image.url, image);
+  }
+
+  return { images: Array.from(byUrl.values()) };
 }
