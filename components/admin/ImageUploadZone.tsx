@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { Upload, X, Star, GripVertical, Images, Search, Check, Loader2 } from 'lucide-react';
+import { Upload, X, Star, GripVertical, Images, Search, Check, Loader2, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getMediaLibraryImages, type MediaLibraryImage } from '@/lib/actions/images';
 
@@ -43,9 +43,11 @@ export function ImageUploadZone({ images, onChange }: Props) {
   const [libraryImages, setLibraryImages] = useState<MediaLibraryImage[]>([]);
   const [libraryQuery, setLibraryQuery] = useState('');
   const [selectedUrls, setSelectedUrls] = useState<string[]>([]);
+  const [addChoiceOpen, setAddChoiceOpen] = useState(false);
+  const [replaceImageId, setReplaceImageId] = useState<string | null>(null);
 
   const addFiles = useCallback(
-    (files: FileList) => {
+    (files: FileList, replacementId: string | null = null) => {
       const newImages: ImageItem[] = Array.from(files)
         .filter((f) => f.type.startsWith('image/'))
         .map((file) => ({
@@ -55,6 +57,18 @@ export function ImageUploadZone({ images, onChange }: Props) {
           isMain: false,
           file,
         }));
+      if (replacementId && newImages[0]) {
+        onChange(
+          images.map((image) =>
+            image.id === replacementId
+              ? { ...newImages[0], id: image.id, isMain: image.isMain }
+              : image
+          )
+        );
+        setReplaceImageId(null);
+        return;
+      }
+
       onChange(normalizeMainImage([...images, ...newImages]));
     },
     [images, onChange]
@@ -105,7 +119,13 @@ export function ImageUploadZone({ images, onChange }: Props) {
     onChange(normalizeMainImage(reordered));
   };
 
+  const openAddChoice = (imageId: string | null = null) => {
+    setReplaceImageId(imageId);
+    setAddChoiceOpen(true);
+  };
+
   const openLibrary = async () => {
+    setAddChoiceOpen(false);
     setLibraryOpen(true);
     setLibraryError('');
     setSelectedUrls([]);
@@ -122,12 +142,30 @@ export function ImageUploadZone({ images, onChange }: Props) {
     setLibraryLoading(false);
   };
 
+  const openUpload = () => {
+    setAddChoiceOpen(false);
+    fileInputRef.current?.click();
+  };
+
+  const closeAddChoice = () => {
+    setAddChoiceOpen(false);
+    setReplaceImageId(null);
+  };
+
+  const closeLibrary = () => {
+    setLibraryOpen(false);
+    setReplaceImageId(null);
+  };
+
   const filteredLibraryImages = useMemo(() => {
     const query = libraryQuery.trim().toLowerCase();
     const currentUrls = new Set(images.map((img) => img.preview));
+    const replacementUrl = replaceImageId
+      ? images.find((img) => img.id === replaceImageId)?.preview
+      : undefined;
 
     return libraryImages
-      .filter((img) => !currentUrls.has(img.url))
+      .filter((img) => !currentUrls.has(img.url) || img.url === replacementUrl)
       .filter((img) => {
         if (!query) return true;
         return (
@@ -136,9 +174,14 @@ export function ImageUploadZone({ images, onChange }: Props) {
           img.url.toLowerCase().includes(query)
         );
       });
-  }, [images, libraryImages, libraryQuery]);
+  }, [images, libraryImages, libraryQuery, replaceImageId]);
 
   const toggleLibraryImage = (url: string) => {
+    if (replaceImageId) {
+      setSelectedUrls([url]);
+      return;
+    }
+
     setSelectedUrls((current) =>
       current.includes(url)
         ? current.filter((item) => item !== url)
@@ -147,6 +190,22 @@ export function ImageUploadZone({ images, onChange }: Props) {
   };
 
   const addSelectedLibraryImages = () => {
+    if (replaceImageId) {
+      const selected = libraryImages.find((img) => img.url === selectedUrls[0]);
+      if (!selected) return;
+
+      onChange(
+        images.map((image) =>
+          image.id === replaceImageId
+            ? { ...image, preview: selected.url, alt: selected.alt, file: undefined }
+            : image
+        )
+      );
+      closeLibrary();
+      setSelectedUrls([]);
+      return;
+    }
+
     const selected = libraryImages.filter((img) => selectedUrls.includes(img.url));
     const existing = new Set(images.map((img) => img.preview));
     const libraryItems: ImageItem[] = selected
@@ -159,7 +218,7 @@ export function ImageUploadZone({ images, onChange }: Props) {
       }));
 
     onChange(normalizeMainImage([...images, ...libraryItems]));
-    setLibraryOpen(false);
+    closeLibrary();
     setSelectedUrls([]);
   };
 
@@ -195,6 +254,15 @@ export function ImageUploadZone({ images, onChange }: Props) {
                 {/* Overlay actions */}
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
                   <button
+                    type="button"
+                    onClick={() => openAddChoice(img.id)}
+                    className="p-1.5 rounded-lg bg-white/90 text-gray-700 hover:bg-white transition-colors"
+                    title="Remplacer cette image"
+                  >
+                    <RefreshCw size={14} />
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => setMainImage(img.id)}
                     className={cn(
                       'p-1.5 rounded-lg transition-colors',
@@ -232,20 +300,11 @@ export function ImageUploadZone({ images, onChange }: Props) {
             {/* Bouton ajouter */}
             <button
               type="button"
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => openAddChoice()}
               className="aspect-square rounded-lg border-2 border-dashed border-gray-300 hover:border-jungle-500 hover:bg-jungle-50/50 flex flex-col items-center justify-center gap-1 transition-colors"
             >
               <Upload size={18} className="text-gray-400" />
               <span className="text-[11px] text-gray-400">Ajouter</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={openLibrary}
-              className="aspect-square rounded-lg border-2 border-dashed border-gray-300 hover:border-ocean-500 hover:bg-ocean-50/50 flex flex-col items-center justify-center gap-1 transition-colors"
-            >
-              <Images size={18} className="text-gray-400" />
-              <span className="text-[11px] text-gray-400">Bibliothèque</span>
             </button>
           </div>
           <p className="text-xs text-gray-400">
@@ -276,7 +335,7 @@ export function ImageUploadZone({ images, onChange }: Props) {
       {/* Zone drop si aucune image */}
       {images.length === 0 && (
         <div
-          onClick={() => fileInputRef.current?.click()}
+          onClick={() => openAddChoice()}
           className="border-2 border-dashed border-gray-300 hover:border-jungle-500 rounded-xl p-8 text-center cursor-pointer transition-colors hover:bg-jungle-50/30"
         >
           <div className="flex flex-col items-center gap-3">
@@ -292,17 +351,6 @@ export function ImageUploadZone({ images, onChange }: Props) {
               </p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              openLibrary();
-            }}
-            className="mt-5 inline-flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-white"
-          >
-            <Images size={16} />
-            Choisir dans la bibliothèque
-          </button>
         </div>
       )}
 
@@ -313,10 +361,63 @@ export function ImageUploadZone({ images, onChange }: Props) {
         multiple
         className="hidden"
         onChange={(e) => {
-          if (e.target.files) addFiles(e.target.files);
+          if (e.target.files) addFiles(e.target.files, replaceImageId);
           e.target.value = '';
         }}
       />
+
+      {addChoiceOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4">
+          <div className="w-full max-w-md rounded-xl bg-white shadow-2xl">
+            <div className="flex items-start justify-between gap-4 border-b border-gray-100 p-4">
+              <div>
+                <h3 className="text-sm font-semibold text-ink">
+                  {replaceImageId ? 'Remplacer une image' : 'Ajouter une image'}
+                </h3>
+                <p className="mt-0.5 text-xs text-gray-400">
+                  {replaceImageId
+                    ? 'Choisissez un nouveau fichier ou une image déjà enregistrée.'
+                    : 'Importez une nouvelle image ou réutilisez une image déjà enregistrée.'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={closeAddChoice}
+                className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                title="Fermer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="grid gap-3 p-4 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={openUpload}
+                className="flex min-h-36 flex-col items-center justify-center gap-3 rounded-lg border border-gray-200 bg-white p-4 text-center hover:border-jungle-500 hover:bg-jungle-50/50"
+              >
+                <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-jungle-50 text-jungle-600">
+                  <Upload size={20} />
+                </span>
+                <span className="text-sm font-medium text-ink">Importer</span>
+                <span className="text-xs text-gray-400">Depuis l&apos;ordinateur</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={openLibrary}
+                className="flex min-h-36 flex-col items-center justify-center gap-3 rounded-lg border border-gray-200 bg-white p-4 text-center hover:border-ocean-500 hover:bg-ocean-50/50"
+              >
+                <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-ocean-50 text-ocean-600">
+                  <Images size={20} />
+                </span>
+                <span className="text-sm font-medium text-ink">Bibliothèque</span>
+                <span className="text-xs text-gray-400">Images déjà sauvegardées</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {libraryOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4">
@@ -325,12 +426,14 @@ export function ImageUploadZone({ images, onChange }: Props) {
               <div>
                 <h3 className="text-sm font-semibold text-ink">Bibliothèque d&apos;images</h3>
                 <p className="mt-0.5 text-xs text-gray-400">
-                  Sélectionnez une ou plusieurs images déjà enregistrées.
+                  {replaceImageId
+                    ? 'Sélectionnez une image pour remplacer celle du produit.'
+                    : 'Sélectionnez une ou plusieurs images déjà enregistrées.'}
                 </p>
               </div>
               <button
                 type="button"
-                onClick={() => setLibraryOpen(false)}
+                onClick={closeLibrary}
                 className="self-start rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 sm:self-auto"
                 title="Fermer"
               >
@@ -416,7 +519,7 @@ export function ImageUploadZone({ images, onChange }: Props) {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => setLibraryOpen(false)}
+                  onClick={closeLibrary}
                   className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                 >
                   Annuler
@@ -427,7 +530,7 @@ export function ImageUploadZone({ images, onChange }: Props) {
                   disabled={selectedUrls.length === 0}
                   className="rounded-lg bg-jungle-600 px-4 py-2 text-sm font-medium text-white hover:bg-jungle-700 disabled:opacity-40"
                 >
-                  Ajouter au produit
+                  {replaceImageId ? 'Remplacer l’image' : 'Ajouter au produit'}
                 </button>
               </div>
             </div>
