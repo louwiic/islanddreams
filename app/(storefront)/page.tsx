@@ -51,8 +51,7 @@ async function getHomeReviews(): Promise<HomeReview[]> {
     .from('reviews' as never)
     .select('id, customer_name, rating, comment, created_at')
     .eq('is_approved', true)
-    .order('created_at', { ascending: false })
-    .limit(8);
+    .order('created_at', { ascending: false });
 
   return (data ?? []) as HomeReview[];
 }

@@ -14,8 +14,7 @@ async function getApprovedReviews() {
     .from('reviews' as never)
     .select('id, customer_name, rating, comment, created_at')
     .eq('is_approved', true)
-    .order('created_at', { ascending: false })
-    .limit(10);
+    .order('created_at', { ascending: false });
   return (data ?? []) as { id: string; customer_name: string; rating: number; comment: string; created_at: string }[];
 }
 
