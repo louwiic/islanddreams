@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -17,10 +17,12 @@ import {
   CreditCard,
   ArrowRight,
   Gift,
+  ReceiptText,
 } from 'lucide-react';
 import { useCart } from '@/lib/cart/CartProvider';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
+import type { TaxQuote } from '@/lib/tax/types';
 
 type ShippingMethod = {
   id: string;
@@ -45,6 +47,23 @@ type GiftOffer = {
     image: string | null;
     imageAlt: string | null;
   };
+};
+
+const COUNTRY_LABELS: Record<string, string> = {
+  RE: 'La Réunion',
+  FR: 'France métropolitaine',
+  BE: 'Belgique',
+  DE: 'Allemagne',
+  ES: 'Espagne',
+  IT: 'Italie',
+  PT: 'Portugal',
+  NL: 'Pays-Bas',
+  LU: 'Luxembourg',
+  CH: 'Suisse',
+  GB: 'Royaume-Uni',
+  MU: 'Maurice',
+  CA: 'Canada',
+  US: 'États-Unis',
 };
 
 export default function PanierPage() {
@@ -74,6 +93,8 @@ export default function PanierPage() {
   const [giftOffer, setGiftOffer] = useState<GiftOffer | null>(null);
   const [cartReminderConsent, setCartReminderConsent] = useState(false);
   const [recoveryToken, setRecoveryToken] = useState('');
+  const [taxQuote, setTaxQuote] = useState<TaxQuote | null>(null);
+  const [availableCountries, setAvailableCountries] = useState(['RE', 'FR']);
 
   // Poids total du panier
   const cartWeightG = items.reduce((sum, item) => sum + (item.weightGrams ?? 0) * item.quantity, 0);
@@ -92,7 +113,11 @@ export default function PanierPage() {
       discountAmount = Math.min(promoDiscount.amountOff, total);
     }
   }
-  const grandTotal = total - discountAmount + shippingCost;
+  const grandTotal = taxQuote?.total ?? total - discountAmount + shippingCost;
+  const displayedSubtotal = taxQuote?.merchandiseBeforeDiscount ?? total;
+  const displayedDiscount = taxQuote?.discountAmount ?? discountAmount;
+  const displayedShipping = taxQuote?.shippingAmount ?? shippingCost;
+  const displayPriceFactor = total > 0 ? displayedSubtotal / total : 1;
   const contactComplete =
     customerInfo.name.trim().length > 1 &&
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerInfo.email.trim()) &&
@@ -108,9 +133,9 @@ export default function PanierPage() {
       : null;
   const giftUnlocked = giftRemaining === 0;
 
-  const setCustomerField = (field: keyof typeof customerInfo, value: string) => {
+  const setCustomerField = useCallback((field: keyof typeof customerInfo, value: string) => {
     setCustomerInfo((current) => ({ ...current, [field]: value }));
-  };
+  }, []);
 
   const fetchShipping = async (cp: string, ctry: string, weight: number) => {
     setLoadingShipping(true);
@@ -168,11 +193,49 @@ export default function PanierPage() {
   }, []);
 
   useEffect(() => {
+    fetch('/api/tax/quote')
+      .then((response) => response.json())
+      .then((data) => {
+        if (Array.isArray(data.countries) && data.countries.length > 0) {
+          setAvailableCountries(data.countries);
+        }
+      })
+      .catch(() => undefined);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/tax/quote', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        country,
+        postalCode,
+        catalogSubtotal: total,
+        shipping: shippingCost,
+        discountPercent: promoStatus === 'valid' ? promoDiscount?.percentOff : 0,
+        discountAmount: promoStatus === 'valid' ? promoDiscount?.amountOff : 0,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (!cancelled && data.quote) setTaxQuote(data.quote);
+      })
+      .catch(() => {
+        if (!cancelled) setTaxQuote(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [country, postalCode, total, shippingCost, promoStatus, promoDiscount]);
+
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tokenFromUrl = params.get('recover');
     const storedToken = localStorage.getItem('island-dreams-recovery-token');
     const token = tokenFromUrl || storedToken || crypto.randomUUID();
     localStorage.setItem('island-dreams-recovery-token', token);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setRecoveryToken(token);
     if (!tokenFromUrl) return;
     fetch(`/api/cart-recovery?token=${encodeURIComponent(tokenFromUrl)}`)
@@ -187,7 +250,7 @@ export default function PanierPage() {
         setCartReminderConsent(true);
       })
       .catch(() => undefined);
-  }, [replaceCart]);
+  }, [replaceCart, setCustomerField]);
 
   useEffect(() => {
     const validEmail = /^\S+@\S+\.\S+$/.test(customerInfo.email.trim());
@@ -355,7 +418,7 @@ export default function PanierPage() {
                       </p>
                     )}
                     <p className="text-base font-bold text-jungle-700 mt-2">
-                      {item.price.toFixed(2)} €
+                      {(item.price * displayPriceFactor).toFixed(2)} €
                     </p>
 
                     <div className="flex items-center justify-between mt-3">
@@ -392,7 +455,7 @@ export default function PanierPage() {
 
                       <div className="flex items-center gap-3">
                         <span className="text-sm font-bold text-ink">
-                          {(item.price * item.quantity).toFixed(2)} €
+                          {(item.price * item.quantity * displayPriceFactor).toFixed(2)} €
                         </span>
                         <button
                           onClick={() =>
@@ -588,8 +651,11 @@ export default function PanierPage() {
                     }}
                     className="px-2 py-2 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-jungle-500/30"
                   >
-                    <option value="RE">{t('checkout.reunion')}</option>
-                    <option value="FR">{t('checkout.france')}</option>
+                    {availableCountries.map((code) => (
+                      <option key={code} value={code}>
+                        {COUNTRY_LABELS[code] || code}
+                      </option>
+                    ))}
                   </select>
                   <input
                     type="text"
@@ -755,12 +821,12 @@ export default function PanierPage() {
             <div className={cn('bg-white rounded-xl border border-gray-200 p-5 space-y-3', checkoutStep !== 3 && 'hidden')}>
               <div className="flex justify-between text-sm text-gray-500">
                 <span>{t('cart.subtotal')}</span>
-                <span>{total.toFixed(2)} €</span>
+                <span>{displayedSubtotal.toFixed(2)} €</span>
               </div>
-              {promoStatus === 'valid' && discountAmount > 0 && (
+              {promoStatus === 'valid' && displayedDiscount > 0 && (
                 <div className="flex justify-between text-sm text-green-600">
                   <span>{t('checkout.promo')} ({promoLabel})</span>
-                  <span>-{discountAmount.toFixed(2)} €</span>
+                  <span>-{displayedDiscount.toFixed(2)} €</span>
                 </div>
               )}
               <div className="flex justify-between text-sm text-gray-500">
@@ -768,11 +834,27 @@ export default function PanierPage() {
                 <span>
                   {shippingOptions
                     ? selectedMethod
-                      ? `${shippingCost.toFixed(2)} €`
+                      ? `${displayedShipping.toFixed(2)} €`
                       : t('checkout.select')
                     : '—'}
                 </span>
               </div>
+              {taxQuote && (
+                <div className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2.5 text-xs text-gray-600">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="flex items-center gap-1.5 font-semibold text-ink">
+                      <ReceiptText size={13} />
+                      {taxQuote.mode === 'not_collected'
+                        ? 'Vente HT — TVA non collectée'
+                        : taxQuote.taxIncluded
+                          ? `dont TVA ${taxQuote.rate} %`
+                          : `TVA ${taxQuote.rate} % ajoutée`}
+                    </span>
+                    {taxQuote.taxCollected && <span>{taxQuote.taxAmount.toFixed(2)} €</span>}
+                  </div>
+                  {taxQuote.notice && <p className="mt-1.5 leading-relaxed text-gray-500">{taxQuote.notice}</p>}
+                </div>
+              )}
               <div className="flex justify-between text-lg font-bold text-ink pt-3 border-t border-gray-100">
                 <span>{t('checkout.total')}</span>
                 <span>{grandTotal.toFixed(2)} €</span>

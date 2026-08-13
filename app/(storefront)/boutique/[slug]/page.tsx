@@ -140,6 +140,9 @@ export default async function ProductPage({ params }: PageProps) {
                 </span>
               )}
             </div>
+            <p className="mt-1 text-xs text-gray-400">
+              Prix catalogue TTC à La Réunion — recalculé selon le pays de livraison dans le panier.
+            </p>
 
             {product.short_description && (
               <div

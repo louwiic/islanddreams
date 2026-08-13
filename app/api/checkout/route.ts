@@ -4,6 +4,16 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { calculateShipping } from '@/lib/actions/shipping';
 import type { CartItem } from '@/lib/cart/types';
 import type { QrCampaign } from '@/lib/actions/qr';
+import { getTaxConfiguration } from '@/lib/tax/settings';
+import { priceForTaxZone, resolveTaxZone, roundMoney } from '@/lib/tax/calculator';
+import type { TaxZone } from '@/lib/tax/types';
+type CheckoutCreateParams = NonNullable<Parameters<
+  ReturnType<typeof getStripeClient>['checkout']['sessions']['create']
+>[0]>;
+type CheckoutLineItem = NonNullable<CheckoutCreateParams['line_items']>[number];
+type CheckoutAllowedCountry = NonNullable<
+  CheckoutCreateParams['shipping_address_collection']
+>['allowed_countries'][number];
 
 type CheckoutBody = {
   items: CartItem[];
@@ -49,6 +59,29 @@ function isValidVoucherExpiry(value?: string) {
   return Number.isFinite(expiry) && expiry >= Date.now();
 }
 
+async function getOrCreateStripeTaxRate(stripe: ReturnType<typeof getStripeClient>, zone: TaxZone) {
+  if (zone.mode === 'not_collected' || zone.rate <= 0) return null;
+
+  const inclusive = zone.mode === 'included';
+  const existing = await stripe.taxRates.list({ active: true, limit: 100 });
+  const match = existing.data.find((rate) =>
+    rate.metadata?.islandDreamsTaxZone === zone.id &&
+    rate.percentage === zone.rate &&
+    rate.inclusive === inclusive
+  );
+  if (match) return match.id;
+
+  const created = await stripe.taxRates.create({
+    display_name: 'TVA',
+    description: `${zone.name} — ${zone.rate}%`,
+    jurisdiction: zone.name,
+    percentage: zone.rate,
+    inclusive,
+    metadata: { islandDreamsTaxZone: zone.id },
+  });
+  return created.id;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { items, shippingMethodId, promoCode, customer, recoveryToken } = (await req.json()) as CheckoutBody;
@@ -73,6 +106,16 @@ export async function POST(req: NextRequest) {
     }
 
     const supabase = createAdminClient();
+    const taxConfiguration = await getTaxConfiguration();
+    const taxZone = resolveTaxZone(
+      taxConfiguration,
+      customer.address.country || 'RE',
+      customer.address.postalCode.trim()
+    );
+    const stripe = getStripeClient();
+    const stripeTaxRateId = taxConfiguration.enabled
+      ? await getOrCreateStripeTaxRate(stripe, taxZone)
+      : null;
 
     const attributionCampaignId = req.cookies.get('islanddreams_qr_attribution')?.value || '';
     let affiliateMetadata = {
@@ -232,11 +275,14 @@ export async function POST(req: NextRequest) {
     }
 
     // ── Construire les line items avec les prix de la BDD ───────────────
-    const lineItems = items.map((item) => {
+    const lineItems: CheckoutLineItem[] = items.map((item) => {
       const dbProd = productMap.get(item.productId)!;
       // Prix réel : promo si dispo, sinon prix de base
       const voucherAmount = isVoucherItem(item) ? getVoucherAmount(item) : null;
-      const unitPrice = voucherAmount ?? dbProd.sale_price ?? dbProd.price;
+      const catalogUnitPrice = voucherAmount ?? dbProd.sale_price ?? dbProd.price;
+      const unitPrice = voucherAmount
+        ? catalogUnitPrice
+        : priceForTaxZone(catalogUnitPrice, taxConfiguration, taxZone).stripeUnitAmount;
       const voucher = item.voucher;
 
       return {
@@ -259,6 +305,7 @@ export async function POST(req: NextRequest) {
           unit_amount: Math.round(unitPrice * 100),
         },
         quantity: item.quantity,
+        ...(stripeTaxRateId && !voucherAmount ? { tax_rates: [stripeTaxRateId] } : {}),
       };
     });
 
@@ -282,7 +329,11 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      selectedShippingCost = method.cost;
+      const shippingTaxMultiplier =
+        taxConfiguration.enabled && taxZone.mode === 'added' && taxZone.taxShipping
+          ? 1 + taxZone.rate / 100
+          : 1;
+      selectedShippingCost = roundMoney(method.cost * shippingTaxMultiplier);
       selectedShippingName = method.name;
 
       if (method.cost > 0) {
@@ -305,13 +356,12 @@ export async function POST(req: NextRequest) {
             unit_amount: Math.round(method.cost * 100),
           },
           quantity: 1,
+          ...(stripeTaxRateId && taxZone.taxShipping ? { tax_rates: [stripeTaxRateId] } : {}),
         });
       }
     }
 
     const origin = req.headers.get('origin') || 'https://www.islanddreams.re';
-
-    const stripe = getStripeClient();
 
     // ── Code promo Stripe ──────────────────────────────────────────────
     let discounts: { promotion_code: string }[] | undefined;
@@ -354,7 +404,9 @@ export async function POST(req: NextRequest) {
         enabled: true,
       },
       shipping_address_collection: {
-        allowed_countries: ['FR', 'RE'],
+        allowed_countries: [
+          (customer.address.country || 'RE') as CheckoutAllowedCountry,
+        ],
       },
       locale: 'fr',
       success_url: `${origin}/checkout/succes?session_id={CHECKOUT_SESSION_ID}`,
@@ -373,6 +425,11 @@ export async function POST(req: NextRequest) {
         shippingCity: customer.address.city.trim(),
         shippingPostalCode: customer.address.postalCode.trim(),
         shippingCountry: customer.address.country || 'RE',
+        taxZoneId: taxZone.id,
+        taxZoneName: taxZone.name,
+        taxMode: taxConfiguration.enabled ? taxZone.mode : 'disabled',
+        taxRate: taxConfiguration.enabled ? String(taxZone.rate) : '0',
+        taxNotice: taxZone.notice.slice(0, 500),
         ...giftMetadata,
         ...affiliateMetadata,
       },

@@ -183,7 +183,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
           phone: metadataPhone,
         }
       : null;
-  const shippingAddress = shipping
+  const baseShippingAddress = shipping
     ? {
         line1: shipping.line1,
         line2: shipping.line2,
@@ -196,12 +196,25 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     : metadataShipping;
 
   // Calculer le total
-  const subtotal = (session.amount_subtotal ?? 0) / 100;
   const metadataShippingCost = Number(metadata.shippingCost || 0);
   const shippingCost = ((session.total_details?.amount_shipping ?? 0) / 100) || metadataShippingCost;
+  const taxAmount = (session.total_details?.amount_tax ?? 0) / 100;
   const total = (session.amount_total ?? 0) / 100;
+  const subtotal = Math.max(0, total - shippingCost);
+  const taxSummary = {
+    zone_id: metadata.taxZoneId || null,
+    zone_name: metadata.taxZoneName || 'Zone fiscale',
+    mode: metadata.taxMode || 'disabled',
+    rate: Number(metadata.taxRate || 0),
+    amount: taxAmount,
+    notice: metadata.taxNotice || '',
+  };
+  const shippingAddress = baseShippingAddress
+    ? { ...baseShippingAddress, tax: taxSummary }
+    : { tax: taxSummary };
 
   if (metadata.recoveryToken) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (supabase as any).from('abandoned_carts').update({
       status: 'completed',
       completed_at: new Date().toISOString(),
@@ -253,6 +266,10 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     const voucherExpiresAt = productMetadata.voucherExpiresAt || null;
     let productName = li.description || 'Produit';
     let variantLabel = productMetadata.variantLabel || null;
+
+    if (!productMetadata.productId && productName.startsWith('Livraison —')) {
+      continue;
+    }
 
     if (Number.isFinite(voucherAmount) && voucherAmount > 0) {
       const code = await createVoucherPromotionCode({
@@ -342,6 +359,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
         commission_amount: Math.round(commissionBase * commissionRate) / 100,
         status: 'pending',
       };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: conversionInsertError } = await (supabase as any)
         .from('qr_partner_conversions')
         .upsert(conversionPayload, { onConflict: 'stripe_session_id', ignoreDuplicates: true });
@@ -406,8 +424,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   // ── Emails ──────────────────────────────────────────────────────
   const customerName = session.customer_details?.name || metadataName || 'Client';
   const customerEmail = session.customer_details?.email;
-  const shippingStr = shippingAddress
-    ? `${shippingAddress.line1}${shippingAddress.line2 ? ', ' + shippingAddress.line2 : ''}, ${shippingAddress.postal_code} ${shippingAddress.city}${shippingAddress.phone ? ` — Tél : ${shippingAddress.phone}` : ''}`
+  const shippingStr = baseShippingAddress
+    ? `${baseShippingAddress.line1}${baseShippingAddress.line2 ? ', ' + baseShippingAddress.line2 : ''}, ${baseShippingAddress.postal_code} ${baseShippingAddress.city}${baseShippingAddress.phone ? ` — Tél : ${baseShippingAddress.phone}` : ''}`
     : undefined;
 
   const emailOrderData = {
@@ -419,6 +437,10 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       price: i.unit_price,
     })),
     total,
+    taxAmount,
+    taxRate: taxSummary.rate,
+    taxMode: taxSummary.mode,
+    taxNotice: taxSummary.notice,
     shippingAddress: shippingStr,
   };
 

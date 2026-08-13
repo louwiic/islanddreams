@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
+import { requireAdmin } from '@/lib/auth/admin';
 
 /* ── Types ───────────────────────────────────────────────── */
 
@@ -169,6 +170,7 @@ export async function updateShippingMethod(
   id: string,
   data: { name?: string; cost?: number; freeAbove?: number | null; enabled?: boolean; requiresSignature?: boolean }
 ) {
+  await requireAdmin();
   const supabase = createAdminClient();
 
   const { error } = await supabase
@@ -194,6 +196,7 @@ export async function createShippingMethod(
   zoneId: string,
   data: { name: string; cost: number; freeAbove?: number | null; requiresSignature?: boolean }
 ) {
+  await requireAdmin();
   const supabase = createAdminClient();
 
   const { error } = await supabase
@@ -213,6 +216,75 @@ export async function createShippingMethod(
   return { success: true };
 }
 
+/* ── Créer / supprimer une zone de livraison ──────────────────── */
+
+export async function createShippingZone(data: {
+  name: string;
+  country: string;
+  postcodePattern?: string;
+}) {
+  await requireAdmin();
+  const supabase = createAdminClient();
+  const name = data.name.trim();
+  const country = data.country.trim().toUpperCase();
+  const postcodePattern = data.postcodePattern?.trim().toUpperCase() || '*';
+
+  if (!name || !/^[A-Z]{2}$/.test(country)) {
+    return { error: 'Indiquez un nom et un code pays ISO composé de 2 lettres.' };
+  }
+
+  const { data: existing } = await supabase
+    .from('shipping_zones')
+    .select('sort_order')
+    .order('sort_order', { ascending: false })
+    .limit(1);
+
+  const { data: zone, error: zoneError } = await supabase
+    .from('shipping_zones')
+    .insert({
+      name,
+      description: `Livraison vers ${name}`,
+      enabled: true,
+      sort_order: (existing?.[0]?.sort_order ?? 0) + 10,
+    })
+    .select('id')
+    .single();
+
+  if (zoneError || !zone) return { error: zoneError?.message || 'Création impossible.' };
+
+  const { error: postcodeError } = await supabase.from('shipping_zone_postcodes').insert({
+    zone_id: zone.id,
+    country,
+    postcode_pattern: postcodePattern,
+  });
+
+  if (postcodeError) {
+    await supabase.from('shipping_zones').delete().eq('id', zone.id);
+    return { error: postcodeError.message };
+  }
+
+  revalidatePath('/admin/livraison');
+  revalidatePath('/panier');
+  return { success: true };
+}
+
+export async function deleteShippingZone(id: string) {
+  await requireAdmin();
+  const supabase = createAdminClient();
+  const { error: methodsError } = await supabase.from('shipping_methods').delete().eq('zone_id', id);
+  if (methodsError) return { error: methodsError.message };
+
+  const { error: postcodesError } = await supabase.from('shipping_zone_postcodes').delete().eq('zone_id', id);
+  if (postcodesError) return { error: postcodesError.message };
+
+  const { error } = await supabase.from('shipping_zones').delete().eq('id', id);
+  if (error) return { error: error.message };
+
+  revalidatePath('/admin/livraison');
+  revalidatePath('/panier');
+  return { success: true };
+}
+
 /* ── Installer / mettre à jour Colissimo Réunion → métropole ─────── */
 
 const METRO_COLISSIMO_RATES_2026 = [
@@ -226,6 +298,7 @@ const METRO_COLISSIMO_RATES_2026 = [
 ];
 
 export async function installMetropoleColissimoRates() {
+  await requireAdmin();
   const supabase = createAdminClient();
 
   const { data: existingZone, error: zoneReadError } = await supabase
@@ -304,6 +377,7 @@ export async function installMetropoleColissimoRates() {
 /* ── Supprimer une méthode de livraison ─────────────────── */
 
 export async function deleteShippingMethod(id: string) {
+  await requireAdmin();
   const supabase = createAdminClient();
 
   const { error } = await supabase
@@ -320,6 +394,7 @@ export async function deleteShippingMethod(id: string) {
 /* ── Toggle zone ─────────────────────────────────────────── */
 
 export async function toggleShippingZone(id: string, enabled: boolean) {
+  await requireAdmin();
   const supabase = createAdminClient();
 
   const { error } = await supabase

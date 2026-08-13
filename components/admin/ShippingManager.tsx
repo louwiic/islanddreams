@@ -18,6 +18,8 @@ import {
   updateShippingMethod,
   createShippingMethod,
   deleteShippingMethod,
+  createShippingZone,
+  deleteShippingZone,
   installMetropoleColissimoRates,
   toggleShippingZone,
   type ShippingZone,
@@ -38,6 +40,10 @@ export function ShippingManager({
   const [newName, setNewName] = useState('');
   const [newCost, setNewCost] = useState('');
   const [setupMessage, setSetupMessage] = useState('');
+  const [showZoneForm, setShowZoneForm] = useState(false);
+  const [newZoneName, setNewZoneName] = useState('');
+  const [newZoneCountry, setNewZoneCountry] = useState('');
+  const [newZonePostcode, setNewZonePostcode] = useState('*');
 
   const handleToggleZone = async (zoneId: string, enabled: boolean) => {
     await toggleShippingZone(zoneId, !enabled);
@@ -96,8 +102,86 @@ export function ShippingManager({
     router.refresh();
   };
 
+  const handleAddZone = async () => {
+    setSaving(true);
+    setSetupMessage('');
+    const result = await createShippingZone({
+      name: newZoneName,
+      country: newZoneCountry,
+      postcodePattern: newZonePostcode,
+    });
+    setSaving(false);
+    if (result.error) {
+      setSetupMessage(result.error);
+      return;
+    }
+    setNewZoneName('');
+    setNewZoneCountry('');
+    setNewZonePostcode('*');
+    setShowZoneForm(false);
+    router.refresh();
+  };
+
+  const handleDeleteZone = async (zone: ShippingZone) => {
+    if (!confirm(`Supprimer la zone « ${zone.name} » et tous ses tarifs ?`)) return;
+    const result = await deleteShippingZone(zone.id);
+    if (result.error) {
+      setSetupMessage(result.error);
+      return;
+    }
+    setZones((current) => current.filter((item) => item.id !== zone.id));
+    router.refresh();
+  };
+
   return (
     <div className="space-y-6 max-w-3xl">
+      <div className="rounded-xl border border-gray-200 bg-white p-5">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h2 className="font-semibold text-ink">Pays et zones de livraison</h2>
+            <p className="mt-1 text-sm text-gray-500">Ajoutez d’abord une zone, puis ses modes et tarifs de livraison.</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowZoneForm((current) => !current)}
+            className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold hover:bg-gray-50"
+          >
+            <Plus size={15} /> Ajouter un pays
+          </button>
+        </div>
+        {showZoneForm && (
+          <div className="mt-4 grid gap-3 rounded-lg bg-gray-50 p-4 sm:grid-cols-[1fr_90px_120px_auto]">
+            <input
+              value={newZoneName}
+              onChange={(event) => setNewZoneName(event.target.value)}
+              placeholder="Nom de la zone"
+              className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
+            />
+            <input
+              value={newZoneCountry}
+              onChange={(event) => setNewZoneCountry(event.target.value.toUpperCase())}
+              maxLength={2}
+              placeholder="Pays"
+              className="rounded-lg border border-gray-200 px-3 py-2 text-sm uppercase"
+            />
+            <input
+              value={newZonePostcode}
+              onChange={(event) => setNewZonePostcode(event.target.value)}
+              placeholder="CP ou *"
+              className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
+            />
+            <button
+              type="button"
+              onClick={handleAddZone}
+              disabled={saving || !newZoneName.trim() || newZoneCountry.length !== 2}
+              className="rounded-lg bg-jungle-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40"
+            >
+              Créer
+            </button>
+          </div>
+        )}
+      </div>
+
       <div className="rounded-xl border border-gray-200 bg-white p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -144,17 +228,27 @@ export function ShippingManager({
                 )}
               </div>
             </div>
-            <button
-              onClick={() => handleToggleZone(zone.id, zone.enabled ?? true)}
-              className="p-1"
-              title={zone.enabled ? 'Désactiver' : 'Activer'}
-            >
-              {zone.enabled ? (
-                <ToggleRight size={28} className="text-jungle-500" />
-              ) : (
-                <ToggleLeft size={28} className="text-gray-300" />
-              )}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handleToggleZone(zone.id, zone.enabled ?? true)}
+                className="p-1"
+                title={zone.enabled ? 'Désactiver' : 'Activer'}
+              >
+                {zone.enabled ? (
+                  <ToggleRight size={28} className="text-jungle-500" />
+                ) : (
+                  <ToggleLeft size={28} className="text-gray-300" />
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDeleteZone(zone)}
+                className="rounded-lg p-1.5 text-gray-300 hover:bg-coral-50 hover:text-coral-500"
+                aria-label={`Supprimer la zone ${zone.name}`}
+              >
+                <Trash2 size={15} />
+              </button>
+            </div>
           </div>
 
           {/* Codes postaux */}

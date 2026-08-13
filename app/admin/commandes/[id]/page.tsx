@@ -23,6 +23,13 @@ type OrderShippingAddress = {
   city?: string | null;
   country?: string | null;
   phone?: string | null;
+  tax?: {
+    zone_name?: string;
+    mode?: string;
+    rate?: number;
+    amount?: number;
+    notice?: string;
+  };
 };
 
 type OrderItem = {
@@ -170,6 +177,16 @@ export default async function OrderDetailPage({ params }: PageProps) {
               <span>Livraison</span>
               <span>{(order.shipping_cost ?? 0).toFixed(2)} €</span>
             </div>
+            {shipping?.tax && (
+              <div className="flex justify-between text-sm text-gray-500">
+                <span>
+                  {shipping.tax.mode === 'not_collected'
+                    ? 'TVA non collectée'
+                    : `dont TVA ${shipping.tax.rate ?? 0} %`}
+                </span>
+                <span>{(shipping.tax.amount ?? 0).toFixed(2)} €</span>
+              </div>
+            )}
             <div className="flex justify-between text-base font-bold text-ink pt-1.5 border-t border-gray-100">
               <span>Total</span>
               <span>{order.total.toFixed(2)} €</span>
@@ -218,6 +235,19 @@ export default async function OrderDetailPage({ params }: PageProps) {
                 </p>
                 <p>{shipping.country}</p>
                 {shipping.phone && <p className="pt-2 text-ink">Tél : {shipping.phone}</p>}
+              </div>
+            </div>
+          )}
+
+          {shipping?.tax && (
+            <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+              <div className="border-b border-gray-100 px-5 py-4">
+                <h3 className="font-semibold text-ink">Fiscalité</h3>
+              </div>
+              <div className="space-y-1 p-5 text-sm text-gray-600">
+                <p className="font-medium text-ink">{shipping.tax.zone_name}</p>
+                <p>{shipping.tax.mode === 'not_collected' ? 'Vente HT — taxe non collectée' : `TVA ${shipping.tax.rate ?? 0} %`}</p>
+                {shipping.tax.notice && <p className="pt-2 text-xs leading-relaxed text-gray-500">{shipping.tax.notice}</p>}
               </div>
             </div>
           )}

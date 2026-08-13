@@ -38,6 +38,7 @@ type Order = {
   shipping_address: {
     name?: string; line1?: string; line2?: string;
     city?: string; postal_code?: string; country?: string;
+    tax?: { zone_name?: string; mode?: string; rate?: number; amount?: number; notice?: string };
   } | null;
   order_items: OrderItem[];
 };
@@ -191,6 +192,16 @@ function OrderCard({ order, imageMap }: { order: Order; imageMap: Record<string,
                 <span>{(order.shipping_cost ?? 0).toFixed(2)} €</span>
               </div>
             )}
+            {order.shipping_address?.tax && (
+              <div className="flex justify-between px-4 py-2.5 text-ink/60">
+                <span>
+                  {order.shipping_address.tax.mode === 'not_collected'
+                    ? 'TVA non collectée'
+                    : `dont TVA ${order.shipping_address.tax.rate ?? 0} %`}
+                </span>
+                <span>{(order.shipping_address.tax.amount ?? 0).toFixed(2)} €</span>
+              </div>
+            )}
             <div className="flex justify-between px-4 py-2.5 font-bold text-ink">
               <span>Total</span>
               <span>{order.total.toFixed(2)} €</span>
@@ -215,6 +226,11 @@ function OrderCard({ order, imageMap }: { order: Order; imageMap: Record<string,
                 {order.shipping_address.country && `, ${order.shipping_address.country}`}
               </p>
             </div>
+          )}
+          {order.shipping_address?.tax?.notice && (
+            <p className="mx-5 mb-5 rounded-xl bg-sun-50 px-4 py-3 text-xs leading-relaxed text-ink/60">
+              {order.shipping_address.tax.notice}
+            </p>
           )}
         </div>
       )}

@@ -28,6 +28,7 @@ import {
   Star,
   ClipboardList,
   Gift,
+  ReceiptText,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -48,6 +49,7 @@ const navigation: (NavItem | NavGroup)[] = [
       { name: 'Bons d’achat', href: '/admin/bons-achat', icon: Gift },
       { name: 'Codes promo', href: '/admin/codes-promo', icon: Tag },
       { name: 'Livraison', href: '/admin/livraison', icon: Truck },
+      { name: 'Taxes', href: '/admin/taxes', icon: ReceiptText },
     ],
   },
 

@@ -258,6 +258,10 @@ export default async function BoutiquePage({ searchParams }: Props) {
           })}
         </div>
 
+        <p className="mb-5 text-xs text-gray-400">
+          Prix catalogue TTC à La Réunion. Le montant est recalculé dans le panier selon le pays de livraison.
+        </p>
+
         {/* Résultats */}
         {query && (
           <p className="text-sm text-gray-500 mb-4">

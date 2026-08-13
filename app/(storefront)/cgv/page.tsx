@@ -52,11 +52,18 @@ export default function CGVPage() {
 
         <h2>Article 4 — Prix</h2>
         <p>
-          Les prix sont indiqués en euros (€) toutes taxes comprises (TTC). ISLAND DREAMS se
-          réserve le droit de modifier ses prix à tout moment. Les produits sont facturés au prix en
-          vigueur au moment de la validation de la commande.
+          Les prix sont indiqués en euros (€). Pour une livraison à La Réunion, ils sont affichés
+          toutes taxes comprises (TTC). Pour les autres destinations, le traitement fiscal et le
+          prix applicable sont recalculés selon l&apos;adresse de livraison et présentés avant le
+          paiement. ISLAND DREAMS se réserve le droit de modifier ses prix à tout moment. Les
+          produits sont facturés au prix en vigueur au moment de la validation de la commande.
         </p>
-        <p>Les frais de livraison sont indiqués avant la validation de la commande.</p>
+        <p>
+          Lorsque la TVA ou les taxes d&apos;importation ne sont pas collectées par ISLAND DREAMS,
+          elles peuvent être réclamées au destinataire par l&apos;administration douanière ou le
+          transporteur. Cette information est affichée dans le récapitulatif de commande. Les frais
+          de livraison sont indiqués avant la validation de la commande.
+        </p>
 
         <h2>Article 5 — Commande</h2>
         <p>

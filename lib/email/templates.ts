@@ -95,6 +95,10 @@ type OrderData = {
   customerName: string;
   items: OrderItem[];
   total: number;
+  taxAmount?: number;
+  taxRate?: number;
+  taxMode?: string;
+  taxNotice?: string;
   shippingAddress?: string;
 };
 
@@ -129,6 +133,11 @@ export function orderConfirmation(order: OrderData) {
         </thead>
         <tbody>${itemsHtml}</tbody>
         <tfoot>
+          ${order.taxAmount && order.taxAmount > 0 ? `
+          <tr>
+            <td colspan="2" style="padding:10px 0 0;text-align:right;color:#777;font-size:13px;">dont TVA (${order.taxRate ?? 0} %)</td>
+            <td style="padding:10px 0 0;text-align:right;color:#777;font-size:13px;">${order.taxAmount.toFixed(2)} €</td>
+          </tr>` : ''}
           <tr>
             <td colspan="2" style="padding:12px 0;text-align:right;font-weight:bold;color:#1a2e3b;">Total</td>
             <td style="padding:12px 0;text-align:right;font-weight:bold;font-size:18px;color:#2a5a3a;">${order.total.toFixed(2)} €</td>
@@ -137,6 +146,7 @@ export function orderConfirmation(order: OrderData) {
       </table>
 
       ${order.shippingAddress ? `<p style="color:#555;font-size:13px;">Adresse de livraison : ${order.shippingAddress}</p>` : ''}
+      ${order.taxNotice ? `<p style="background:#f7f7f7;border-radius:8px;padding:12px;color:#666;font-size:12px;line-height:1.5;">${escapeHtml(order.taxNotice)}</p>` : ''}
 
       <p style="color:#555;line-height:1.6;">
         Tu recevras un email avec le suivi de livraison dès l'expédition.<br>
