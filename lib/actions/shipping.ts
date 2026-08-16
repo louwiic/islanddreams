@@ -288,13 +288,21 @@ export async function deleteShippingZone(id: string) {
 /* ── Installer / mettre à jour Colissimo Réunion → métropole ─────── */
 
 const METRO_COLISSIMO_RATES_2026 = [
-  { maxWeightG: 500, cost: 8.41 },
-  { maxWeightG: 1000, cost: 11.73 },
-  { maxWeightG: 2000, cost: 14.77 },
-  { maxWeightG: 5000, cost: 24.8 },
-  { maxWeightG: 10000, cost: 39.24 },
-  { maxWeightG: 15000, cost: 79.42 },
-  { maxWeightG: 30000, cost: 91.53 },
+  { maxWeightG: 500, withoutSignature: 11.43, withSignature: 15.59 },
+  { maxWeightG: 1000, withoutSignature: 17.33, withSignature: 19.99 },
+  { maxWeightG: 2000, withoutSignature: 23.61, withSignature: 26.96 },
+  { maxWeightG: 3000, withoutSignature: 29.91, withSignature: 33.92 },
+  { maxWeightG: 4000, withoutSignature: 36.2, withSignature: 39.41 },
+  { maxWeightG: 5000, withoutSignature: 40.64, withSignature: 45.73 },
+  { maxWeightG: 6000, withoutSignature: 48.81, withSignature: 54.81 },
+  { maxWeightG: 7000, withoutSignature: 55.07, withSignature: 61.78 },
+  { maxWeightG: 8000, withoutSignature: 59.96, withSignature: 65.73 },
+  { maxWeightG: 9000, withoutSignature: 65.94, withSignature: 72.4 },
+  { maxWeightG: 10000, withoutSignature: 73.1, withSignature: 79.05 },
+  { maxWeightG: 15000, withoutSignature: 102.43, withSignature: 112.35 },
+  { maxWeightG: 20000, withoutSignature: 131.81, withSignature: 140.08 },
+  { maxWeightG: 25000, withoutSignature: 164.89, withSignature: 170.99 },
+  { maxWeightG: 30000, withoutSignature: 199.25, withSignature: 203.29 },
 ];
 
 export async function installMetropoleColissimoRates() {
@@ -343,31 +351,68 @@ export async function installMetropoleColissimoRates() {
     if (postcodeError) return { error: postcodeError.message };
   }
 
-  const { error: deleteError } = await supabase
+  const { data: previousMethods, error: previousMethodsError } = await supabase
     .from('shipping_methods')
-    .delete()
-    .eq('zone_id', zoneId)
-    .ilike('name', 'Colissimo Eco Outre-mer%');
+    .select('id, name')
+    .eq('zone_id', zoneId);
 
-  if (deleteError) return { error: deleteError.message };
+  if (previousMethodsError) return { error: previousMethodsError.message };
 
-  const rows = METRO_COLISSIMO_RATES_2026.map((rate, index) => ({
-    zone_id: zoneId,
-    name: `Colissimo Eco Outre-mer jusqu’à ${rate.maxWeightG >= 1000 ? `${rate.maxWeightG / 1000} kg` : `${rate.maxWeightG} g`}`,
-    cost: rate.cost,
-    free_above: null,
-    requires_signature: false,
-    enabled: true,
-    sort_order: index + 1,
-    min_weight_g: index === 0 ? 1 : METRO_COLISSIMO_RATES_2026[index - 1].maxWeightG + 1,
-    max_weight_g: rate.maxWeightG,
-  }));
+  const previousMethodIds = (previousMethods ?? [])
+    .filter((method) =>
+      method.name.startsWith('Colissimo Eco Outre-mer') ||
+      method.name.startsWith('Colissimo Domicile')
+    )
+    .map((method) => method.id);
 
-  const { error: insertError } = await supabase
+  const rows = METRO_COLISSIMO_RATES_2026.flatMap((rate, index) => {
+    const weightLabel = rate.maxWeightG >= 1000
+      ? `${rate.maxWeightG / 1000} kg`
+      : `${rate.maxWeightG} g`;
+    const common = {
+      zone_id: zoneId,
+      free_above: null,
+      enabled: true,
+      min_weight_g: index === 0 ? 1 : METRO_COLISSIMO_RATES_2026[index - 1].maxWeightG + 1,
+      max_weight_g: rate.maxWeightG,
+    };
+
+    return [
+      {
+        ...common,
+        name: `Colissimo Domicile sans signature jusqu’à ${weightLabel}`,
+        cost: rate.withoutSignature,
+        requires_signature: false,
+        sort_order: index * 2 + 1,
+      },
+      {
+        ...common,
+        name: `Colissimo Domicile avec signature jusqu’à ${weightLabel}`,
+        cost: rate.withSignature,
+        requires_signature: true,
+        sort_order: index * 2 + 2,
+      },
+    ];
+  });
+
+  const { data: insertedMethods, error: insertError } = await supabase
     .from('shipping_methods')
-    .insert(rows as never);
+    .insert(rows as never)
+    .select('id');
 
   if (insertError) return { error: insertError.message };
+
+  const { error: deleteError } = previousMethodIds.length > 0
+    ? await supabase.from('shipping_methods').delete().in('id', previousMethodIds)
+    : { error: null };
+
+  if (deleteError) {
+    const insertedIds = (insertedMethods ?? []).map((method) => method.id);
+    if (insertedIds.length > 0) {
+      await supabase.from('shipping_methods').delete().in('id', insertedIds);
+    }
+    return { error: deleteError.message };
+  }
 
   revalidatePath('/admin/livraison');
   revalidatePath('/panier');

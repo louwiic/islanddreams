@@ -98,7 +98,7 @@ export function ShippingManager({
       setSetupMessage(result.error);
       return;
     }
-    setSetupMessage(`${result.count ?? 0} tranches Colissimo métropole installées.`);
+    setSetupMessage(`${result.count ?? 0} tarifs Colissimo métropole installés.`);
     router.refresh();
   };
 
@@ -187,7 +187,7 @@ export function ShippingManager({
           <div>
             <h2 className="font-semibold text-ink">Tarifs Colissimo métropole</h2>
             <p className="mt-1 text-sm text-gray-500">
-              Installe les tranches Colissimo Eco Outre-mer 2026 pour les adresses en France métropolitaine.
+              Installe les tarifs HT Colissimo Domicile, avec et sans signature, pour la France métropolitaine.
             </p>
           </div>
           <button
@@ -201,7 +201,7 @@ export function ShippingManager({
           </button>
         </div>
         {setupMessage && (
-          <p className={cn('mt-3 text-sm', setupMessage.includes('installées') ? 'text-jungle-600' : 'text-coral-600')}>
+          <p className={cn('mt-3 text-sm', setupMessage.includes('installés') ? 'text-jungle-600' : 'text-coral-600')}>
             {setupMessage}
           </p>
         )}
