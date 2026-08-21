@@ -320,7 +320,15 @@ export function ProductForm({ product, attributes, variants }: Props) {
     : (product.in_stock ?? true);
 
   const selectValue = (attrName: string, value: string) => {
-    setSelected((prev) => ({ ...prev, [attrName]: value }));
+    setSelected((prev) => {
+      if (prev[attrName] !== value) {
+        return { ...prev, [attrName]: value };
+      }
+
+      const next = { ...prev };
+      delete next[attrName];
+      return next;
+    });
   };
 
   // Libellé variante pour le panier
@@ -366,9 +374,11 @@ export function ProductForm({ product, attributes, variants }: Props) {
 
                   return (
                     <button
+                      type="button"
                       key={val}
                       onClick={() => selectValue(attr.name, val)}
-                      disabled={!available}
+                      disabled={!available && !isActive}
+                      aria-pressed={isActive}
                       className={`px-3 py-1.5 rounded-lg border text-sm transition-all duration-150 ${
                         isActive
                           ? 'border-jungle-600 bg-jungle-600 text-cream font-medium'

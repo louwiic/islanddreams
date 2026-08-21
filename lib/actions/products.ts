@@ -1,7 +1,6 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { Tables, TablesInsert, TablesUpdate } from '@/lib/supabase/types';
 
@@ -182,7 +181,6 @@ export async function createProduct(formData: {
   // Variantes
   if (formData.variants && formData.variants.length > 0) {
     const vars = formData.variants
-      .filter((v) => v.enabled)
       .map((v) => ({
         product_id: product.id,
         combination: v.combination,
@@ -279,7 +277,6 @@ export async function updateProduct(
   await supabase.from('product_variants').delete().eq('product_id', id);
   if (formData.variants && formData.variants.length > 0) {
     const vars = formData.variants
-      .filter((v) => v.enabled)
       .map((v) => ({
         product_id: id,
         combination: v.combination,

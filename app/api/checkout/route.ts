@@ -152,12 +152,36 @@ export async function POST(req: NextRequest) {
     }
 
     const productMap = new Map(dbProducts.map((p) => [p.id, p]));
+    const { data: dbVariants, error: variantsError } = await supabase
+      .from('product_variants')
+      .select('id, product_id, combination, price, stock_quantity, enabled')
+      .in('product_id', productIds);
+
+    if (variantsError || !dbVariants) {
+      return NextResponse.json({ error: 'Impossible de vérifier les variantes' }, { status: 500 });
+    }
+
+    const variantMap = new Map(dbVariants.map((variant) => [variant.id, variant]));
+    const productsWithVariants = new Set(dbVariants.map((variant) => variant.product_id));
+    const getItemVariant = (item: CartItem) =>
+      item.variantId ? variantMap.get(item.variantId) : undefined;
+    const getCatalogUnitPrice = (item: CartItem) => {
+      if (isVoucherItem(item)) return getVoucherAmount(item) ?? 0;
+      const product = productMap.get(item.productId);
+      const variant = getItemVariant(item);
+      return variant?.price ?? product?.sale_price ?? product?.price ?? 0;
+    };
+    const getVariantLabel = (item: CartItem) => {
+      const combination = getItemVariant(item)?.combination;
+      if (!combination || typeof combination !== 'object' || Array.isArray(combination)) {
+        return item.variantLabel || '';
+      }
+      return Object.values(combination)
+        .filter((value): value is string => typeof value === 'string')
+        .join(' / ');
+    };
     const validatedSubtotal = items.reduce((sum, item) => {
-      const dbProd = productMap.get(item.productId);
-      const unitPrice = isVoucherItem(item)
-        ? (getVoucherAmount(item) ?? 0)
-        : dbProd ? dbProd.sale_price ?? dbProd.price : 0;
-      return sum + unitPrice * item.quantity;
+      return sum + getCatalogUnitPrice(item) * item.quantity;
     }, 0);
     const validatedWeightG = items.reduce((sum, item) => {
       const dbProd = productMap.get(item.productId);
@@ -178,6 +202,23 @@ export async function POST(req: NextRequest) {
           { error: `"${dbProd.name}" n'est plus disponible` },
           { status: 400 },
         );
+      }
+      if (!isVoucherItem(item) && productsWithVariants.has(item.productId)) {
+        const variant = getItemVariant(item);
+        if (!variant || variant.product_id !== item.productId || variant.enabled === false) {
+          return NextResponse.json(
+            { error: `La variante choisie pour "${dbProd.name}" n'est plus disponible` },
+            { status: 400 },
+          );
+        }
+        if (variant.stock_quantity !== null && item.quantity > variant.stock_quantity) {
+          return NextResponse.json(
+            {
+              error: `Stock insuffisant pour "${dbProd.name} — ${getVariantLabel(item)}" (dispo : ${variant.stock_quantity})`,
+            },
+            { status: 400 },
+          );
+        }
       }
       if (dbProd.manage_stock && dbProd.stock_quantity !== null) {
         if (item.quantity > dbProd.stock_quantity) {
@@ -277,9 +318,9 @@ export async function POST(req: NextRequest) {
     // ── Construire les line items avec les prix de la BDD ───────────────
     const lineItems: CheckoutLineItem[] = items.map((item) => {
       const dbProd = productMap.get(item.productId)!;
-      // Prix réel : promo si dispo, sinon prix de base
+      const variantLabel = getVariantLabel(item);
       const voucherAmount = isVoucherItem(item) ? getVoucherAmount(item) : null;
-      const catalogUnitPrice = voucherAmount ?? dbProd.sale_price ?? dbProd.price;
+      const catalogUnitPrice = getCatalogUnitPrice(item);
       const unitPrice = voucherAmount
         ? catalogUnitPrice
         : priceForTaxZone(catalogUnitPrice, taxConfiguration, taxZone).stripeUnitAmount;
@@ -289,12 +330,12 @@ export async function POST(req: NextRequest) {
         price_data: {
           currency: 'eur',
           product_data: {
-            name: item.name + (item.variantLabel ? ` — ${item.variantLabel}` : ''),
+            name: dbProd.name + (variantLabel ? ` — ${variantLabel}` : ''),
             ...(item.image ? { images: [item.image] } : {}),
             metadata: {
               productId: item.productId,
               variantId: item.variantId || '',
-              variantLabel: item.variantLabel || '',
+              variantLabel,
               voucherAmount: voucherAmount ? String(voucherAmount) : '',
               voucherIsGift: voucher?.isGift ? 'true' : 'false',
               voucherExpiresAt: voucher?.expiresAt || '',
