@@ -7,6 +7,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { track } from '@vercel/analytics/react';
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
+import { TrustBanner } from '@/components/sections/TrustBanner';
 
 function SocialBtn({ href, label, children }: { href: string; label: string; children: React.ReactNode }) {
   return (
@@ -258,6 +259,9 @@ export function FooterNarratif() {
 
       {/* ── Bande très sombre en bas ── */}
       <div className="bg-jungle-800 text-cream/70 text-center py-5 px-6">
+        <div className="mx-auto mb-5 max-w-3xl">
+          <TrustBanner variant="footer" />
+        </div>
         <p className="font-black uppercase tracking-wider text-sm mb-1 text-cream"
            style={{ fontFamily: 'var(--font-heading, serif)' }}>
           {t('home.footer.tagline')}

@@ -11,6 +11,7 @@ import { VillesBlock } from '@/components/sections/VillesBlock';
 import { FooterNarratif } from '@/components/sections/FooterNarratif';
 import { CarteCollection } from '@/components/sections/CarteCollection';
 import { UspBanner } from '@/components/sections/UspBanner';
+import { TrustBanner } from '@/components/sections/TrustBanner';
 import { HomeFaq } from '@/components/sections/HomeFaq';
 import { HomeReviewsCarousel, type HomeReview } from '@/components/sections/HomeReviewsCarousel';
 import { EventProductFeature, type EventFeatureConfig } from '@/components/sections/EventProductFeature';
@@ -179,6 +180,7 @@ export default async function Home() {
   return (
     <>
       <SmoothScroll />
+      <TrustBanner />
       <Hero />
       <GiftOfferBanner config={giftOfferBanner} />
       <EventProductFeature config={eventFeatureConfig} />
