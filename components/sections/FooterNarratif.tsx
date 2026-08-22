@@ -269,6 +269,9 @@ export function FooterNarratif() {
         <p className="text-cream/50 text-xs">
           {t('home.footer.delivery')}
         </p>
+        <p className="text-cream/50 text-xs">
+          {t('trust.securePayment')}
+        </p>
         <p className="text-cream/30 text-[10px] mt-3">
           Fait avec ❤️ par{' '}
           <a
