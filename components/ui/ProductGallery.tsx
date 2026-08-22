@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { X, ZoomIn, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
+import { useProductVariantImage } from './ProductVariantImageContext';
 
 type GalleryImage = {
   id: string;
@@ -21,16 +22,23 @@ export function ProductGallery({
   productName: string;
 }) {
   const { t } = useLanguage();
+  const variantImage = useProductVariantImage();
+  const setVariantActiveImageId = variantImage?.setActiveImageId;
   const [activeIndex, setActiveIndex] = useState(0);
   const [zoomed, setZoomed] = useState(false);
 
-  const current = images[activeIndex];
+  const variantImageIndex = variantImage?.activeImageId
+    ? images.findIndex((image) => image.id === variantImage.activeImageId)
+    : -1;
+  const displayIndex = variantImageIndex >= 0 ? variantImageIndex : activeIndex;
+  const current = images[displayIndex];
 
   const goTo = useCallback(
     (index: number) => {
+      setVariantActiveImageId?.(null);
       setActiveIndex((index + images.length) % images.length);
     },
-    [images.length]
+    [images.length, setVariantActiveImageId]
   );
 
   if (images.length === 0) {
@@ -68,14 +76,14 @@ export function ProductGallery({
           {images.length > 1 && (
             <>
               <button
-                onClick={() => goTo(activeIndex - 1)}
+                onClick={() => goTo(displayIndex - 1)}
                 className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-white/80 text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
                 aria-label={t('product.previousImage')}
               >
                 <ChevronLeft size={18} />
               </button>
               <button
-                onClick={() => goTo(activeIndex + 1)}
+                onClick={() => goTo(displayIndex + 1)}
                 className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-white/80 text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
                 aria-label={t('product.nextImage')}
               >
@@ -87,7 +95,7 @@ export function ProductGallery({
           {/* Compteur */}
           {images.length > 1 && (
             <div className="absolute bottom-3 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-full bg-black/50 text-white text-xs font-medium md:hidden">
-              {activeIndex + 1} / {images.length}
+              {displayIndex + 1} / {images.length}
             </div>
           )}
         </div>
@@ -98,10 +106,10 @@ export function ProductGallery({
             {images.map((img, i) => (
               <button
                 key={img.id}
-                onClick={() => setActiveIndex(i)}
+                onClick={() => goTo(i)}
                 className={cn(
                   'shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden relative border-2 transition-all',
-                  activeIndex === i
+                  displayIndex === i
                     ? 'border-jungle-600 ring-1 ring-jungle-600/30'
                     : 'border-transparent hover:border-gray-300 opacity-60 hover:opacity-100'
                 )}
@@ -140,7 +148,7 @@ export function ProductGallery({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  goTo(activeIndex - 1);
+                  goTo(displayIndex - 1);
                 }}
                 className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
                 aria-label={t('product.previousImage')}
@@ -150,7 +158,7 @@ export function ProductGallery({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  goTo(activeIndex + 1);
+                  goTo(displayIndex + 1);
                 }}
                 className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
                 aria-label={t('product.nextImage')}
@@ -178,7 +186,7 @@ export function ProductGallery({
           {/* Compteur */}
           {images.length > 1 && (
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full bg-white/10 text-white text-sm font-medium">
-              {activeIndex + 1} / {images.length}
+              {displayIndex + 1} / {images.length}
             </div>
           )}
         </div>

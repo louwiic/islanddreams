@@ -524,6 +524,7 @@ export type Database = {
           created_at: string | null
           enabled: boolean | null
           id: string
+          image_id: string | null
           price: number | null
           product_id: string
           sku: string | null
@@ -534,6 +535,7 @@ export type Database = {
           created_at?: string | null
           enabled?: boolean | null
           id?: string
+          image_id?: string | null
           price?: number | null
           product_id: string
           sku?: string | null
@@ -544,12 +546,20 @@ export type Database = {
           created_at?: string | null
           enabled?: boolean | null
           id?: string
+          image_id?: string | null
           price?: number | null
           product_id?: string
           sku?: string | null
           stock_quantity?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "product_variants_image_id_fkey"
+            columns: ["image_id"]
+            isOneToOne: false
+            referencedRelation: "product_images"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "product_variants_product_id_fkey"
             columns: ["product_id"]

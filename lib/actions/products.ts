@@ -128,7 +128,7 @@ export async function createProduct(formData: {
   metaDescription?: string;
   focusKeyword?: string;
   attributes?: { name: string; values: string[] }[];
-  variants?: { combination: Record<string, string>; price?: number; sku?: string; stock?: number; enabled: boolean }[];
+  variants?: { combination: Record<string, string>; price?: number; sku?: string; stock?: number; enabled: boolean; imageId?: string | null }[];
 }) {
   const supabase = createAdminClient();
 
@@ -188,6 +188,7 @@ export async function createProduct(formData: {
         sku: v.sku || null,
         stock_quantity: v.stock ?? null,
         enabled: v.enabled,
+        image_id: v.imageId || null,
       }));
 
     if (vars.length > 0) {
@@ -223,7 +224,7 @@ export async function updateProduct(
     metaDescription?: string;
     focusKeyword?: string;
     attributes?: { name: string; values: string[] }[];
-    variants?: { combination: Record<string, string>; price?: number; sku?: string; stock?: number; enabled: boolean }[];
+    variants?: { combination: Record<string, string>; price?: number; sku?: string; stock?: number; enabled: boolean; imageId?: string | null }[];
   }
 ) {
   const supabase = createAdminClient();
@@ -284,6 +285,7 @@ export async function updateProduct(
         sku: v.sku || null,
         stock_quantity: v.stock ?? null,
         enabled: v.enabled,
+        image_id: v.imageId || null,
       }));
     if (vars.length > 0) {
       await supabase.from('product_variants').insert(vars);

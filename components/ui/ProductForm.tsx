@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Check, Gift, ShoppingBag } from 'lucide-react';
 import { AddToCartButton } from './AddToCartButton';
 import { useCart } from '@/lib/cart/CartProvider';
 import type { CartItem } from '@/lib/cart/types';
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
+import { useProductVariantImage } from './ProductVariantImageContext';
 
 type Variant = {
   id: string;
@@ -13,6 +14,8 @@ type Variant = {
   price: number | null;
   stock_quantity: number | null;
   enabled: boolean | null;
+  image_id?: string | null;
+  image_url?: string | null;
 };
 
 type Attribute = {
@@ -288,6 +291,8 @@ function GiftVoucherForm({ product }: { product: Props['product'] }) {
 
 export function ProductForm({ product, attributes, variants }: Props) {
   const { t } = useLanguage();
+  const variantImage = useProductVariantImage();
+  const setVariantActiveImageId = variantImage?.setActiveImageId;
   const [selected, setSelected] = useState<Record<string, string>>({});
 
   const hasVariants = attributes.length > 0 && variants.length > 0;
@@ -335,6 +340,12 @@ export function ProductForm({ product, attributes, variants }: Props) {
   const variantLabel = selectedVariant
     ? Object.values(selected).join(' / ')
     : undefined;
+
+  useEffect(() => {
+    if (selectedVariant?.image_id) {
+      setVariantActiveImageId?.(selectedVariant.image_id);
+    }
+  }, [selectedVariant?.image_id, setVariantActiveImageId]);
 
   if (isVoucherProduct(product.slug)) {
     return <GiftVoucherForm product={product} />;
@@ -411,7 +422,7 @@ export function ProductForm({ product, attributes, variants }: Props) {
           name: product.name,
           price: effectivePrice,
           salePrice: null,
-          image: product.image,
+          image: selectedVariant?.image_url ?? product.image,
           inStock,
           weightGrams: product.weight_grams,
           manageStock: product.manage_stock ?? false,

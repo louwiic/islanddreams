@@ -104,16 +104,25 @@ export async function uploadDemoVideo(
 
 export async function saveProductImages(
   productId: string,
-  images: { url: string; alt: string; isMain: boolean; position: number }[]
+  images: { id?: string; url: string; alt: string; isMain: boolean; position: number }[]
 ) {
   const supabase = createAdminClient();
 
-  // Supprimer les anciennes images
-  await supabase.from('product_images').delete().eq('product_id', productId);
+  const keptIds = images
+    .map((image) => image.id)
+    .filter((id): id is string => Boolean(id));
+
+  let deleteQuery = supabase.from('product_images').delete().eq('product_id', productId);
+  if (keptIds.length > 0) {
+    deleteQuery = deleteQuery.not('id', 'in', `(${keptIds.join(',')})`);
+  }
+  const { error: deleteError } = await deleteQuery;
+  if (deleteError) return { error: deleteError.message };
 
   if (images.length === 0) return { success: true };
 
   const rows = images.map((img) => ({
+    ...(img.id ? { id: img.id } : {}),
     product_id: productId,
     url: img.url,
     alt: img.alt,
@@ -121,7 +130,7 @@ export async function saveProductImages(
     position: img.position,
   }));
 
-  const { error } = await supabase.from('product_images').insert(rows);
+  const { error } = await supabase.from('product_images').upsert(rows);
   if (error) return { error: error.message };
 
   return { success: true };

@@ -51,6 +51,7 @@ export default async function EditProduitPage({ params }: PageProps) {
       sku: v.sku ?? '',
       stock: v.stock_quantity?.toString() ?? '',
       enabled: v.enabled ?? true,
+      imageId: v.image_id ?? null,
     })),
     faqs: product.faqs.map((f) => ({
       id: f.id,

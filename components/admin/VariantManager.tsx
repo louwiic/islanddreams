@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useRef, useState } from 'react';
+import Image from 'next/image';
 import {
   Check,
   ChevronDown,
@@ -26,11 +27,20 @@ export type Variant = {
   sku: string;
   stock: string;
   enabled: boolean;
+  imageId?: string | null;
+};
+
+type VariantImage = {
+  id: string;
+  preview: string;
+  alt: string;
+  isMain: boolean;
 };
 
 type Props = {
   attributes: Attribute[];
   variants: Variant[];
+  images?: VariantImage[];
   onAttributesChange: (attributes: Attribute[]) => void;
   onVariantsChange: (variants: Variant[]) => void;
 };
@@ -103,6 +113,7 @@ function reconcileVariants(attributes: Attribute[], current: Variant[]) {
       sku: '',
       stock: closest?.stock ?? '',
       enabled: closest?.enabled ?? true,
+      imageId: closest?.imageId ?? null,
     };
   });
 }
@@ -118,6 +129,7 @@ function moveItem<T>(items: T[], from: number, to: number) {
 export function VariantManager({
   attributes,
   variants,
+  images = [],
   onAttributesChange,
   onVariantsChange,
 }: Props) {
@@ -268,7 +280,7 @@ export function VariantManager({
 
   const updateVariant = (
     variantId: string,
-    field: 'price' | 'sku' | 'stock',
+    field: 'price' | 'sku' | 'stock' | 'imageId',
     value: string
   ) => {
     onVariantsChange(
@@ -572,7 +584,7 @@ export function VariantManager({
           )}
 
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px]">
+            <table className="w-full min-w-[900px]">
               <thead className="bg-gray-50">
                 <tr className="border-b border-gray-200 text-left text-xs uppercase tracking-wider text-gray-400">
                   <th className="w-12 px-4 py-3 font-medium">
@@ -594,6 +606,7 @@ export function VariantManager({
                   <th className="px-3 py-3 font-medium">Prix</th>
                   <th className="px-3 py-3 font-medium">Stock</th>
                   <th className="px-3 py-3 font-medium">SKU</th>
+                  <th className="px-3 py-3 font-medium">Photo</th>
                   <th className="px-4 py-3 text-right font-medium">État</th>
                 </tr>
               </thead>
@@ -670,6 +683,36 @@ export function VariantManager({
                           placeholder="SKU"
                           className="w-32 rounded-lg border border-gray-200 px-2.5 py-2 font-mono text-xs focus:border-jungle-500 focus:outline-none focus:ring-2 focus:ring-jungle-500/20"
                         />
+                      </td>
+                      <td className="px-3 py-3">
+                        <div className="flex items-center gap-2">
+                          {variant.imageId && images.find((image) => image.id === variant.imageId) ? (
+                            <div className="relative h-10 w-10 overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+                              <Image
+                                src={images.find((image) => image.id === variant.imageId)!.preview}
+                                alt=""
+                                fill
+                                className="object-contain p-0.5"
+                                sizes="40px"
+                              />
+                            </div>
+                          ) : (
+                            <div className="h-10 w-10 rounded-lg border border-dashed border-gray-200 bg-gray-50" />
+                          )}
+                          <select
+                            value={variant.imageId ?? ''}
+                            onChange={(event) => updateVariant(variant.id, 'imageId', event.target.value)}
+                            className="w-40 rounded-lg border border-gray-200 px-2.5 py-2 text-xs focus:border-jungle-500 focus:outline-none focus:ring-2 focus:ring-jungle-500/20"
+                          >
+                            <option value="">Photo par défaut</option>
+                            {images.map((image, index) => (
+                              <option key={image.id} value={image.id}>
+                                {image.isMain ? 'Principale' : `Photo ${index + 1}`}
+                                {image.alt ? ` — ${image.alt}` : ''}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
                       </td>
                       <td className="px-4 py-3 text-right">
                         <button

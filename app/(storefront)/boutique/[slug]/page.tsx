@@ -6,6 +6,7 @@ import { getProductBySlug } from '@/lib/actions/products';
 import { ProductForm } from '@/components/ui/ProductForm';
 import { ProductGallery } from '@/components/ui/ProductGallery';
 import { ProductTabs } from '@/components/ui/ProductTabs';
+import { ProductVariantImageProvider } from '@/components/ui/ProductVariantImageContext';
 import { TranslatedText } from '@/components/i18n/TranslatedText';
 
 type PageProps = {
@@ -80,6 +81,7 @@ export default async function ProductPage({ params }: PageProps) {
   ];
 
   const categoryLabel = CATEGORY_LABELS[product.category ?? 'uncategorized'] ?? product.category;
+  const imageUrlById = new Map(sortedImages.map((image) => [image.id, image.url]));
 
   return (
     <main>
@@ -109,6 +111,7 @@ export default async function ProductPage({ params }: PageProps) {
           </span>
         </nav>
       <div className="max-w-6xl mx-auto">
+        <ProductVariantImageProvider>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
           {/* Images */}
           <div>
@@ -181,12 +184,14 @@ export default async function ProductPage({ params }: PageProps) {
                 variants={product.variants.map((v) => ({
                   ...v,
                   combination: v.combination as Record<string, string>,
+                  image_url: v.image_id ? imageUrlById.get(v.image_id) ?? null : null,
                 }))}
               />
             </div>
 
           </div>
         </div>
+        </ProductVariantImageProvider>
 
         {/* Onglets Description | Galerie | FAQ */}
         <ProductTabs

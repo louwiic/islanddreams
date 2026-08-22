@@ -281,6 +281,7 @@ export function ProductForm({ mode, initialData }: Props) {
         sku: v.sku || undefined,
         stock: v.stock ? parseInt(v.stock) : undefined,
         enabled: v.enabled,
+        imageId: form.images.some((image) => image.id === v.imageId) ? v.imageId : null,
       })),
       metaTitle: form.metaTitle || undefined,
       metaDescription: form.metaDescription || undefined,
@@ -309,7 +310,7 @@ export function ProductForm({ mode, initialData }: Props) {
 
       // Upload + sauvegarde de toutes les images (principale + galerie)
       if (productId) {
-        const uploadedImages: { url: string; alt: string; isMain: boolean; position: number }[] = [];
+        const uploadedImages: { id?: string; url: string; alt: string; isMain: boolean; position: number }[] = [];
 
         for (let i = 0; i < form.images.length; i++) {
           const img = form.images[i];
@@ -328,7 +329,7 @@ export function ProductForm({ mode, initialData }: Props) {
             }
           } else {
             // Image existante (URL déjà dans Supabase)
-            uploadedImages.push({ url: img.preview, alt: img.alt, isMain: img.isMain, position: i });
+            uploadedImages.push({ id: img.id, url: img.preview, alt: img.alt, isMain: img.isMain, position: i });
           }
         }
 
@@ -731,6 +732,7 @@ export function ProductForm({ mode, initialData }: Props) {
             <VariantManager
               attributes={form.attributes}
               variants={form.variants}
+              images={form.images.filter((image) => !image.file)}
               onAttributesChange={(attrs) => update('attributes', attrs)}
               onVariantsChange={(vars) => update('variants', vars)}
             />
