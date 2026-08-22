@@ -6,6 +6,63 @@ import type { Tables, TablesInsert, TablesUpdate } from '@/lib/supabase/types';
 
 export type ProductRow = Tables<'products'>;
 
+type ProductVariantInput = {
+  combination: Record<string, string>;
+  price?: number;
+  sku?: string;
+  stock?: number;
+  enabled: boolean;
+  imageId?: string | null;
+};
+
+function isMissingVariantImageColumn(error: { message?: string; code?: string }) {
+  const message = error.message?.toLocaleLowerCase() ?? '';
+  return (
+    error.code === 'PGRST204' ||
+    message.includes('image_id') ||
+    message.includes('product_variants_image_id')
+  );
+}
+
+async function insertProductVariants(
+  supabase: ReturnType<typeof createAdminClient>,
+  productId: string,
+  variants: ProductVariantInput[]
+) {
+  const rows = variants.map((v) => ({
+    product_id: productId,
+    combination: v.combination,
+    price: v.price ?? null,
+    sku: v.sku || null,
+    stock_quantity: v.stock ?? null,
+    enabled: v.enabled,
+    image_id: v.imageId || null,
+  }));
+
+  if (rows.length === 0) return { success: true };
+
+  const { error } = await supabase.from('product_variants').insert(rows);
+  if (!error) return { success: true };
+
+  if (!isMissingVariantImageColumn(error)) {
+    return { error: error.message };
+  }
+
+  const rowsWithoutImages = rows.map((row) => {
+    const { image_id, ...variantRow } = row;
+    void image_id;
+    return variantRow;
+  });
+  const retry = await supabase.from('product_variants').insert(rowsWithoutImages);
+  if (retry.error) return { error: retry.error.message };
+
+  return {
+    success: true,
+    warning:
+      "La colonne product_variants.image_id n'existe pas encore : les variantes sont sauvegardées sans liaison photo.",
+  };
+}
+
 /* ── Lire tous les produits (admin — inclut brouillons) ──── */
 
 export async function getProducts() {
@@ -128,7 +185,7 @@ export async function createProduct(formData: {
   metaDescription?: string;
   focusKeyword?: string;
   attributes?: { name: string; values: string[] }[];
-  variants?: { combination: Record<string, string>; price?: number; sku?: string; stock?: number; enabled: boolean; imageId?: string | null }[];
+  variants?: ProductVariantInput[];
 }) {
   const supabase = createAdminClient();
 
@@ -180,20 +237,8 @@ export async function createProduct(formData: {
 
   // Variantes
   if (formData.variants && formData.variants.length > 0) {
-    const vars = formData.variants
-      .map((v) => ({
-        product_id: product.id,
-        combination: v.combination,
-        price: v.price ?? null,
-        sku: v.sku || null,
-        stock_quantity: v.stock ?? null,
-        enabled: v.enabled,
-        image_id: v.imageId || null,
-      }));
-
-    if (vars.length > 0) {
-      await supabase.from('product_variants').insert(vars);
-    }
+    const variantsResult = await insertProductVariants(supabase, product.id, formData.variants);
+    if (variantsResult.error) return { error: variantsResult.error };
   }
 
   revalidatePath('/admin/produits');
@@ -224,7 +269,7 @@ export async function updateProduct(
     metaDescription?: string;
     focusKeyword?: string;
     attributes?: { name: string; values: string[] }[];
-    variants?: { combination: Record<string, string>; price?: number; sku?: string; stock?: number; enabled: boolean; imageId?: string | null }[];
+    variants?: ProductVariantInput[];
   }
 ) {
   const supabase = createAdminClient();
@@ -277,19 +322,8 @@ export async function updateProduct(
   // Remplacer variantes
   await supabase.from('product_variants').delete().eq('product_id', id);
   if (formData.variants && formData.variants.length > 0) {
-    const vars = formData.variants
-      .map((v) => ({
-        product_id: id,
-        combination: v.combination,
-        price: v.price ?? null,
-        sku: v.sku || null,
-        stock_quantity: v.stock ?? null,
-        enabled: v.enabled,
-        image_id: v.imageId || null,
-      }));
-    if (vars.length > 0) {
-      await supabase.from('product_variants').insert(vars);
-    }
+    const variantsResult = await insertProductVariants(supabase, id, formData.variants);
+    if (variantsResult.error) return { error: variantsResult.error };
   }
 
   revalidatePath('/admin/produits');
