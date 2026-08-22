@@ -4,6 +4,26 @@ import { sendEmail } from '@/lib/email/send';
 import { abandonedCartReminder } from '@/lib/email/templates';
 
 export const dynamic = 'force-dynamic';
+const MIN_RECOVERY_TOTAL = 10;
+
+type ReminderItem = {
+  name?: string;
+  variantLabel?: string;
+  quantity?: number;
+  image?: string;
+};
+
+function normalizeReminderItems(value: unknown): ReminderItem[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === 'object')
+    .map((item) => ({
+      name: typeof item.name === 'string' ? item.name : undefined,
+      variantLabel: typeof item.variantLabel === 'string' ? item.variantLabel : undefined,
+      quantity: typeof item.quantity === 'number' ? item.quantity : undefined,
+      image: typeof item.image === 'string' ? item.image : undefined,
+    }));
+}
 
 export async function GET(request: NextRequest) {
   const secret = process.env.CRON_SECRET;
@@ -11,7 +31,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
   }
 
-  const db = createAdminClient() as any;
+  const db = createAdminClient();
   const now = new Date();
   const staleClaim = new Date(now.getTime() - 15 * 60 * 1000).toISOString();
   await db
@@ -32,6 +52,7 @@ export async function GET(request: NextRequest) {
     .eq('status', 'active')
     .lte('next_reminder_at', now.toISOString())
     .lt('reminder_count', 2)
+    .gte('cart_total', MIN_RECOVERY_TOTAL)
     .limit(50);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -52,7 +73,7 @@ export async function GET(request: NextRequest) {
     const reminderNumber = Number(cart.reminder_count) + 1;
     const template = abandonedCartReminder({
       name: cart.customer_name,
-      items: cart.items,
+      items: normalizeReminderItems(cart.items),
       total: Number(cart.cart_total),
       token: cart.recovery_token,
       reminderNumber,

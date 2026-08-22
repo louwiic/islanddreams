@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      abandoned_carts: {
+        Row: {
+          cart_total: number
+          completed_at: string | null
+          consent_at: string
+          created_at: string
+          customer_name: string | null
+          email: string
+          expires_at: string
+          id: string
+          items: Json
+          last_reminder_at: string | null
+          next_reminder_at: string | null
+          recovery_token: string
+          reminder_count: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          cart_total?: number
+          completed_at?: string | null
+          consent_at: string
+          created_at?: string
+          customer_name?: string | null
+          email: string
+          expires_at?: string
+          id?: string
+          items?: Json
+          last_reminder_at?: string | null
+          next_reminder_at?: string | null
+          recovery_token?: string
+          reminder_count?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          cart_total?: number
+          completed_at?: string | null
+          consent_at?: string
+          created_at?: string
+          customer_name?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          items?: Json
+          last_reminder_at?: string | null
+          next_reminder_at?: string | null
+          recovery_token?: string
+          reminder_count?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       blog_categories: {
         Row: {
           created_at: string | null

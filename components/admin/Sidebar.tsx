@@ -29,6 +29,7 @@ import {
   ClipboardList,
   Gift,
   ReceiptText,
+  RotateCcw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -46,6 +47,7 @@ const navigation: (NavItem | NavGroup)[] = [
       { name: 'Textile', href: '/admin/textile', icon: Shirt },
       { name: 'Commandes', href: '/admin/commandes', icon: ShoppingCart },
       { name: 'Clients', href: '/admin/clients', icon: Users },
+      { name: 'Paniers abandonnés', href: '/admin/paniers-abandonnes', icon: RotateCcw },
       { name: 'Bons d’achat', href: '/admin/bons-achat', icon: Gift },
       { name: 'Codes promo', href: '/admin/codes-promo', icon: Tag },
       { name: 'Livraison', href: '/admin/livraison', icon: Truck },

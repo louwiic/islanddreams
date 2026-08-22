@@ -11,6 +11,7 @@ const pageTitles: Record<string, string> = {
   '/admin/produits/import': 'Importer des produits',
   '/admin/commandes': 'Commandes',
   '/admin/clients': 'Clients',
+  '/admin/paniers-abandonnes': 'Paniers abandonnés',
   '/admin/bons-achat': 'Bons d’achat',
   '/admin/codes-promo': 'Codes promo',
   '/admin/livraison': 'Livraison',

@@ -76,14 +76,22 @@ export function newsletterWelcome(email: string) {
   };
 }
 
-export function abandonedCartReminder(data: { name?: string | null; items: Array<{ name?: string; quantity?: number }>; total: number; token: string; reminderNumber: number }) {
+export function abandonedCartReminder(data: { name?: string | null; items: Array<{ name?: string; variantLabel?: string; quantity?: number; image?: string }>; total: number; token: string; reminderNumber: number }) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.islanddreams.re';
   const recoveryUrl = `${siteUrl.replace(/\/$/, '')}/panier?recover=${encodeURIComponent(data.token)}`;
   const unsubscribe = `${siteUrl.replace(/\/$/, '')}/api/cart-recovery/unsubscribe?token=${encodeURIComponent(data.token)}`;
-  const names = (data.items || []).slice(0, 4).map((item) => `${escapeHtml(item.name || 'Article')} × ${Number(item.quantity) || 1}`).join('<br>');
+  const itemRows = (data.items || []).slice(0, 4).map((item) => {
+    const image = item.image
+      ? `<td style="width:58px;padding:0 12px 12px 0;vertical-align:top;"><img src="${escapeHtml(item.image)}" alt="" width="58" height="58" style="display:block;width:58px;height:58px;object-fit:cover;border-radius:10px;border:1px solid #eee;background:#fff;"></td>`
+      : '';
+    return `<tr>${image}<td style="padding:0 0 12px;vertical-align:top;"><strong style="color:#1a2e3b;">${escapeHtml(item.name || 'Article')}</strong>${item.variantLabel ? `<br><span style="color:#777;font-size:13px;">${escapeHtml(item.variantLabel)}</span>` : ''}<br><span style="color:#777;font-size:13px;">Quantité : ${Number(item.quantity) || 1}</span></td></tr>`;
+  }).join('');
+  const intro = data.reminderNumber === 1
+    ? 'Vous aviez commencé une commande sur Island Dreams. Votre sélection est encore disponible.'
+    : 'Dernier rappel : votre panier expire bientôt, vous pouvez encore le reprendre en un clic.';
   return {
-    subject: data.reminderNumber === 1 ? 'Votre panier Island Dreams vous attend 🌴' : 'Dernier rappel pour votre panier Island Dreams',
-    html: wrap(`<h2 style="color:#1a2e3b;font-size:20px;margin:0 0 12px;">${data.reminderNumber === 1 ? 'Votre panier est toujours là' : 'Un dernier petit rappel'}</h2><p style="color:#555;line-height:1.6;">Bonjour ${escapeHtml(data.name || '')}, vous aviez sélectionné :</p><div style="background:#f7f7f7;padding:16px;border-radius:8px;line-height:1.8;color:#333;">${names}<br><strong>Total estimé : ${data.total.toFixed(2)} €</strong></div><p style="text-align:center;margin:24px 0;"><a href="${recoveryUrl}" style="display:inline-block;background:#2a5a3a;color:#fff;padding:13px 22px;border-radius:8px;text-decoration:none;font-weight:bold;">Reprendre mon panier</a></p><p style="font-size:11px;color:#999;text-align:center;">Vous avez demandé à recevoir ce rappel. <a href="${unsubscribe}" style="color:#777;">Ne plus recevoir de rappel pour ce panier</a>.</p>`),
+    subject: data.reminderNumber === 1 ? 'Votre panier Island Dreams vous attend' : 'Dernier rappel pour votre panier Island Dreams',
+    html: wrap(`<h2 style="color:#1a2e3b;font-size:22px;margin:0 0 12px;">${data.reminderNumber === 1 ? 'Votre panier est toujours là' : 'Un dernier petit rappel'}</h2><p style="color:#555;line-height:1.6;margin:0 0 18px;">Bonjour ${escapeHtml(data.name || '')}, ${intro}</p><div style="background:#f7f7f7;padding:16px;border-radius:12px;color:#333;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">${itemRows}</table><div style="border-top:1px solid #e7e7e7;padding-top:12px;margin-top:2px;"><strong>Total estimé : ${data.total.toFixed(2)} €</strong></div></div><p style="text-align:center;margin:24px 0;"><a href="${recoveryUrl}" style="display:inline-block;background:#0D6B75;color:#fff;padding:13px 22px;border-radius:999px;text-decoration:none;font-weight:bold;">Reprendre mon panier</a></p><p style="font-size:11px;color:#999;text-align:center;">Vous avez demandé à recevoir ce rappel. <a href="${unsubscribe}" style="color:#777;">Ne plus recevoir de rappel pour ce panier</a>.</p>`),
   };
 }
 
