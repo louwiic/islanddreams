@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Check, Gift, ShoppingBag } from 'lucide-react';
 import { AddToCartButton } from './AddToCartButton';
 import { useCart } from '@/lib/cart/CartProvider';
@@ -39,6 +39,8 @@ type Props = {
   };
   attributes: Attribute[];
   variants: Variant[];
+  activeImageId?: string | null;
+  onVariantImageSelect?: (imageId: string | null) => void;
 };
 
 function combinationKey(combo: Record<string, string>) {
@@ -289,11 +291,17 @@ function GiftVoucherForm({ product }: { product: Props['product'] }) {
   );
 }
 
-export function ProductForm({ product, attributes, variants }: Props) {
+export function ProductForm({
+  product,
+  attributes,
+  variants,
+  activeImageId: controlledActiveImageId,
+  onVariantImageSelect,
+}: Props) {
   const { t } = useLanguage();
   const variantImage = useProductVariantImage();
   const setVariantActiveImageId = variantImage?.setActiveImageId;
-  const activeImageId = variantImage?.activeImageId;
+  const activeImageId = controlledActiveImageId ?? variantImage?.activeImageId ?? null;
   const [selected, setSelected] = useState<Record<string, string>>({});
 
   const hasVariants = attributes.length > 0 && variants.length > 0;
@@ -332,8 +340,13 @@ export function ProductForm({ product, attributes, variants }: Props) {
       : (product.in_stock ?? true)
     : (product.in_stock ?? true);
 
+  const setActiveImageId = useCallback((imageId: string | null) => {
+    onVariantImageSelect?.(imageId);
+    setVariantActiveImageId?.(imageId);
+  }, [onVariantImageSelect, setVariantActiveImageId]);
+
   const selectValue = (attrName: string, value: string) => {
-    setVariantActiveImageId?.(null);
+    setActiveImageId(null);
     setSelected((prev) => {
       const base = imageSelectedVariant
         ? (imageSelectedVariant.combination as Record<string, string>)
@@ -355,9 +368,9 @@ export function ProductForm({ product, attributes, variants }: Props) {
 
   useEffect(() => {
     if (selectedVariant?.image_id) {
-      setVariantActiveImageId?.(selectedVariant.image_id);
+      setActiveImageId(selectedVariant.image_id);
     }
-  }, [selectedVariant?.image_id, setVariantActiveImageId]);
+  }, [selectedVariant?.image_id, setActiveImageId]);
 
   if (isVoucherProduct(product.slug)) {
     return <GiftVoucherForm product={product} />;

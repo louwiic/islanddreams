@@ -17,18 +17,23 @@ type GalleryImage = {
 export function ProductGallery({
   images,
   productName,
+  activeImageId: controlledActiveImageId,
+  onImageSelect,
 }: {
   images: GalleryImage[];
   productName: string;
+  activeImageId?: string | null;
+  onImageSelect?: (imageId: string | null) => void;
 }) {
   const { t } = useLanguage();
   const variantImage = useProductVariantImage();
   const setVariantActiveImageId = variantImage?.setActiveImageId;
+  const activeImageId = controlledActiveImageId ?? variantImage?.activeImageId ?? null;
   const [activeIndex, setActiveIndex] = useState(0);
   const [zoomed, setZoomed] = useState(false);
 
-  const variantImageIndex = variantImage?.activeImageId
-    ? images.findIndex((image) => image.id === variantImage.activeImageId)
+  const variantImageIndex = activeImageId
+    ? images.findIndex((image) => image.id === activeImageId)
     : -1;
   const displayIndex = variantImageIndex >= 0 ? variantImageIndex : activeIndex;
   const current = images[displayIndex];
@@ -36,10 +41,12 @@ export function ProductGallery({
   const goTo = useCallback(
     (index: number) => {
       const nextIndex = (index + images.length) % images.length;
-      setVariantActiveImageId?.(images[nextIndex]?.id ?? null);
+      const nextImageId = images[nextIndex]?.id ?? null;
+      onImageSelect?.(nextImageId);
+      setVariantActiveImageId?.(nextImageId);
       setActiveIndex(nextIndex);
     },
-    [images, setVariantActiveImageId]
+    [images, onImageSelect, setVariantActiveImageId]
   );
 
   if (images.length === 0) {

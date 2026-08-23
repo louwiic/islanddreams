@@ -3,10 +3,8 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { getProductBySlug } from '@/lib/actions/products';
-import { ProductForm } from '@/components/ui/ProductForm';
-import { ProductGallery } from '@/components/ui/ProductGallery';
 import { ProductTabs } from '@/components/ui/ProductTabs';
-import { ProductVariantImageProvider } from '@/components/ui/ProductVariantImageContext';
+import { ProductVariantSync } from '@/components/ui/ProductVariantSync';
 import { TranslatedText } from '@/components/i18n/TranslatedText';
 
 type PageProps = {
@@ -111,14 +109,27 @@ export default async function ProductPage({ params }: PageProps) {
           </span>
         </nav>
       <div className="max-w-6xl mx-auto">
-        <ProductVariantImageProvider>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
-          {/* Images */}
-          <div>
-            <ProductGallery images={sortedImages} productName={product.name} />
-          </div>
-
-          {/* Infos */}
+        <ProductVariantSync
+          images={sortedImages}
+          product={{
+            id: product.id,
+            slug: product.slug,
+            name: product.name,
+            price: product.price,
+            sale_price: product.sale_price,
+            in_stock: product.in_stock,
+            image: mainImage?.url,
+            weight_grams: product.weight_grams,
+            manage_stock: product.manage_stock,
+            stock_quantity: product.stock_quantity,
+          }}
+          attributes={product.attributes}
+          variants={product.variants.map((v) => ({
+            ...v,
+            combination: v.combination as Record<string, string>,
+            image_url: v.image_id ? imageUrlById.get(v.image_id) ?? null : null,
+          }))}
+        >
           <div>
             <p className="text-sm text-gray-500 uppercase tracking-wider mb-2">
               {CATEGORY_LABELS[product.category ?? 'uncategorized']}
@@ -165,33 +176,8 @@ export default async function ProductPage({ params }: PageProps) {
               )}
             </div>
 
-            {/* Variantes + CTA */}
-            <div className="mt-6">
-              <ProductForm
-                product={{
-                  id: product.id,
-                  slug: product.slug,
-                  name: product.name,
-                  price: product.price,
-                  sale_price: product.sale_price,
-                  in_stock: product.in_stock,
-                  image: mainImage?.url,
-                  weight_grams: product.weight_grams,
-                  manage_stock: product.manage_stock,
-                  stock_quantity: product.stock_quantity,
-                }}
-                attributes={product.attributes}
-                variants={product.variants.map((v) => ({
-                  ...v,
-                  combination: v.combination as Record<string, string>,
-                  image_url: v.image_id ? imageUrlById.get(v.image_id) ?? null : null,
-                }))}
-              />
-            </div>
-
           </div>
-        </div>
-        </ProductVariantImageProvider>
+        </ProductVariantSync>
 
         {/* Onglets Description | Galerie | FAQ */}
         <ProductTabs
