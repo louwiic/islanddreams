@@ -35,10 +35,11 @@ export function ProductGallery({
 
   const goTo = useCallback(
     (index: number) => {
-      setVariantActiveImageId?.(null);
-      setActiveIndex((index + images.length) % images.length);
+      const nextIndex = (index + images.length) % images.length;
+      setVariantActiveImageId?.(images[nextIndex]?.id ?? null);
+      setActiveIndex(nextIndex);
     },
-    [images.length, setVariantActiveImageId]
+    [images, setVariantActiveImageId]
   );
 
   if (images.length === 0) {

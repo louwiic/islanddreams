@@ -293,14 +293,22 @@ export function ProductForm({ product, attributes, variants }: Props) {
   const { t } = useLanguage();
   const variantImage = useProductVariantImage();
   const setVariantActiveImageId = variantImage?.setActiveImageId;
+  const activeImageId = variantImage?.activeImageId;
   const [selected, setSelected] = useState<Record<string, string>>({});
 
   const hasVariants = attributes.length > 0 && variants.length > 0;
+  const imageSelectedVariant =
+    hasVariants && activeImageId
+      ? variants.find((variant) => variant.image_id === activeImageId)
+      : null;
+  const currentSelection = imageSelectedVariant
+    ? (imageSelectedVariant.combination as Record<string, string>)
+    : selected;
 
   // Trouver la variante sélectionnée
   const selectedVariant = hasVariants
     ? variants.find(
-        (v) => combinationKey(v.combination as Record<string, string>) === combinationKey(selected),
+        (v) => combinationKey(v.combination as Record<string, string>) === combinationKey(currentSelection),
       )
     : null;
 
@@ -309,7 +317,7 @@ export function ProductForm({ product, attributes, variants }: Props) {
 
   // Tous les attributs ont-ils une valeur sélectionnée ?
   const allSelected = hasVariants
-    ? attributes.every((a) => selected[a.name] !== undefined)
+    ? attributes.every((a) => currentSelection[a.name] !== undefined)
     : true;
 
   // La variante trouvée est-elle dispo ?
@@ -325,12 +333,16 @@ export function ProductForm({ product, attributes, variants }: Props) {
     : (product.in_stock ?? true);
 
   const selectValue = (attrName: string, value: string) => {
+    setVariantActiveImageId?.(null);
     setSelected((prev) => {
-      if (prev[attrName] !== value) {
-        return { ...prev, [attrName]: value };
+      const base = imageSelectedVariant
+        ? (imageSelectedVariant.combination as Record<string, string>)
+        : prev;
+      if (base[attrName] !== value) {
+        return { ...base, [attrName]: value };
       }
 
-      const next = { ...prev };
+      const next = { ...base };
       delete next[attrName];
       return next;
     });
@@ -338,7 +350,7 @@ export function ProductForm({ product, attributes, variants }: Props) {
 
   // Libellé variante pour le panier
   const variantLabel = selectedVariant
-    ? Object.values(selected).join(' / ')
+    ? Object.values(currentSelection).join(' / ')
     : undefined;
 
   useEffect(() => {
@@ -360,15 +372,15 @@ export function ProductForm({ product, attributes, variants }: Props) {
             <div key={attr.id}>
               <p className="text-sm font-medium text-ink mb-2">
                 {attr.name}
-                {selected[attr.name] && (
-                  <span className="ml-2 font-normal text-ink/50">{selected[attr.name]}</span>
+                {currentSelection[attr.name] && (
+                  <span className="ml-2 font-normal text-ink/50">{currentSelection[attr.name]}</span>
                 )}
               </p>
               <div className="flex flex-wrap gap-2">
                 {attr.values.map((val) => {
-                  const isActive = selected[attr.name] === val;
+                  const isActive = currentSelection[attr.name] === val;
                   // Vérifier si cette valeur est dispo avec les autres sélections courantes
-                  const testCombo = { ...selected, [attr.name]: val };
+                  const testCombo = { ...currentSelection, [attr.name]: val };
                   const matchingVariant = variants.find(
                     (v) =>
                       Object.entries(testCombo).every(
