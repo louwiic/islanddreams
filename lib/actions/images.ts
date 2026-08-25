@@ -133,14 +133,22 @@ export async function saveProductImages(
 
   if (rows.length === 0) return { success: true, images: [] };
 
-  const { error } = await supabase.from('product_images').upsert(
-    rows.map(({ clientId, ...row }) => {
-      void clientId;
-      return row;
-    }),
-    { onConflict: 'id' }
-  );
-  if (error) return { error: error.message };
+  const rowsForDb = rows.map(({ clientId, ...row }) => {
+    void clientId;
+    return row;
+  });
+  const existingRows = rowsForDb.filter((row) => images.some((img) => img.id === row.id && isUuid(img.id)));
+  const newRows = rowsForDb.filter((row) => !existingRows.some((existing) => existing.id === row.id));
+
+  if (existingRows.length > 0) {
+    const { error } = await supabase.from('product_images').upsert(existingRows, { onConflict: 'id' });
+    if (error) return { error: error.message };
+  }
+
+  if (newRows.length > 0) {
+    const { error } = await supabase.from('product_images').insert(newRows);
+    if (error) return { error: error.message };
+  }
 
   return {
     success: true,
