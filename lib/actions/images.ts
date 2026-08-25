@@ -104,13 +104,25 @@ export async function uploadDemoVideo(
 
 export async function saveProductImages(
   productId: string,
-  images: { id?: string; url: string; alt: string; isMain: boolean; position: number }[]
+  images: { id?: string; clientId?: string; url: string; alt: string; isMain: boolean; position: number }[]
 ) {
   const supabase = createAdminClient();
 
-  const keptIds = images
-    .map((image) => image.id)
-    .filter((id): id is string => Boolean(id));
+  const rows = images.map((img) => {
+    const id = isUuid(img.id) ? img.id : crypto.randomUUID();
+
+    return {
+      id,
+      clientId: img.clientId ?? img.id,
+      product_id: productId,
+      url: img.url,
+      alt: img.alt,
+      is_main: img.isMain,
+      position: img.position,
+    };
+  });
+
+  const keptIds = rows.map((image) => image.id);
 
   let deleteQuery = supabase.from('product_images').delete().eq('product_id', productId);
   if (keptIds.length > 0) {
@@ -119,21 +131,35 @@ export async function saveProductImages(
   const { error: deleteError } = await deleteQuery;
   if (deleteError) return { error: deleteError.message };
 
-  if (images.length === 0) return { success: true };
+  if (rows.length === 0) return { success: true, images: [] };
 
-  const rows = images.map((img) => ({
-    ...(img.id ? { id: img.id } : {}),
-    product_id: productId,
-    url: img.url,
-    alt: img.alt,
-    is_main: img.isMain,
-    position: img.position,
-  }));
-
-  const { error } = await supabase.from('product_images').upsert(rows);
+  const { error } = await supabase.from('product_images').upsert(
+    rows.map(({ clientId, ...row }) => {
+      void clientId;
+      return row;
+    }),
+    { onConflict: 'id' }
+  );
   if (error) return { error: error.message };
 
-  return { success: true };
+  return {
+    success: true,
+    images: rows.map(({ clientId, id, url, alt, is_main, position }) => ({
+      clientId,
+      id,
+      url,
+      alt,
+      isMain: is_main,
+      position,
+    })),
+  };
+}
+
+function isUuid(value?: string) {
+  return Boolean(
+    value &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
+  );
 }
 
 type ProductImageWithProduct = {

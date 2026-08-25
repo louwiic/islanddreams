@@ -63,6 +63,22 @@ async function insertProductVariants(
   };
 }
 
+export async function saveProductVariants(productId: string, variants: ProductVariantInput[]) {
+  const supabase = createAdminClient();
+
+  const { error: deleteError } = await supabase
+    .from('product_variants')
+    .delete()
+    .eq('product_id', productId);
+  if (deleteError) return { error: deleteError.message };
+
+  const result = await insertProductVariants(supabase, productId, variants);
+  if (result.error) return { error: result.error };
+
+  revalidatePath('/admin/produits');
+  return { success: true, warning: result.warning };
+}
+
 /* ── Lire tous les produits (admin — inclut brouillons) ──── */
 
 export async function getProducts() {

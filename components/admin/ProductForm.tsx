@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Save, Eye, Trash2, Copy, ChevronDown, Sparkles, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { slugify, type ProductCategory, type ProductStatus } from '@/lib/types/product';
-import { createProduct, updateProduct, deleteProduct, saveProductFaqs } from '@/lib/actions/products';
+import { createProduct, updateProduct, deleteProduct, saveProductFaqs, saveProductVariants } from '@/lib/actions/products';
 import { uploadProductImage, saveProductImages } from '@/lib/actions/images';
 import { ImageUploadZone, type ImageItem } from './ImageUploadZone';
 import { VariantManager, type Attribute, type Variant } from './VariantManager';
@@ -146,6 +146,13 @@ function mergeUnique(current: string[], incoming?: string[]) {
   return uniqueTags([...(current || []), ...(incoming || [])]);
 }
 
+function isUuid(value?: string | null) {
+  return Boolean(
+    value &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
+  );
+}
+
 /* ── Section collapsible ─────────────────────────────────── */
 
 function Section({
@@ -251,6 +258,7 @@ export function ProductForm({ mode, initialData }: Props) {
     const salePriceNum = form.salePrice
       ? parseFloat(form.salePrice.replace(',', '.')) || undefined
       : undefined;
+    const persistedImageIds = new Set(form.images.map((image) => image.id).filter(isUuid));
 
     const payload = {
       name: form.name.trim(),
@@ -281,7 +289,7 @@ export function ProductForm({ mode, initialData }: Props) {
         sku: v.sku || undefined,
         stock: v.stock ? parseInt(v.stock) : undefined,
         enabled: v.enabled,
-        imageId: form.images.some((image) => image.id === v.imageId) ? v.imageId : null,
+        imageId: persistedImageIds.has(v.imageId ?? '') ? v.imageId : null,
       })),
       metaTitle: form.metaTitle || undefined,
       metaDescription: form.metaDescription || undefined,
@@ -310,7 +318,7 @@ export function ProductForm({ mode, initialData }: Props) {
 
       // Upload + sauvegarde de toutes les images (principale + galerie)
       if (productId) {
-        const uploadedImages: { id?: string; url: string; alt: string; isMain: boolean; position: number }[] = [];
+        const uploadedImages: { id?: string; clientId?: string; url: string; alt: string; isMain: boolean; position: number }[] = [];
 
         for (let i = 0; i < form.images.length; i++) {
           const img = form.images[i];
@@ -323,13 +331,13 @@ export function ProductForm({ mode, initialData }: Props) {
               fd
             );
             if (url) {
-              uploadedImages.push({ url, alt: img.alt, isMain: img.isMain, position: i });
+              uploadedImages.push({ clientId: img.id, url, alt: img.alt, isMain: img.isMain, position: i });
             } else if (uploadError) {
               console.warn('Upload failed:', uploadError);
             }
           } else {
             // Image existante (URL déjà dans Supabase)
-            uploadedImages.push({ id: img.id, url: img.preview, alt: img.alt, isMain: img.isMain, position: i });
+            uploadedImages.push({ id: img.id, clientId: img.id, url: img.preview, alt: img.alt, isMain: img.isMain, position: i });
           }
         }
 
@@ -338,6 +346,65 @@ export function ProductForm({ mode, initialData }: Props) {
           setError(saveImagesResult.error);
           setSaving(false);
           return;
+        }
+
+        const savedImages = (saveImagesResult.images ?? []).filter(
+          (image): image is {
+            clientId: string | undefined;
+            id: string;
+            url: string;
+            alt: string;
+            isMain: boolean;
+            position: number;
+          } => Boolean(image.id)
+        );
+        const imageIdByClientId = new Map(
+          savedImages
+            .filter((image) => image.clientId)
+            .map((image) => [image.clientId!, image.id])
+        );
+        const savedImageIds = new Set(savedImages.map((image) => image.id));
+        const finalVariants = form.variants.map((v) => {
+          const imageId = v.imageId
+            ? imageIdByClientId.get(v.imageId) ?? (savedImageIds.has(v.imageId) ? v.imageId : null)
+            : null;
+
+          return {
+            combination: v.combination,
+            price: v.price ? parseFloat(v.price.replace(',', '.')) : undefined,
+            sku: v.sku || undefined,
+            stock: v.stock ? parseInt(v.stock) : undefined,
+            enabled: v.enabled,
+            imageId,
+          };
+        });
+        const saveVariantsResult = await saveProductVariants(productId, finalVariants);
+        if (saveVariantsResult.error) {
+          setError(saveVariantsResult.error);
+          setSaving(false);
+          return;
+        }
+
+        if (savedImages.length > 0) {
+          setForm((prev) => ({
+            ...prev,
+            images: prev.images.map((image) => {
+              const saved = savedImages.find((item) => item.clientId === image.id || item.id === image.id);
+              if (!saved) return image;
+              return {
+                ...image,
+                id: saved.id,
+                preview: saved.url,
+                file: undefined,
+              };
+            }),
+            variants: prev.variants.map((variant) => ({
+              ...variant,
+              imageId: variant.imageId
+                ? imageIdByClientId.get(variant.imageId) ?? (isUuid(variant.imageId) ? variant.imageId : null)
+                : null,
+            })),
+          }));
         }
 
         // Save FAQs
