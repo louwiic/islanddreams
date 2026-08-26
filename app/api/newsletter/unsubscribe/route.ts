@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { verifyUnsubscribeToken } from '@/lib/newsletter/token';
 
-const admin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-);
-
 export async function GET(req: NextRequest) {
+  const admin = createAdminClient();
   const email = req.nextUrl.searchParams.get('email');
   const token = req.nextUrl.searchParams.get('token');
 

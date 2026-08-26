@@ -1,10 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const admin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-);
+import { createAdminClient } from '@/lib/supabase/admin';
 
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -23,7 +18,7 @@ function isActiveDateRange(startDate: string, endDate: string) {
   return (!startDate || startDate <= today) && (!endDate || endDate >= today);
 }
 
-async function getActiveContest() {
+async function getActiveContest(admin: ReturnType<typeof createAdminClient>) {
   const { data } = await admin
     .from('shop_settings')
     .select('key, value')
@@ -58,6 +53,7 @@ async function getActiveContest() {
 }
 
 export async function POST(req: NextRequest) {
+  const admin = createAdminClient();
   const body = await req.json().catch(() => null);
   const email = String(body?.email || '').trim().toLowerCase();
   const answer = String(body?.answer || '').trim();
@@ -71,7 +67,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Tu dois accepter les conditions de participation.' }, { status: 400 });
   }
 
-  const contest = await getActiveContest();
+  const contest = await getActiveContest(admin);
   if (!contest) {
     return NextResponse.json({ error: 'Ce jeu concours n’est plus actif.' }, { status: 400 });
   }

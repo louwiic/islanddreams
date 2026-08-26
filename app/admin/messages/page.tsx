@@ -1,13 +1,9 @@
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { Mail, Phone, Clock, CheckCheck } from 'lucide-react';
 import { MarkReadButton, DeleteMessageButton } from './MarkReadButton';
 
-const admin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-);
-
 export default async function MessagesPage() {
+  const admin = createAdminClient();
   const { data: messages } = await admin
     .from('contact_messages')
     .select('*')
@@ -85,10 +81,12 @@ export default async function MessagesPage() {
                 <div className="flex items-center gap-2 shrink-0">
                   <div className="flex items-center gap-1 text-[11px] text-gray-400">
                     <Clock size={11} />
-                    {new Date(msg.created_at).toLocaleDateString('fr-FR', {
-                      day: 'numeric', month: 'short', year: 'numeric',
-                      hour: '2-digit', minute: '2-digit',
-                    })}
+                    {msg.created_at
+                      ? new Date(msg.created_at).toLocaleDateString('fr-FR', {
+                          day: 'numeric', month: 'short', year: 'numeric',
+                          hour: '2-digit', minute: '2-digit',
+                        })
+                      : 'Date inconnue'}
                   </div>
                 </div>
               </div>

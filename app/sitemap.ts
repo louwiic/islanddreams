@@ -1,48 +1,60 @@
 import type { MetadataRoute } from 'next';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { createClient } from '@supabase/supabase-js';
+import type { Database } from '@/lib/supabase/types';
 
 const BASE_URL = 'https://www.islanddreams.re';
 
+function getSupabaseForSitemap() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url || !anonKey) return null;
+  return createClient<Database>(url, anonKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const supabase = createAdminClient();
+  const supabase = getSupabaseForSitemap();
+  let productUrls: MetadataRoute.Sitemap = [];
+  let blogUrls: MetadataRoute.Sitemap = [];
 
-  // Produits publiés
-  const { data: products } = await supabase
-    .from('products')
-    .select('slug, updated_at')
-    .eq('status', 'publish')
-    .order('updated_at', { ascending: false });
+  if (supabase) {
+    // Produits publiés
+    const { data: products } = await supabase
+      .from('products')
+      .select('slug, updated_at')
+      .eq('status', 'publish')
+      .order('updated_at', { ascending: false });
 
-  // Catégories
-  const { data: categories } = await supabase
-    .from('categories')
-    .select('slug, updated_at');
+    // Blog
+    const { data: blogPosts } = await supabase
+      .from('blog_posts')
+      .select('slug, updated_at')
+      .eq('status', 'publish')
+      .order('published_at', { ascending: false });
 
-  // Blog
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: blogPosts } = await supabase
-    .from('blog_posts')
-    .select('slug, updated_at')
-    .eq('status', 'publish')
-    .order('published_at', { ascending: false });
+    productUrls = (products ?? []).map((p) => ({
+      url: `${BASE_URL}/boutique/${p.slug}`,
+      lastModified: p.updated_at ? new Date(p.updated_at) : new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
+    }));
 
-  const productUrls = (products ?? []).map((p) => ({
-    url: `${BASE_URL}/boutique/${p.slug}`,
-    lastModified: p.updated_at ? new Date(p.updated_at) : new Date(),
-    changeFrequency: 'weekly' as const,
-    priority: 0.8,
-  }));
+    blogUrls = (blogPosts ?? []).map((p) => ({
+      url: `${BASE_URL}/blog/${p.slug}`,
+      lastModified: p.updated_at ? new Date(p.updated_at) : new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    }));
+  }
 
   // Les URLs de catégories sont des filtres qui canonicalisent vers /boutique
   // — ne pas les inclure dans le sitemap (signaux contradictoires)
   const categoryUrls: MetadataRoute.Sitemap = [];
-
-  const blogUrls = (blogPosts ?? []).map((p) => ({
-    url: `${BASE_URL}/blog/${p.slug}`,
-    lastModified: p.updated_at ? new Date(p.updated_at) : new Date(),
-    changeFrequency: 'weekly' as const,
-    priority: 0.7,
-  }));
 
   const staticPages = [
     { path: '/blog', priority: 0.8 },

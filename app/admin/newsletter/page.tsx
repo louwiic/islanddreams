@@ -1,14 +1,10 @@
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { Mail, Users, UserX, Clock } from 'lucide-react';
 import Link from 'next/link';
 import { DeleteSubscriberButton, ExportCsvButton } from './NewsletterActions';
 
-const admin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-);
-
 export default async function NewsletterPage() {
+  const admin = createAdminClient();
   const { data: subscribers } = await admin
     .from('newsletter_subscribers')
     .select('*')
@@ -97,11 +93,13 @@ export default async function NewsletterPage() {
                   <td className="px-5 py-3 hidden sm:table-cell">
                     <div className="flex items-center gap-1 text-xs text-gray-400">
                       <Clock size={12} />
-                      {new Date(sub.subscribed_at).toLocaleDateString('fr-FR', {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric',
-                      })}
+                      {sub.subscribed_at
+                        ? new Date(sub.subscribed_at).toLocaleDateString('fr-FR', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                          })
+                        : 'Date inconnue'}
                     </div>
                   </td>
                   <td className="px-5 py-3">

@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const admin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-);
+import { createAdminClient } from '@/lib/supabase/admin';
 
 // GET — liste des abonnés
 export async function GET() {
+  const admin = createAdminClient();
   const { data, error } = await admin
     .from('newsletter_subscribers')
     .select('*')
@@ -22,6 +18,7 @@ export async function GET() {
 
 // DELETE — supprimer un abonné
 export async function DELETE(req: NextRequest) {
+  const admin = createAdminClient();
   const { id } = await req.json();
 
   if (!id) {

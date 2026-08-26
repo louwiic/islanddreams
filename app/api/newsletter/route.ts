@@ -1,17 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { sendResendEmail, addContactToAudience } from '@/lib/email/resend';
 import { newsletterWelcome } from '@/lib/email/templates';
 
 const PROMO_CODE = 'BIENVENUE10'; // À créer dans Stripe dashboard (10% off)
 const NEWSLETTER_BCC_EMAIL = process.env.NEWSLETTER_BCC_EMAIL || 'islanddreams974@gmail.com';
 
-const admin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-);
-
 export async function POST(req: NextRequest) {
+  const admin = createAdminClient();
   const { email } = await req.json();
 
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
