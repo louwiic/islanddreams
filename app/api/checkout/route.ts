@@ -418,6 +418,13 @@ export async function POST(req: NextRequest) {
         if (validFrom && !Number.isNaN(validFrom.getTime()) && validFrom.getTime() > Date.now()) {
           return NextResponse.json({ error: 'Ce code promo n’est pas encore actif.' }, { status: 400 });
         }
+        const minimumAmount = Number(promotion.restrictions?.minimum_amount || 0) / 100;
+        if (minimumAmount > 0 && validatedSubtotal < minimumAmount) {
+          return NextResponse.json(
+            { error: `Ce code promo est valable à partir de ${minimumAmount.toFixed(2)} € d’articles dans le panier.` },
+            { status: 400 }
+          );
+        }
         discounts = [{ promotion_code: promotion.id }];
       } else {
         return NextResponse.json({ error: 'Code promo invalide ou expiré.' }, { status: 400 });

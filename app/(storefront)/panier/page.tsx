@@ -87,9 +87,10 @@ export default function PanierPage() {
   const [checkingOut, setCheckingOut] = useState(false);
   const [promoCode, setPromoCode] = useState('');
   const [promoEmail, setPromoEmail] = useState('');
-  const [promoStatus, setPromoStatus] = useState<'idle' | 'valid' | 'invalid' | 'already_used' | 'not_subscribed' | 'loading'>('idle');
+  const [promoStatus, setPromoStatus] = useState<'idle' | 'valid' | 'invalid' | 'already_used' | 'not_subscribed' | 'minimum_amount' | 'loading'>('idle');
   const [promoLabel, setPromoLabel] = useState('');
   const [promoDiscount, setPromoDiscount] = useState<{ percentOff?: number; amountOff?: number } | null>(null);
+  const [promoMinimumAmount, setPromoMinimumAmount] = useState<number | null>(null);
   const [giftOffer, setGiftOffer] = useState<GiftOffer | null>(null);
   const [cartReminderConsent, setCartReminderConsent] = useState(false);
   const [recoveryToken, setRecoveryToken] = useState('');
@@ -103,10 +104,15 @@ export default function PanierPage() {
   const shippingCost = shippingOptions
     ?.flatMap((o) => o.methods)
     .find((m) => m.id === selectedMethod)?.cost ?? 0;
+  const promoBelowMinimum =
+    promoStatus === 'valid' &&
+    promoMinimumAmount !== null &&
+    total < promoMinimumAmount;
+  const effectivePromoStatus = promoBelowMinimum ? 'minimum_amount' : promoStatus;
 
   // Calcul de la réduction
   let discountAmount = 0;
-  if (promoStatus === 'valid' && promoDiscount) {
+  if (effectivePromoStatus === 'valid' && promoDiscount) {
     if (promoDiscount.percentOff) {
       discountAmount = total * (promoDiscount.percentOff / 100);
     } else if (promoDiscount.amountOff) {
@@ -213,8 +219,8 @@ export default function PanierPage() {
         postalCode,
         catalogSubtotal: total,
         shipping: shippingCost,
-        discountPercent: promoStatus === 'valid' ? promoDiscount?.percentOff : 0,
-        discountAmount: promoStatus === 'valid' ? promoDiscount?.amountOff : 0,
+        discountPercent: effectivePromoStatus === 'valid' ? promoDiscount?.percentOff : 0,
+        discountAmount: effectivePromoStatus === 'valid' ? promoDiscount?.amountOff : 0,
       }),
     })
       .then((response) => response.json())
@@ -227,7 +233,7 @@ export default function PanierPage() {
     return () => {
       cancelled = true;
     };
-  }, [country, postalCode, total, shippingCost, promoStatus, promoDiscount]);
+  }, [country, postalCode, total, shippingCost, effectivePromoStatus, promoDiscount]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -279,21 +285,31 @@ export default function PanierPage() {
         setPromoStatus('valid');
         setPromoLabel(data.label);
         setPromoDiscount(data.discount || null);
+        setPromoMinimumAmount(Number(data.minimumAmount) || null);
       } else if (data.reason === 'already_used') {
         setPromoStatus('already_used');
         setPromoLabel('');
         setPromoDiscount(null);
+        setPromoMinimumAmount(null);
       } else if (data.reason === 'not_subscribed') {
         setPromoStatus('not_subscribed');
         setPromoLabel('');
         setPromoDiscount(null);
+        setPromoMinimumAmount(null);
+      } else if (data.reason === 'minimum_amount') {
+        setPromoStatus('minimum_amount');
+        setPromoLabel('');
+        setPromoDiscount(null);
+        setPromoMinimumAmount(Number(data.minimumAmount) || null);
       } else {
         setPromoStatus('invalid');
         setPromoLabel('');
         setPromoDiscount(null);
+        setPromoMinimumAmount(null);
       }
     } catch {
       setPromoStatus('invalid');
+      setPromoMinimumAmount(null);
     }
   };
 
@@ -318,7 +334,7 @@ export default function PanierPage() {
               country,
             },
           },
-          promoCode: promoStatus === 'valid' ? promoCode.trim().toUpperCase() : undefined,
+          promoCode: effectivePromoStatus === 'valid' ? promoCode.trim().toUpperCase() : undefined,
           recoveryToken: cartReminderConsent ? recoveryToken : undefined,
         }),
       });
@@ -768,7 +784,10 @@ export default function PanierPage() {
                   value={promoEmail}
                   onChange={(e) => {
                     setPromoEmail(e.target.value);
-                    if (promoStatus !== 'idle') setPromoStatus('idle');
+                    if (promoStatus !== 'idle') {
+                      setPromoStatus('idle');
+                      setPromoMinimumAmount(null);
+                    }
                   }}
                   onKeyDown={(e) => e.key === 'Enter' && validatePromo()}
                   placeholder={t('checkout.yourEmail')}
@@ -780,7 +799,10 @@ export default function PanierPage() {
                     value={promoCode}
                     onChange={(e) => {
                       setPromoCode(e.target.value.toUpperCase());
-                      if (promoStatus !== 'idle') setPromoStatus('idle');
+                      if (promoStatus !== 'idle') {
+                        setPromoStatus('idle');
+                        setPromoMinimumAmount(null);
+                      }
                     }}
                     onKeyDown={(e) => e.key === 'Enter' && validatePromo()}
                     placeholder="Ex : BIENVENUE10"
@@ -788,31 +810,36 @@ export default function PanierPage() {
                   />
                   <button
                     onClick={validatePromo}
-                    disabled={promoStatus === 'loading' || !promoCode.trim() || !promoEmail.trim()}
+                    disabled={effectivePromoStatus === 'loading' || !promoCode.trim() || !promoEmail.trim()}
                     className="px-4 py-2 bg-jungle-700 text-cream text-sm font-bold rounded-lg hover:bg-jungle-800 transition-colors disabled:opacity-40"
                   >
-                    {promoStatus === 'loading' ? <Loader2 size={14} className="animate-spin" /> : 'OK'}
+                    {effectivePromoStatus === 'loading' ? <Loader2 size={14} className="animate-spin" /> : 'OK'}
                   </button>
                 </div>
               </div>
-              {promoStatus === 'valid' && (
+              {effectivePromoStatus === 'valid' && (
                 <p className="text-xs text-green-600 mt-2 font-medium">
                   {promoLabel}
                 </p>
               )}
-              {promoStatus === 'invalid' && (
+              {effectivePromoStatus === 'invalid' && (
                 <p className="text-xs text-coral-500 mt-2">
                   {t('checkout.invalidPromo')}
                 </p>
               )}
-              {promoStatus === 'already_used' && (
+              {effectivePromoStatus === 'already_used' && (
                 <p className="text-xs text-coral-500 mt-2">
                   {t('checkout.usedPromo')}
                 </p>
               )}
-              {promoStatus === 'not_subscribed' && (
+              {effectivePromoStatus === 'not_subscribed' && (
                 <p className="text-xs text-coral-500 mt-2">
                   {t('checkout.newsletterPromo')}
+                </p>
+              )}
+              {effectivePromoStatus === 'minimum_amount' && (
+                <p className="text-xs text-coral-500 mt-2">
+                  Ce code est valable à partir de {promoMinimumAmount?.toFixed(2) ?? 'ce montant'} € d&apos;articles dans le panier.
                 </p>
               )}
             </div>
@@ -823,7 +850,7 @@ export default function PanierPage() {
                 <span>{t('cart.subtotal')}</span>
                 <span>{displayedSubtotal.toFixed(2)} €</span>
               </div>
-              {promoStatus === 'valid' && displayedDiscount > 0 && (
+              {effectivePromoStatus === 'valid' && displayedDiscount > 0 && (
                 <div className="flex justify-between text-sm text-green-600">
                   <span>{t('checkout.promo')} ({promoLabel})</span>
                   <span>-{displayedDiscount.toFixed(2)} €</span>

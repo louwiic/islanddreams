@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
       label += ` — ${coupon.name}`;
     }
 
-    return NextResponse.json({ valid: true, label, discount, promoCodeId: promo.id });
+    return NextResponse.json({ valid: true, label, discount, promoCodeId: promo.id, minimumAmount });
   } catch (error) {
     console.error('[PROMO] Erreur validation:', error);
     return NextResponse.json({ valid: false });
