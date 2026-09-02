@@ -39,10 +39,10 @@ export default async function BlogPage({
           Island Dreams · 974
         </p>
         <h1 className="text-4xl md:text-5xl font-black text-cream mb-3 leading-tight">
-          Nout Blog
+          CARNET D’ÎLE
         </h1>
         <p className="text-jungle-200 text-base max-w-xl mx-auto">
-          Zistoir péi, coulisses et conseils autour de La Réunion
+          Découvrez La Réunion autrement. Zistoir péi, coulisses et conseils autour de La Réunion
         </p>
       </div>
 
