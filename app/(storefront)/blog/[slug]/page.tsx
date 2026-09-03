@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowLeft, Clock, Tag } from 'lucide-react';
 import { getPublishedPostBySlug, getRecentPosts } from '@/lib/actions/blog';
+import { BlogContent } from '@/components/blog/BlogContent';
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -109,10 +110,9 @@ export default async function BlogArticlePage({ params }: PageProps) {
         </h1>
 
         {/* Contenu */}
-        <div
-          className="prose prose-lg max-w-none prose-headings:text-ink prose-headings:font-bold prose-a:text-jungle-600 prose-a:no-underline hover:prose-a:underline prose-img:rounded-xl mb-10"
-          dangerouslySetInnerHTML={{ __html: post.content || '' }}
-        />
+        <div className="mb-10">
+          <BlogContent content={post.content_json} legacyHtml={post.content} />
+        </div>
 
         {/* Tags */}
         {post.tags && post.tags.length > 0 && (

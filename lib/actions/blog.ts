@@ -2,6 +2,8 @@
 
 import { revalidatePath } from 'next/cache';
 import { createAdminClient } from '@/lib/supabase/admin';
+import type { BlogEditorContent } from '@/lib/editor/types';
+import { isBlogEditorContent } from '@/lib/editor/types';
 
 /* ── Types ──────────────────────────────────────────────── */
 
@@ -11,6 +13,7 @@ export type BlogPost = {
   slug: string;
   excerpt: string | null;
   content: string | null;
+  content_json: BlogEditorContent | null;
   cover_image_url: string | null;
   cover_image_alt: string | null;
   category_id: string | null;
@@ -137,6 +140,7 @@ type CreateBlogInput = {
   slug: string;
   excerpt?: string;
   content?: string;
+  content_json?: BlogEditorContent | null;
   cover_image_url?: string;
   cover_image_alt?: string;
   category_id?: string;
@@ -151,6 +155,9 @@ type CreateBlogInput = {
 };
 
 export async function createBlogPost(input: CreateBlogInput) {
+  if (input.content_json && !isBlogEditorContent(input.content_json)) {
+    throw new Error('Le contenu de l’article est invalide.');
+  }
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from('blog_posts')
@@ -172,6 +179,9 @@ export async function createBlogPost(input: CreateBlogInput) {
 /* ── Mettre à jour un article ────────────────────────────── */
 
 export async function updateBlogPost(id: string, input: Partial<CreateBlogInput>) {
+  if (input.content_json && !isBlogEditorContent(input.content_json)) {
+    throw new Error('Le contenu de l’article est invalide.');
+  }
   const supabase = createAdminClient();
   const { error } = await supabase
     .from('blog_posts')
@@ -199,13 +209,28 @@ export async function deleteBlogPost(id: string) {
 
 /* ── Upload image couverture ─────────────────────────────── */
 
-export async function uploadBlogImage(slug: string, formData: FormData) {
+export async function uploadBlogImage(
+  slug: string,
+  formData: FormData,
+  purpose: 'cover' | 'content' = 'cover',
+) {
   const file = formData.get('file') as File;
   if (!file) throw new Error('Aucun fichier');
 
+  const allowedTypes: Record<string, string> = {
+    'image/jpeg': 'jpg',
+    'image/png': 'png',
+    'image/webp': 'webp',
+    'image/gif': 'gif',
+  };
+  const ext = allowedTypes[file.type];
+  if (!ext) throw new Error('Format d’image non pris en charge.');
+  if (file.size > 10 * 1024 * 1024) throw new Error('L’image dépasse la limite de 10 Mo.');
+
   const supabase = createAdminClient();
-  const ext = file.name.split('.').pop();
-  const path = `blog/${slug}/cover.${ext}`;
+  const safeSlug = slug.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-');
+  const filename = purpose === 'cover' ? `cover.${ext}` : `${crypto.randomUUID()}.${ext}`;
+  const path = `blog/${safeSlug}/${purpose}/${filename}`;
 
   const { error } = await supabase.storage
     .from('product-images')

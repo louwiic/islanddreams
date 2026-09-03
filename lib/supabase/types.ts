@@ -104,6 +104,7 @@ export type Database = {
           canonical_url: string | null
           category_id: string | null
           content: string | null
+          content_json: Json | null
           cover_image_alt: string | null
           cover_image_url: string | null
           created_at: string | null
@@ -125,6 +126,7 @@ export type Database = {
           canonical_url?: string | null
           category_id?: string | null
           content?: string | null
+          content_json?: Json | null
           cover_image_alt?: string | null
           cover_image_url?: string | null
           created_at?: string | null
@@ -146,6 +148,7 @@ export type Database = {
           canonical_url?: string | null
           category_id?: string | null
           content?: string | null
+          content_json?: Json | null
           cover_image_alt?: string | null
           cover_image_url?: string | null
           created_at?: string | null

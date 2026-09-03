@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Save, ArrowLeft, Trash2, Loader2, ImagePlus } from 'lucide-react';
+import { Save, ArrowLeft, Trash2, Loader2, ImagePlus, CheckCircle2, CircleAlert } from 'lucide-react';
+import type { JSONContent } from '@tiptap/react';
 import { createBlogPost, updateBlogPost, deleteBlogPost, uploadBlogImage, getBlogCategories } from '@/lib/actions/blog';
 import type { BlogCategory } from '@/lib/actions/blog';
-import { RichTextEditor } from './RichTextEditor';
+import { BlogEditor } from '@/components/editor/BlogEditor';
 import { cn } from '@/lib/utils';
 
 type BlogFormData = {
@@ -14,6 +15,7 @@ type BlogFormData = {
   slug: string;
   excerpt: string;
   content: string;
+  contentJson: JSONContent | null;
   coverImageUrl: string;
   coverImageAlt: string;
   categoryId: string;
@@ -49,12 +51,15 @@ export function BlogPostForm({ mode, initialData }: Props) {
   const [uploading, setUploading] = useState(false);
   const [categories, setCategories] = useState<BlogCategory[]>([]);
   const [tagInput, setTagInput] = useState('');
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'unsaved' | 'saving' | 'saved' | 'error'>('idle');
+  const revisionRef = useRef(0);
 
   const [form, setForm] = useState<BlogFormData>({
     title: initialData?.title ?? '',
     slug: initialData?.slug ?? '',
     excerpt: initialData?.excerpt ?? '',
     content: initialData?.content ?? '',
+    contentJson: initialData?.contentJson ?? null,
     coverImageUrl: initialData?.coverImageUrl ?? '',
     coverImageAlt: initialData?.coverImageAlt ?? '',
     categoryId: initialData?.categoryId ?? '',
@@ -73,6 +78,8 @@ export function BlogPostForm({ mode, initialData }: Props) {
   }, []);
 
   const update = <K extends keyof BlogFormData>(key: K, value: BlogFormData[K]) => {
+    revisionRef.current += 1;
+    setSaveStatus('unsaved');
     setForm((prev) => {
       const next = { ...prev, [key]: value };
       if (key === 'title' && mode === 'create' && !initialData?.slug) {
@@ -106,15 +113,25 @@ export function BlogPostForm({ mode, initialData }: Props) {
     setTagInput('');
   };
 
-  const handleSave = async () => {
-    if (!form.title.trim() || !form.slug.trim()) return;
+  const uploadContentImage = async (file: File) => {
+    if (!form.slug) throw new Error('Ajoutez d’abord un titre à l’article.');
+    const fd = new FormData();
+    fd.append('file', file);
+    return uploadBlogImage(form.slug, fd, 'content');
+  };
+
+  const persist = useCallback(async (navigateAfterCreate = false) => {
+    if (!form.title.trim() || !form.slug.trim() || saving) return false;
+    const revision = revisionRef.current;
     setSaving(true);
+    setSaveStatus('saving');
     try {
       const input = {
         title: form.title,
         slug: form.slug,
         excerpt: form.excerpt || undefined,
         content: form.content || undefined,
+        content_json: form.contentJson,
         cover_image_url: form.coverImageUrl || undefined,
         cover_image_alt: form.coverImageAlt || undefined,
         category_id: form.categoryId || undefined,
@@ -131,15 +148,30 @@ export function BlogPostForm({ mode, initialData }: Props) {
       if (mode === 'edit' && initialData?.id) {
         await updateBlogPost(initialData.id, input);
       } else {
-        await createBlogPost(input);
+        const created = await createBlogPost(input);
+        if (navigateAfterCreate) router.replace(`/admin/blog/${created.id}`);
       }
-      router.push('/admin/blog');
-      router.refresh();
+      setSaveStatus(revisionRef.current === revision ? 'saved' : 'unsaved');
+      return true;
     } catch (err) {
       console.error('Save error:', err);
+      setSaveStatus('error');
+      return false;
     } finally {
       setSaving(false);
     }
+  }, [form, initialData, mode, router, saving]);
+
+  useEffect(() => {
+    if (mode !== 'edit' || !initialData?.id || saveStatus !== 'unsaved' || !form.title.trim() || !form.slug.trim()) return;
+    const timer = window.setTimeout(() => {
+      void persist(false);
+    }, 1200);
+    return () => window.clearTimeout(timer);
+  }, [form, initialData?.id, mode, persist, saveStatus]);
+
+  const handleSave = () => {
+    void persist(mode === 'create');
   };
 
   const handleDelete = async () => {
@@ -153,7 +185,7 @@ export function BlogPostForm({ mode, initialData }: Props) {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div className="flex items-center gap-3">
           <button onClick={() => router.push('/admin/blog')} className="p-2 rounded-lg hover:bg-gray-100">
             <ArrowLeft size={18} className="text-gray-500" />
@@ -163,6 +195,14 @@ export function BlogPostForm({ mode, initialData }: Props) {
           </h1>
         </div>
         <div className="flex items-center gap-2">
+          {saveStatus === 'saved' && (
+            <span role="status" className="hidden items-center gap-1.5 text-xs font-medium text-green-700 sm:flex">
+              <CheckCircle2 size={15} /> Enregistré
+            </span>
+          )}
+          {saveStatus === 'unsaved' && mode === 'edit' && (
+            <span role="status" className="hidden text-xs text-gray-500 sm:inline">Modifications en attente…</span>
+          )}
           {mode === 'edit' && (
             <button onClick={handleDelete} disabled={deleting} className="flex items-center gap-1 px-3 py-2 text-sm text-coral-600 hover:bg-coral-50 rounded-lg">
               <Trash2 size={14} />
@@ -179,6 +219,13 @@ export function BlogPostForm({ mode, initialData }: Props) {
           </button>
         </div>
       </div>
+
+      {saveStatus === 'error' && (
+        <div role="alert" className="mb-5 flex items-center gap-2 rounded-xl border border-coral-200 bg-coral-50 px-4 py-3 text-sm font-medium text-coral-700">
+          <CircleAlert size={18} className="shrink-0" />
+          Impossible d’enregistrer les modifications. Le contenu reste présent dans l’éditeur ; réessayez avec le bouton Enregistrer.
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Colonne principale */}
@@ -221,10 +268,16 @@ export function BlogPostForm({ mode, initialData }: Props) {
           {/* Contenu */}
           <div className="bg-white rounded-xl border border-gray-200 p-5">
             <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Contenu</label>
-            <RichTextEditor
-              value={form.content}
-              onChange={(html) => update('content', html)}
+            <BlogEditor
+              content={form.contentJson ?? undefined}
+              legacyHtml={form.contentJson ? undefined : form.content}
+              onChange={(content) => update('contentJson', content)}
+              uploadImage={uploadContentImage}
             />
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500">
+              <span>Le contenu est enregistré en JSON structuré. Les styles sont appliqués par le site.</span>
+              {mode === 'create' && <span>L’enregistrement automatique démarrera après la première sauvegarde.</span>}
+            </div>
           </div>
 
           {/* SEO */}
