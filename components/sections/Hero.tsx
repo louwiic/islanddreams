@@ -1,47 +1,20 @@
-// Section Hero — "L'île en souvenirs"
-// La mémé + ti-marmaille dans la jungle, gros magnet 974 centré
+// Section Hero — les souvenirs de La Réunion
 
 'use client';
 
 import { useRef, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { gsap, ScrollTrigger, registerGsapPlugins } from '@/lib/animations/gsap-setup';
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
-
-const BIRDS = [
-  { id: 'b1', size: 130, top: '6%',  right: '6%',  delay: 0,   duration: 3.8, rotRange: 4 },
-  { id: 'b2', size: 95,  top: '14%', right: '18%', delay: 0.9, duration: 4.4, rotRange: 5 },
-  { id: 'b3', size: 65,  top: '4%',  right: '26%', delay: 1.7, duration: 3.2, rotRange: 6 },
-];
 
 export function Hero() {
   const { t } = useLanguage();
   const heroRef   = useRef<HTMLElement>(null);
   const magnetRef = useRef<HTMLDivElement>(null);
-  const birdsRef  = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
     registerGsapPlugins();
-
-    // Oiseaux — vol ondulant
-    birdsRef.current.forEach((el, i) => {
-      if (!el) return;
-      const b = BIRDS[i];
-      gsap.fromTo(el,
-        { opacity: 0, x: 20 },
-        { opacity: 1, x: 0, duration: 1, delay: b.delay + 0.5, ease: 'power2.out' }
-      );
-      gsap.to(el, {
-        y: '+=12',
-        x: '+=6',
-        rotation: b.rotRange,
-        duration: b.duration,
-        ease: 'sine.inOut',
-        yoyo: true,
-        repeat: -1,
-        delay: b.delay + 0.5,
-      });
-    });
 
     if (!magnetRef.current || !heroRef.current) return;
 
@@ -201,78 +174,71 @@ export function Hero() {
     >
       {/* Illustration hero */}
       <Image
-        src="/images/hero/hero3.png"
+        src="/images/hero/island-dreams-souvenirs-974.webp"
         alt={t('home.hero.alt')}
         fill
-        priority
-        className="object-cover object-center md:object-top"
+        sizes="100vw"
+        preload
+        className="object-cover object-[65%_center] md:object-center"
       />
 
       {/* Overlay pour lisibilité */}
-      <div className="absolute inset-0 bg-gradient-to-t from-jungle-900/80 via-transparent to-jungle-900/20" />
+      <div className="absolute inset-0 bg-gradient-to-r from-jungle-900/80 via-jungle-900/25 to-transparent md:via-jungle-900/10" />
+      <div className="absolute inset-0 bg-gradient-to-t from-jungle-900/45 via-transparent to-jungle-900/10" />
 
-      {/* Oiseaux — paille-en-queue en troupe haut-gauche */}
-      {BIRDS.map((b, i) => (
+      {/* Magnet 974 animé — au-dessus du titre */}
+      <div className="absolute left-[28%] top-[5%] z-20 md:left-[20%] md:top-[14%]">
         <div
-          key={b.id}
-          ref={el => { birdsRef.current[i] = el; }}
-          className="absolute z-10 opacity-0 pointer-events-none"
-          style={{ top: b.top, right: b.right, width: b.size }}
+          ref={magnetRef}
+          id="hero-magnet-974"
+          aria-label={t('home.hero.magnetLabel')}
         >
+          <div
+            className="magnet-flash absolute inset-0 rounded-full bg-white opacity-0 blur-2xl pointer-events-none"
+            style={{ transform: 'scale(1.5)' }}
+          />
+          <div
+            className="magnet-glow absolute inset-0 rounded-full opacity-50 blur-3xl"
+            style={{
+              background:
+                'radial-gradient(circle, var(--color-sun-300) 0%, transparent 70%)',
+              transform: 'scale(1.8)',
+            }}
+          />
           <Image
-            src="/images/sections/paille-en-queue.png"
-            alt=""
-            width={400}
-            height={400}
-            className="w-full h-auto"
-            style={{ mixBlendMode: 'multiply' }}
-            aria-hidden
+            src="/images/magnets/magnet-974.webp"
+            alt={t('home.hero.magnetLabel')}
+            width={825}
+            height={810}
+            sizes="(max-width: 767px) 104px, (max-width: 1023px) 144px, 176px"
+            className="relative h-auto w-[104px] drop-shadow-2xl md:w-36 lg:w-44"
+            loading="eager"
           />
         </div>
-      ))}
-
-      {/* Gros magnet 974 — centré */}
-      <div
-        ref={magnetRef}
-        className="absolute left-1/2 top-[22%] md:top-[28%] -translate-x-1/2 -translate-y-1/2 z-20"
-        id="hero-magnet-974"
-        aria-label={t('home.hero.magnetLabel')}
-      >
-        <div
-          className="magnet-flash absolute inset-0 rounded-full opacity-0 bg-white blur-2xl pointer-events-none"
-          style={{ transform: 'scale(1.5)' }}
-        />
-        <div
-          className="magnet-glow absolute inset-0 rounded-full blur-3xl opacity-50"
-          style={{
-            background:
-              'radial-gradient(circle, var(--color-sun-300) 0%, transparent 70%)',
-            transform: 'scale(1.8)',
-          }}
-        />
-        <Image
-          src="/images/magnets/magnet-974.webp"
-          alt={t('home.hero.magnetLabel')}
-          width={825}
-          height={810}
-          className="relative w-[220px] md:w-[300px] h-auto drop-shadow-2xl"
-          priority
-        />
       </div>
 
-      {/* Titre */}
-      <div className="absolute bottom-14 md:bottom-24 left-0 right-0 z-10 text-center px-4">
-        <h1 className="title-chunky-light text-[2.8rem] leading-[0.9] md:text-7xl lg:text-8xl">
-          IN ZISTOIR,
-          <br />
-          IN SOUVNIR…
+      {/* Contenu éditorial */}
+      <div className="absolute left-0 top-[18%] z-10 w-[78%] max-w-xl px-5 sm:px-8 md:left-[6%] md:top-1/2 md:w-[46%] md:-translate-y-1/2 md:px-0 lg:max-w-2xl">
+        <h1 className="title-chunky-light text-[2.75rem] leading-[0.88] sm:text-6xl md:text-7xl lg:text-[5.6rem]">
+          LES SOUVENIRS
+          <br />DE LA RÉUNION
         </h1>
-        <p className="mt-3 md:mt-4 text-cream text-base md:text-xl italic font-light drop-shadow-lg">
-          {t('home.hero.tagline')}
+        <p className="mt-5 text-lg font-semibold text-white drop-shadow-lg sm:text-xl md:text-2xl">
+          À collectionner. À offrir. À emporter.
         </p>
-        <p className="mt-1 md:mt-2 text-cream/60 text-[10px] md:text-xs uppercase tracking-[0.3em]">
-          Island Dreams · 974
+        <p className="mt-2 text-sm font-medium uppercase tracking-[0.08em] text-cream/90 drop-shadow-md sm:text-base md:text-lg">
+          Magnets · Stickers · Déco · Textile · Cadeaux
         </p>
+        <Link
+          href="/boutique"
+          className="mt-7 inline-flex min-h-12 items-center gap-3 rounded-full bg-flamboyant px-6 py-3 font-[family-name:var(--font-oswald)] text-sm font-bold uppercase tracking-[0.08em] text-white shadow-xl transition hover:-translate-y-0.5 hover:bg-coral-500 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white sm:px-8 sm:text-base"
+        >
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className="h-5 w-5" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 8h12l-1 12H7L6 8Zm3 0V6a3 3 0 0 1 6 0v2" />
+          </svg>
+          Découvrir la boutique
+          <span aria-hidden="true">→</span>
+        </Link>
       </div>
 
       {/* Indicateur de scroll — double chevron */}

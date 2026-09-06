@@ -184,10 +184,10 @@ export default async function Home() {
       <Hero />
       <GiftOfferBanner config={giftOfferBanner} />
       <EventProductFeature config={eventFeatureConfig} />
-      <FridgeCollection />
-      <FlyingMagnets />
       <FrizeLivraison />
       <ProductCarousel products={products} />
+      <FridgeCollection />
+      <FlyingMagnets />
       <ServiettePlage />
       <FemmePlage />
       <UspBanner />
