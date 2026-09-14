@@ -164,6 +164,31 @@ export function orderConfirmation(order: OrderData) {
   };
 }
 
+// ─── Expédition de commande ───────────────────────────────────────
+
+export function orderShipped(order: Pick<OrderData, 'orderNumber' | 'customerName'>) {
+  const customerName = escapeHtml(order.customerName || '');
+  const orderNumber = escapeHtml(order.orderNumber);
+
+  return {
+    subject: `Ta commande #${orderNumber} est expédiée — Island Dreams`,
+    html: wrap(`
+      <h2 style="color:#1a2e3b;font-size:20px;margin:0 0 4px;">Ta commande est en route !</h2>
+      <p style="color:#2a5a3a;font-weight:bold;margin:0 0 16px;">Commande #${orderNumber}</p>
+      <p style="color:#555;line-height:1.6;">
+        Bonjour ${customerName},<br>
+        Ta commande vient d'être expédiée. Elle arrive bientôt chez toi !
+      </p>
+      <p style="color:#555;line-height:1.6;">
+        Merci de faire voyager un morceau de La Réunion avec Island Dreams.
+      </p>
+      <p style="text-align:center;margin:24px 0;">
+        <a href="https://islanddreams.re/compte" style="display:inline-block;background:#2a5a3a;color:#f5efe0;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:bold;">Voir mes commandes</a>
+      </p>
+    `),
+  };
+}
+
 // ─── Notification admin — nouveau contact ──────────────────────────
 
 type ContactData = {

@@ -3,8 +3,9 @@
 import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { Eye, ShoppingCart, X } from 'lucide-react';
-import { updateOrderStatus } from '@/lib/actions/orders';
+import { markOrderAsShipped, updateOrderStatus } from '@/lib/actions/orders';
 import { useRouter } from 'next/navigation';
+import { ShippingConfirmationDialog } from '@/components/admin/ShippingConfirmationDialog';
 
 const STATUS_LABELS: Record<string, string> = {
   pending: 'En attente',
@@ -48,6 +49,8 @@ export function OrdersTable({ orders }: { orders: Order[] }) {
   const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [isPending, startTransition] = useTransition();
+  const [shippingConfirmationOpen, setShippingConfirmationOpen] = useState(false);
+  const [shippingError, setShippingError] = useState<string | null>(null);
 
   const allSelected = orders.length > 0 && selected.size === orders.length;
 
@@ -70,6 +73,11 @@ export function OrdersTable({ orders }: { orders: Order[] }) {
 
   const handleBulkAction = (status: string) => {
     if (selected.size === 0) return;
+    if (status === 'shipped') {
+      setShippingError(null);
+      setShippingConfirmationOpen(true);
+      return;
+    }
     const count = selected.size;
     const label = STATUS_LABELS[status] ?? status;
     if (!confirm(`Passer ${count} commande${count > 1 ? 's' : ''} en "${label}" ?`)) return;
@@ -79,6 +87,22 @@ export function OrdersTable({ orders }: { orders: Order[] }) {
         Array.from(selected).map((id) => updateOrderStatus(id, status))
       );
       setSelected(new Set());
+      router.refresh();
+    });
+  };
+
+  const confirmBulkShipping = () => {
+    const orderIds = Array.from(selected);
+    startTransition(async () => {
+      setShippingError(null);
+      const results = await Promise.all(orderIds.map((id) => markOrderAsShipped(id)));
+      const failed = results.filter((result) => result.error);
+      if (failed.length > 0) {
+        setShippingError(failed[0].error ?? "Certaines commandes n'ont pas pu être expédiées.");
+        return;
+      }
+      setSelected(new Set());
+      setShippingConfirmationOpen(false);
       router.refresh();
     });
   };
@@ -215,6 +239,19 @@ export function OrdersTable({ orders }: { orders: Order[] }) {
           </table>
         </div>
       </div>
+      <ShippingConfirmationDialog
+        open={shippingConfirmationOpen}
+        orderCount={selected.size}
+        isSubmitting={isPending}
+        error={shippingError}
+        onCancel={() => {
+          if (!isPending) {
+            setShippingError(null);
+            setShippingConfirmationOpen(false);
+          }
+        }}
+        onConfirm={confirmBulkShipping}
+      />
     </div>
   );
 }
