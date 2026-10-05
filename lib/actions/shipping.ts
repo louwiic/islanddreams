@@ -5,6 +5,35 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import { requireAdmin } from '@/lib/auth/admin';
 
+const FREE_SHIPPING_KEY = 'shipping_offered';
+
+/** Un interrupteur global : les tarifs enregistrés ne sont jamais écrasés. */
+export async function getFreeShipping(): Promise<boolean> {
+  const { data, error } = await createAdminClient()
+    .from('shop_settings')
+    .select('value')
+    .eq('key', FREE_SHIPPING_KEY)
+    .maybeSingle();
+
+  if (error) throw new Error('Impossible de lire le réglage des frais de port.');
+  return data?.value === true;
+}
+
+export async function setFreeShipping(enabled: boolean) {
+  await requireAdmin();
+  if (typeof enabled !== 'boolean') return { error: 'Réglage invalide.' };
+
+  const { error } = await createAdminClient()
+    .from('shop_settings')
+    .upsert({ key: FREE_SHIPPING_KEY, value: enabled }, { onConflict: 'key' });
+
+  if (error) return { error: 'Impossible de modifier les frais de port. Réessayez.' };
+  revalidatePath('/admin/livraison');
+  revalidatePath('/panier');
+  revalidatePath('/api/shipping');
+  return { success: true };
+}
+
 /* ── Types ───────────────────────────────────────────────── */
 
 export type ShippingZone = {
@@ -108,12 +137,15 @@ export async function calculateShipping(
 
   if (matchedZoneIds.length === 0) return null;
 
-  const { data: rawMethods } = await supabase
+  const [freeShipping, { data: rawMethods }] = await Promise.all([
+    getFreeShipping(),
+    supabase
     .from('shipping_methods')
     .select('*')
     .in('zone_id', matchedZoneIds.map((z) => z.id))
     .eq('enabled', true)
-    .order('sort_order');
+    .order('sort_order'),
+  ]);
 
   const allMethods = (rawMethods ?? []) as unknown as { id: string; name: string; cost: number; requires_signature: boolean | null; zone_id: string; min_weight_g: number | null; max_weight_g: number | null }[];
 
@@ -152,7 +184,7 @@ export async function calculateShipping(
       .map((m) => ({
         id: m.id,
         name: m.name,
-        cost: m.cost,
+        cost: freeShipping ? 0 : m.cost,
         requiresSignature: m.requires_signature ?? false,
       }));
 

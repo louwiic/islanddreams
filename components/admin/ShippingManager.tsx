@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Truck,
@@ -22,15 +22,20 @@ import {
   deleteShippingZone,
   installMetropoleColissimoRates,
   toggleShippingZone,
+  setFreeShipping,
   type ShippingZone,
 } from '@/lib/actions/shipping';
 
 export function ShippingManager({
   initialZones,
+  freeShipping,
 }: {
   initialZones: ShippingZone[];
+  freeShipping: boolean;
 }) {
   const router = useRouter();
+  const [updatingFreeShipping, startFreeShippingTransition] = useTransition();
+  const [freeShippingError, setFreeShippingError] = useState('');
   const [zones, setZones] = useState(initialZones);
   const [editingMethod, setEditingMethod] = useState<string | null>(null);
   const [editCost, setEditCost] = useState('');
@@ -44,6 +49,22 @@ export function ShippingManager({
   const [newZoneName, setNewZoneName] = useState('');
   const [newZoneCountry, setNewZoneCountry] = useState('');
   const [newZonePostcode, setNewZonePostcode] = useState('*');
+
+  const handleFreeShipping = () => {
+    setFreeShippingError('');
+    startFreeShippingTransition(async () => {
+      try {
+        const result = await setFreeShipping(!freeShipping);
+        if (result.error) {
+          setFreeShippingError(result.error);
+          return;
+        }
+        router.refresh();
+      } catch {
+        setFreeShippingError('Impossible de modifier les frais de port. Réessayez.');
+      }
+    });
+  };
 
   const handleToggleZone = async (zoneId: string, enabled: boolean) => {
     await toggleShippingZone(zoneId, !enabled);
@@ -135,6 +156,28 @@ export function ShippingManager({
 
   return (
     <div className="space-y-6 max-w-3xl">
+      <div className={cn('rounded-xl border p-5', freeShipping ? 'border-jungle-200 bg-jungle-50' : 'border-gray-200 bg-white')}>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="font-semibold text-ink">Frais de port {freeShipping ? 'offerts' : 'habituels'}</h2>
+            <p className="mt-1 text-sm text-gray-500">
+              {freeShipping
+                ? 'Livraison gratuite sur toutes les zones et tous les modes disponibles. Les tarifs d’origine sont conservés.'
+                : 'Offrez la livraison sur toutes les zones sans modifier vos tarifs. Vous pourrez les rétablir en un clic.'}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleFreeShipping}
+            disabled={updatingFreeShipping || saving}
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-jungle-600 px-4 py-2 text-sm font-semibold text-white hover:bg-jungle-700 disabled:opacity-50"
+          >
+            <Truck size={16} />
+            {updatingFreeShipping ? 'Enregistrement…' : freeShipping ? 'Rétablir les frais de port' : 'Offrir les frais de port'}
+          </button>
+        </div>
+        {freeShippingError && <p role="alert" className="mt-3 text-sm text-coral-600">{freeShippingError}</p>}
+      </div>
       <div className="rounded-xl border border-gray-200 bg-white p-5">
         <div className="flex items-center justify-between gap-4">
           <div>
@@ -335,7 +378,8 @@ export function ShippingManager({
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-bold text-ink">
-                        {method.cost.toFixed(2)} €
+                        {freeShipping ? 'Offert' : `${method.cost.toFixed(2)} €`}
+                        {freeShipping && <span className="block text-xs font-normal text-gray-500">Tarif conservé : {method.cost.toFixed(2)} €</span>}
                       </span>
                       <button
                         onClick={() => startEdit(method)}
