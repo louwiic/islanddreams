@@ -10,7 +10,8 @@ Self-hosted Plausible CE v3.2.1 on the existing Coolify server (137.74.171.48).
 - HTTPS managed by Coolify. A dedicated DNS name can replace the generated sslip.io name later; update `NEXT_PUBLIC_PLAUSIBLE_URL` and redeploy the site as well.
 - Registration disabled after the initial owner is created. Dashboard stays private. Owner password is entered by the owner, never committed.
 - SMTP is not configured for Plausible: emailed reports, invites and password reset mail are unavailable until configured.
-- Persistent volumes survive redeployments, but are not an off-server backup. Include both PostgreSQL and ClickHouse in the server backup policy.
+- PostgreSQL backup scheduled at 02:17 UTC daily in Coolify (`wnnlbkabrn6q3vxix2uz4pzo`); initial local dump succeeded (191 KiB).
+- Persistent volumes survive redeployments, but are not an off-server backup. ClickHouse events still need inclusion in the server backup policy.
 
 Official sources: [CE compose](https://github.com/plausible/community-edition/tree/v3.2.1), [Coolify template](https://coolify.io/docs/services/plausible), [Events API](https://plausible.io/docs/events-api).
 
