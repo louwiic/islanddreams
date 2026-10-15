@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getStripeClient } from '@/lib/stripe/client';
+import { checkoutImageUrl } from '@/lib/stripe/checkout-image';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { calculateShipping } from '@/lib/actions/shipping';
 import type { CartItem } from '@/lib/cart/types';
@@ -325,13 +326,14 @@ export async function POST(req: NextRequest) {
         ? catalogUnitPrice
         : priceForTaxZone(catalogUnitPrice, taxConfiguration, taxZone).stripeUnitAmount;
       const voucher = item.voucher;
+      const image = checkoutImageUrl(item.image, process.env.NEXT_PUBLIC_SITE_URL || 'https://www.islanddreams.re');
 
       return {
         price_data: {
           currency: 'eur',
           product_data: {
             name: dbProd.name + (variantLabel ? ` — ${variantLabel}` : ''),
-            ...(item.image ? { images: [item.image] } : {}),
+            ...(image ? { images: [image] } : {}),
             metadata: {
               productId: item.productId,
               variantId: item.variantId || '',

@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from 'react';
 import type { CartItem, Cart } from './types';
+import { mediaUrl } from '@/lib/pgbase/media';
 
 /* ── Actions ─────────────────────────────────────────────── */
 
@@ -78,7 +79,10 @@ function reducer(state: Cart, action: Action): Cart {
       return computeCart([]);
 
     case 'HYDRATE':
-      return computeCart(action.items);
+      return computeCart(action.items.map(item => ({
+        ...item,
+        image: item.image ? mediaUrl(item.image) : item.image,
+      })));
 
     default:
       return state;
