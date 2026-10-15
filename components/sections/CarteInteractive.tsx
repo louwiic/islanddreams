@@ -14,7 +14,7 @@ type CommuneDot = {
 };
 
 // Images magnets ronds par commune (Supabase Storage)
-const MAGNETS_BASE = 'https://sgxilglkeupxpnzkzqfq.supabase.co/storage/v1/object/public/product-images/magnets-rond';
+const MAGNETS_BASE = '/media/supabase/product-images/magnets-rond';
 
 function getMagnetUrl(communeId: string): string {
   return `${MAGNETS_BASE}/${communeId}.webp`;

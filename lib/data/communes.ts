@@ -2,7 +2,7 @@
 // Positions calibrées sur la carte illustrée (% relatifs à l'image)
 // Images : visuels ronds des magnets depuis Supabase Storage
 
-const MAGNETS = 'https://sgxilglkeupxpnzkzqfq.supabase.co/storage/v1/object/public/product-images/magnets-rond';
+const MAGNETS = '/media/supabase/product-images/magnets-rond';
 
 export type Commune = {
   id: string;

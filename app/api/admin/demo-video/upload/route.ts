@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { requireAdmin } from '@/lib/auth/admin';
 
 const VIDEO_BUCKET = 'demo-videos';
 const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime'];
 
 export async function POST(req: Request) {
   try {
+    await requireAdmin();
     const { fileName, contentType, size } = await req.json();
 
     if (!fileName || !contentType || !size) {

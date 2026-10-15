@@ -1,20 +1,11 @@
 import type { MetadataRoute } from 'next';
-import { createClient } from '@supabase/supabase-js';
-import type { Database } from '@/lib/supabase/types';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 const BASE_URL = 'https://www.islanddreams.re';
 
 function getSupabaseForSitemap() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!url || !anonKey) return null;
-  return createClient<Database>(url, anonKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  });
+  if (!process.env.PGBASE_URL || !process.env.PGBASE_SECRET_KEY) return null;
+  return createAdminClient();
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

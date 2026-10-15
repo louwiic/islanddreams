@@ -4,13 +4,14 @@ import { createClient } from '@/lib/supabase/server';
 export async function getPublishedProducts() {
   const supabase = await createClient();
 
-  const { data: products } = await supabase
+  const { data: products, error } = await supabase
     .from('products')
     .select('id, slug, name, category, price, sale_price, featured, tags')
     .eq('status', 'publish')
     .order('sort_order')
     .order('created_at', { ascending: false });
 
+  if (error) throw new Error('Catalogue temporairement indisponible.');
   if (!products || products.length === 0) return [];
 
   // Récupérer les images principales
@@ -35,7 +36,7 @@ export async function getPublishedProducts() {
 export async function getProductsByCategory(categorySlug: string) {
   const supabase = await createClient();
 
-  const { data: products } = await supabase
+  const { data: products, error } = await supabase
     .from('products')
     .select('id, slug, name, category, price, sale_price, featured, tags')
     .eq('status', 'publish')
@@ -43,6 +44,7 @@ export async function getProductsByCategory(categorySlug: string) {
     .order('featured', { ascending: false })
     .order('created_at', { ascending: false });
 
+  if (error) throw new Error('Catalogue temporairement indisponible.');
   if (!products || products.length === 0) return [];
 
   const productIds = products.map((p) => p.id);
@@ -66,13 +68,14 @@ export async function getProductsByCategory(categorySlug: string) {
 export async function getFeaturedProducts() {
   const supabase = await createClient();
 
-  const { data: products } = await supabase
+  const { data: products, error } = await supabase
     .from('products')
     .select('id, slug, name, category, price, sale_price, featured, tags')
     .eq('status', 'publish')
     .eq('featured', true)
     .order('created_at', { ascending: false });
 
+  if (error) throw new Error('Catalogue temporairement indisponible.');
   if (!products || products.length === 0) return [];
 
   const productIds = products.map((p) => p.id);

@@ -14,14 +14,14 @@ const PRODUCTS = [
     slug: 'carte-magnetique-de-la-reunion',
     nameKey: 'home.map.magnetic' as const,
     price: 30,
-    image: 'https://sgxilglkeupxpnzkzqfq.supabase.co/storage/v1/object/public/product-images/carte-magnetique-de-la-reunion/0.jpg',
+    image: '/media/supabase/product-images/carte-magnetique-de-la-reunion/0.jpg',
   },
   {
     id: '55703cbd-3c8e-48c4-9981-7865346226d7',
     slug: 'carte-poster-de-la-reunion',
     nameKey: 'home.map.poster' as const,
     price: 15,
-    image: 'https://sgxilglkeupxpnzkzqfq.supabase.co/storage/v1/object/public/product-images/carte-poster-de-la-reunion/0.jpg',
+    image: '/media/supabase/product-images/carte-poster-de-la-reunion/0.jpg',
   },
 ];
 

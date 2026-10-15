@@ -1,0 +1,1304 @@
+{
+  "blog_categories": {
+    "columns": {
+      "id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "name": {
+        "type": "text",
+        "generated": false
+      },
+      "slug": {
+        "type": "text",
+        "generated": false
+      },
+      "description": {
+        "type": "text",
+        "generated": false
+      },
+      "sort_order": {
+        "type": "integer",
+        "generated": false
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "generated": false
+      },
+      "updated_at": {
+        "type": "timestamp with time zone",
+        "generated": false
+      }
+    },
+    "relations": {
+      "blog_posts": {
+        "table": "blog_posts",
+        "local": "id",
+        "foreign": "category_id",
+        "many": true
+      }
+    }
+  },
+  "blog_posts": {
+    "columns": {
+      "id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "title": {
+        "type": "text",
+        "generated": false
+      },
+      "slug": {
+        "type": "text",
+        "generated": false
+      },
+      "excerpt": {
+        "type": "text",
+        "generated": false
+      },
+      "content": {
+        "type": "text",
+        "generated": false
+      },
+      "cover_image_url": {
+        "type": "text",
+        "generated": false
+      },
+      "cover_image_alt": {
+        "type": "text",
+        "generated": false
+      },
+      "category_id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "tags": {
+        "type": "text[]",
+        "generated": false
+      },
+      "status": {
+        "type": "blog_post_status",
+        "generated": false
+      },
+      "featured": {
+        "type": "boolean",
+        "generated": false
+      },
+      "published_at": {
+        "type": "timestamp with time zone",
+        "generated": false
+      },
+      "author": {
+        "type": "text",
+        "generated": false
+      },
+      "meta_title": {
+        "type": "text",
+        "generated": false
+      },
+      "meta_description": {
+        "type": "text",
+        "generated": false
+      },
+      "focus_keyword": {
+        "type": "text",
+        "generated": false
+      },
+      "canonical_url": {
+        "type": "text",
+        "generated": false
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "generated": false
+      },
+      "updated_at": {
+        "type": "timestamp with time zone",
+        "generated": false
+      },
+      "content_json": {
+        "type": "jsonb",
+        "generated": false
+      }
+    },
+    "relations": {
+      "category_id": {
+        "table": "blog_categories",
+        "local": "category_id",
+        "foreign": "id",
+        "many": false
+      },
+      "blog_categories": {
+        "table": "blog_categories",
+        "local": "category_id",
+        "foreign": "id",
+        "many": false
+      }
+    }
+  },
+  "categories": {
+    "columns": {
+      "id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "slug": {
+        "type": "text",
+        "generated": false
+      },
+      "name": {
+        "type": "text",
+        "generated": false
+      },
+      "description": {
+        "type": "text",
+        "generated": false
+      },
+      "sort_order": {
+        "type": "integer",
+        "generated": false
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "generated": false
+      },
+      "updated_at": {
+        "type": "timestamp with time zone",
+        "generated": false
+      },
+      "is_nav_featured": {
+        "type": "boolean",
+        "generated": false
+      },
+      "nav_label": {
+        "type": "text",
+        "generated": false
+      },
+      "nav_color": {
+        "type": "text",
+        "generated": false
+      },
+      "image_url": {
+        "type": "text",
+        "generated": false
+      }
+    },
+    "relations": {}
+  },
+  "chat_conversations": {
+    "columns": {
+      "id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "first_message": {
+        "type": "text",
+        "generated": false
+      },
+      "messages": {
+        "type": "jsonb",
+        "generated": false
+      },
+      "message_count": {
+        "type": "integer",
+        "generated": false
+      },
+      "status": {
+        "type": "text",
+        "generated": false
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "generated": false
+      }
+    },
+    "relations": {}
+  },
+  "chatbot_config": {
+    "columns": {
+      "id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "is_enabled": {
+        "type": "boolean",
+        "generated": false
+      },
+      "assistant_name": {
+        "type": "text",
+        "generated": false
+      },
+      "welcome_message": {
+        "type": "text",
+        "generated": false
+      },
+      "system_prompt": {
+        "type": "text",
+        "generated": false
+      },
+      "model": {
+        "type": "text",
+        "generated": false
+      },
+      "temperature": {
+        "type": "numeric",
+        "generated": false
+      },
+      "primary_color": {
+        "type": "text",
+        "generated": false
+      },
+      "text_color": {
+        "type": "text",
+        "generated": false
+      },
+      "assistant_avatar": {
+        "type": "text",
+        "generated": false
+      },
+      "position": {
+        "type": "text",
+        "generated": false
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "generated": false
+      }
+    },
+    "relations": {}
+  },
+  "chatbot_knowledge": {
+    "columns": {
+      "id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "title": {
+        "type": "text",
+        "generated": false
+      },
+      "content": {
+        "type": "text",
+        "generated": false
+      },
+      "chunks": {
+        "type": "jsonb",
+        "generated": false
+      },
+      "status": {
+        "type": "text",
+        "generated": false
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "generated": false
+      }
+    },
+    "relations": {}
+  },
+  "contact_messages": {
+    "columns": {
+      "id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "nom": {
+        "type": "text",
+        "generated": false
+      },
+      "telephone": {
+        "type": "text",
+        "generated": false
+      },
+      "email": {
+        "type": "text",
+        "generated": false
+      },
+      "objet": {
+        "type": "text",
+        "generated": false
+      },
+      "message": {
+        "type": "text",
+        "generated": false
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "generated": false
+      },
+      "is_read": {
+        "type": "boolean",
+        "generated": false
+      }
+    },
+    "relations": {}
+  },
+  "customers": {
+    "columns": {
+      "id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "auth_user_id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "email": {
+        "type": "text",
+        "generated": false
+      },
+      "first_name": {
+        "type": "text",
+        "generated": false
+      },
+      "last_name": {
+        "type": "text",
+        "generated": false
+      },
+      "phone": {
+        "type": "text",
+        "generated": false
+      },
+      "addresses": {
+        "type": "jsonb[]",
+        "generated": false
+      },
+      "notes": {
+        "type": "text",
+        "generated": false
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "generated": false
+      },
+      "updated_at": {
+        "type": "timestamp with time zone",
+        "generated": false
+      }
+    },
+    "relations": {
+      "orders": {
+        "table": "orders",
+        "local": "id",
+        "foreign": "customer_id",
+        "many": true
+      }
+    }
+  },
+  "hero_banners": {
+    "columns": {
+      "id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "title": {
+        "type": "text",
+        "generated": false
+      },
+      "subtitle": {
+        "type": "text",
+        "generated": false
+      },
+      "image_url": {
+        "type": "text",
+        "generated": false
+      },
+      "cta_text": {
+        "type": "text",
+        "generated": false
+      },
+      "cta_link": {
+        "type": "text",
+        "generated": false
+      },
+      "start_date": {
+        "type": "date",
+        "generated": false
+      },
+      "end_date": {
+        "type": "date",
+        "generated": false
+      },
+      "priority": {
+        "type": "integer",
+        "generated": false
+      },
+      "is_active": {
+        "type": "boolean",
+        "generated": false
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "generated": false
+      }
+    },
+    "relations": {}
+  },
+  "newsletter_campaigns": {
+    "columns": {
+      "id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "subject": {
+        "type": "text",
+        "generated": false
+      },
+      "content": {
+        "type": "text",
+        "generated": false
+      },
+      "status": {
+        "type": "text",
+        "generated": false
+      },
+      "sent_at": {
+        "type": "timestamp with time zone",
+        "generated": false
+      },
+      "recipients_count": {
+        "type": "integer",
+        "generated": false
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "generated": false
+      }
+    },
+    "relations": {}
+  },
+  "newsletter_subscribers": {
+    "columns": {
+      "id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "email": {
+        "type": "text",
+        "generated": false
+      },
+      "subscribed_at": {
+        "type": "timestamp with time zone",
+        "generated": false
+      },
+      "promo_sent": {
+        "type": "boolean",
+        "generated": false
+      },
+      "unsubscribed_at": {
+        "type": "timestamp with time zone",
+        "generated": false
+      }
+    },
+    "relations": {}
+  },
+  "order_items": {
+    "columns": {
+      "id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "order_id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "product_id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "variant_id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "product_name": {
+        "type": "text",
+        "generated": false
+      },
+      "variant_label": {
+        "type": "text",
+        "generated": false
+      },
+      "quantity": {
+        "type": "integer",
+        "generated": false
+      },
+      "unit_price": {
+        "type": "numeric(10,2)",
+        "generated": false
+      },
+      "total": {
+        "type": "numeric(10,2)",
+        "generated": false
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "generated": false
+      }
+    },
+    "relations": {
+      "order_id": {
+        "table": "orders",
+        "local": "order_id",
+        "foreign": "id",
+        "many": false
+      },
+      "orders": {
+        "table": "orders",
+        "local": "order_id",
+        "foreign": "id",
+        "many": false
+      },
+      "product_id": {
+        "table": "products",
+        "local": "product_id",
+        "foreign": "id",
+        "many": false
+      },
+      "products": {
+        "table": "products",
+        "local": "product_id",
+        "foreign": "id",
+        "many": false
+      },
+      "variant_id": {
+        "table": "product_variants",
+        "local": "variant_id",
+        "foreign": "id",
+        "many": false
+      },
+      "product_variants": {
+        "table": "product_variants",
+        "local": "variant_id",
+        "foreign": "id",
+        "many": false
+      }
+    }
+  },
+  "orders": {
+    "columns": {
+      "id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "order_number": {
+        "type": "text",
+        "generated": false
+      },
+      "customer_id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "status": {
+        "type": "order_status",
+        "generated": false
+      },
+      "subtotal": {
+        "type": "numeric(10,2)",
+        "generated": false
+      },
+      "shipping_cost": {
+        "type": "numeric(10,2)",
+        "generated": false
+      },
+      "total": {
+        "type": "numeric(10,2)",
+        "generated": false
+      },
+      "shipping_address": {
+        "type": "jsonb",
+        "generated": false
+      },
+      "billing_address": {
+        "type": "jsonb",
+        "generated": false
+      },
+      "stripe_session_id": {
+        "type": "text",
+        "generated": false
+      },
+      "stripe_payment_intent": {
+        "type": "text",
+        "generated": false
+      },
+      "notes": {
+        "type": "text",
+        "generated": false
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "generated": false
+      },
+      "updated_at": {
+        "type": "timestamp with time zone",
+        "generated": false
+      }
+    },
+    "relations": {
+      "order_items": {
+        "table": "order_items",
+        "local": "id",
+        "foreign": "order_id",
+        "many": true
+      },
+      "customer_id": {
+        "table": "customers",
+        "local": "customer_id",
+        "foreign": "id",
+        "many": false
+      },
+      "customers": {
+        "table": "customers",
+        "local": "customer_id",
+        "foreign": "id",
+        "many": false
+      }
+    }
+  },
+  "product_attributes": {
+    "columns": {
+      "id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "product_id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "name": {
+        "type": "text",
+        "generated": false
+      },
+      "values": {
+        "type": "text[]",
+        "generated": false
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "generated": false
+      }
+    },
+    "relations": {
+      "product_id": {
+        "table": "products",
+        "local": "product_id",
+        "foreign": "id",
+        "many": false
+      },
+      "products": {
+        "table": "products",
+        "local": "product_id",
+        "foreign": "id",
+        "many": false
+      }
+    }
+  },
+  "product_faqs": {
+    "columns": {
+      "id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "product_id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "question": {
+        "type": "text",
+        "generated": false
+      },
+      "answer": {
+        "type": "text",
+        "generated": false
+      },
+      "position": {
+        "type": "integer",
+        "generated": false
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "generated": false
+      }
+    },
+    "relations": {
+      "product_id": {
+        "table": "products",
+        "local": "product_id",
+        "foreign": "id",
+        "many": false
+      },
+      "products": {
+        "table": "products",
+        "local": "product_id",
+        "foreign": "id",
+        "many": false
+      }
+    }
+  },
+  "product_images": {
+    "columns": {
+      "id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "product_id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "url": {
+        "type": "text",
+        "generated": false
+      },
+      "alt": {
+        "type": "text",
+        "generated": false
+      },
+      "position": {
+        "type": "integer",
+        "generated": false
+      },
+      "is_main": {
+        "type": "boolean",
+        "generated": false
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "generated": false
+      }
+    },
+    "relations": {
+      "product_id": {
+        "table": "products",
+        "local": "product_id",
+        "foreign": "id",
+        "many": false
+      },
+      "products": {
+        "table": "products",
+        "local": "product_id",
+        "foreign": "id",
+        "many": false
+      },
+      "product_variants": {
+        "table": "product_variants",
+        "local": "id",
+        "foreign": "image_id",
+        "many": true
+      }
+    }
+  },
+  "product_variants": {
+    "columns": {
+      "id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "product_id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "combination": {
+        "type": "jsonb",
+        "generated": false
+      },
+      "price": {
+        "type": "numeric(10,2)",
+        "generated": false
+      },
+      "sku": {
+        "type": "text",
+        "generated": false
+      },
+      "stock_quantity": {
+        "type": "integer",
+        "generated": false
+      },
+      "enabled": {
+        "type": "boolean",
+        "generated": false
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "generated": false
+      },
+      "image_id": {
+        "type": "uuid",
+        "generated": false
+      }
+    },
+    "relations": {
+      "order_items": {
+        "table": "order_items",
+        "local": "id",
+        "foreign": "variant_id",
+        "many": true
+      },
+      "image_id": {
+        "table": "product_images",
+        "local": "image_id",
+        "foreign": "id",
+        "many": false
+      },
+      "product_images": {
+        "table": "product_images",
+        "local": "image_id",
+        "foreign": "id",
+        "many": false
+      },
+      "product_id": {
+        "table": "products",
+        "local": "product_id",
+        "foreign": "id",
+        "many": false
+      },
+      "products": {
+        "table": "products",
+        "local": "product_id",
+        "foreign": "id",
+        "many": false
+      }
+    }
+  },
+  "products": {
+    "columns": {
+      "id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "slug": {
+        "type": "text",
+        "generated": false
+      },
+      "name": {
+        "type": "text",
+        "generated": false
+      },
+      "description": {
+        "type": "text",
+        "generated": false
+      },
+      "short_description": {
+        "type": "text",
+        "generated": false
+      },
+      "category": {
+        "type": "product_category",
+        "generated": false
+      },
+      "tags": {
+        "type": "text[]",
+        "generated": false
+      },
+      "price": {
+        "type": "numeric(10,2)",
+        "generated": false
+      },
+      "regular_price": {
+        "type": "numeric(10,2)",
+        "generated": false
+      },
+      "sale_price": {
+        "type": "numeric(10,2)",
+        "generated": false
+      },
+      "currency": {
+        "type": "text",
+        "generated": false
+      },
+      "sku": {
+        "type": "text",
+        "generated": false
+      },
+      "in_stock": {
+        "type": "boolean",
+        "generated": false
+      },
+      "stock_quantity": {
+        "type": "integer",
+        "generated": false
+      },
+      "low_stock_threshold": {
+        "type": "integer",
+        "generated": false
+      },
+      "manage_stock": {
+        "type": "boolean",
+        "generated": false
+      },
+      "weight_grams": {
+        "type": "integer",
+        "generated": false
+      },
+      "status": {
+        "type": "product_status",
+        "generated": false
+      },
+      "featured": {
+        "type": "boolean",
+        "generated": false
+      },
+      "sort_order": {
+        "type": "integer",
+        "generated": false
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "generated": false
+      },
+      "updated_at": {
+        "type": "timestamp with time zone",
+        "generated": false
+      },
+      "meta_title": {
+        "type": "text",
+        "generated": false
+      },
+      "meta_description": {
+        "type": "text",
+        "generated": false
+      },
+      "focus_keyword": {
+        "type": "text",
+        "generated": false
+      },
+      "canonical_url": {
+        "type": "text",
+        "generated": false
+      }
+    },
+    "relations": {
+      "order_items": {
+        "table": "order_items",
+        "local": "id",
+        "foreign": "product_id",
+        "many": true
+      },
+      "product_attributes": {
+        "table": "product_attributes",
+        "local": "id",
+        "foreign": "product_id",
+        "many": true
+      },
+      "product_faqs": {
+        "table": "product_faqs",
+        "local": "id",
+        "foreign": "product_id",
+        "many": true
+      },
+      "product_images": {
+        "table": "product_images",
+        "local": "id",
+        "foreign": "product_id",
+        "many": true
+      },
+      "product_variants": {
+        "table": "product_variants",
+        "local": "id",
+        "foreign": "product_id",
+        "many": true
+      },
+      "textile_highlights": {
+        "table": "textile_highlights",
+        "local": "id",
+        "foreign": "product_id",
+        "many": true
+      }
+    }
+  },
+  "promo_usage": {
+    "columns": {
+      "id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "email": {
+        "type": "text",
+        "generated": false
+      },
+      "promo_code": {
+        "type": "text",
+        "generated": false
+      },
+      "stripe_session_id": {
+        "type": "text",
+        "generated": false
+      },
+      "used_at": {
+        "type": "timestamp with time zone",
+        "generated": false
+      }
+    },
+    "relations": {}
+  },
+  "reviews": {
+    "columns": {
+      "id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "customer_name": {
+        "type": "text",
+        "generated": false
+      },
+      "customer_email": {
+        "type": "text",
+        "generated": false
+      },
+      "rating": {
+        "type": "integer",
+        "generated": false
+      },
+      "comment": {
+        "type": "text",
+        "generated": false
+      },
+      "is_approved": {
+        "type": "boolean",
+        "generated": false
+      },
+      "order_number": {
+        "type": "text",
+        "generated": false
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "generated": false
+      }
+    },
+    "relations": {}
+  },
+  "shipping_methods": {
+    "columns": {
+      "id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "zone_id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "name": {
+        "type": "text",
+        "generated": false
+      },
+      "cost": {
+        "type": "numeric(10,2)",
+        "generated": false
+      },
+      "free_above": {
+        "type": "numeric(10,2)",
+        "generated": false
+      },
+      "requires_signature": {
+        "type": "boolean",
+        "generated": false
+      },
+      "enabled": {
+        "type": "boolean",
+        "generated": false
+      },
+      "sort_order": {
+        "type": "integer",
+        "generated": false
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "generated": false
+      },
+      "min_weight_g": {
+        "type": "integer",
+        "generated": false
+      },
+      "max_weight_g": {
+        "type": "integer",
+        "generated": false
+      }
+    },
+    "relations": {
+      "zone_id": {
+        "table": "shipping_zones",
+        "local": "zone_id",
+        "foreign": "id",
+        "many": false
+      },
+      "shipping_zones": {
+        "table": "shipping_zones",
+        "local": "zone_id",
+        "foreign": "id",
+        "many": false
+      }
+    }
+  },
+  "shipping_zone_postcodes": {
+    "columns": {
+      "id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "zone_id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "country": {
+        "type": "text",
+        "generated": false
+      },
+      "postcode_pattern": {
+        "type": "text",
+        "generated": false
+      }
+    },
+    "relations": {
+      "zone_id": {
+        "table": "shipping_zones",
+        "local": "zone_id",
+        "foreign": "id",
+        "many": false
+      },
+      "shipping_zones": {
+        "table": "shipping_zones",
+        "local": "zone_id",
+        "foreign": "id",
+        "many": false
+      }
+    }
+  },
+  "shipping_zones": {
+    "columns": {
+      "id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "name": {
+        "type": "text",
+        "generated": false
+      },
+      "description": {
+        "type": "text",
+        "generated": false
+      },
+      "sort_order": {
+        "type": "integer",
+        "generated": false
+      },
+      "enabled": {
+        "type": "boolean",
+        "generated": false
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "generated": false
+      },
+      "updated_at": {
+        "type": "timestamp with time zone",
+        "generated": false
+      }
+    },
+    "relations": {
+      "shipping_methods": {
+        "table": "shipping_methods",
+        "local": "id",
+        "foreign": "zone_id",
+        "many": true
+      },
+      "shipping_zone_postcodes": {
+        "table": "shipping_zone_postcodes",
+        "local": "id",
+        "foreign": "zone_id",
+        "many": true
+      }
+    }
+  },
+  "shop_settings": {
+    "columns": {
+      "id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "key": {
+        "type": "text",
+        "generated": false
+      },
+      "value": {
+        "type": "jsonb",
+        "generated": false
+      },
+      "updated_at": {
+        "type": "timestamp with time zone",
+        "generated": false
+      }
+    },
+    "relations": {}
+  },
+  "site_faqs": {
+    "columns": {
+      "id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "question": {
+        "type": "text",
+        "generated": false
+      },
+      "answer": {
+        "type": "text",
+        "generated": false
+      },
+      "position": {
+        "type": "integer",
+        "generated": false
+      },
+      "is_active": {
+        "type": "boolean",
+        "generated": false
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "generated": false
+      }
+    },
+    "relations": {}
+  },
+  "textile_highlights": {
+    "columns": {
+      "id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "position": {
+        "type": "integer",
+        "generated": false
+      },
+      "is_active": {
+        "type": "boolean",
+        "generated": false
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "generated": false
+      },
+      "product_id": {
+        "type": "uuid",
+        "generated": false
+      },
+      "image_url": {
+        "type": "text",
+        "generated": false
+      }
+    },
+    "relations": {
+      "product_id": {
+        "table": "products",
+        "local": "product_id",
+        "foreign": "id",
+        "many": false
+      },
+      "products": {
+        "table": "products",
+        "local": "product_id",
+        "foreign": "id",
+        "many": false
+      }
+    }
+  }
+}

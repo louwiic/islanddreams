@@ -1,29 +1,14 @@
-import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from './types';
+import { createDataClient } from '@/lib/pgbase/data-client';
+import { createServerAuth } from '@/lib/pgbase/auth';
 
 export async function createClient() {
-  const cookieStore = await cookies();
-
-  return createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
-          } catch {
-            // setAll peut échouer dans un Server Component (read-only)
-            // C'est OK — les cookies seront set par le middleware
-          }
-        },
-      },
-    }
-  );
+  const auth = createServerAuth(await cookies());
+  const { data: { user } } = await auth.getUser();
+  const role = user ? 'authenticated' : 'anon';
+  const client = createDataClient({ role, claims: { role, ...(user ? { sub: user.id, email: user.email } : {}) } });
+  Object.assign(client.auth, auth);
+  return client as unknown as SupabaseClient<Database>;
 }

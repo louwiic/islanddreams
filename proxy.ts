@@ -1,5 +1,5 @@
-import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { createServerAuth, REFRESH_COOKIE } from '@/lib/pgbase/auth';
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -22,25 +22,13 @@ export async function proxy(request: NextRequest) {
     request: { headers: request.headers },
   });
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            request.cookies.set(name, value);
-            response.cookies.set(name, value, options);
-          });
-        },
-      },
-    }
-  );
-
-  const { data: { user } } = await supabase.auth.getUser();
+  const auth = createServerAuth({ get: (name) => request.cookies.get(name), set: () => {} });
+  const { data: { user } } = await auth.getUser();
+  if (!user && request.cookies.get(REFRESH_COOKIE)?.value && (isAdminRoute || isPartnerRoute || isCompteRoute)) {
+    const refresh = new URL('/auth/refresh', request.url);
+    refresh.searchParams.set('next', pathname + request.nextUrl.search);
+    return NextResponse.redirect(refresh);
+  }
   const configuredAdminEmails = (process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || '')
     .split(',')
     .map((email) => email.trim().toLowerCase())

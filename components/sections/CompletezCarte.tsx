@@ -7,14 +7,14 @@ const cartes = [
     name: 'Carte Magnétique de La Réunion',
     price: '30,00',
     image:
-      'https://sgxilglkeupxpnzkzqfq.supabase.co/storage/v1/object/public/product-images/carte-magnetique-de-la-reunion/0.jpg',
+      '/media/supabase/product-images/carte-magnetique-de-la-reunion/0.jpg',
   },
   {
     slug: 'carte-poster-de-la-reunion',
     name: 'Carte Poster de La Réunion',
     price: '15,00',
     image:
-      'https://sgxilglkeupxpnzkzqfq.supabase.co/storage/v1/object/public/product-images/carte-poster-de-la-reunion/0.jpg',
+      '/media/supabase/product-images/carte-poster-de-la-reunion/0.jpg',
   },
 ];
 

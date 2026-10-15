@@ -45,7 +45,7 @@ const defaultNewsletterHtml = `<div style="font-family:-apple-system,BlinkMacSys
       </p>
     </div>
     <div style="padding:22px 18px 20px;text-align:center;">
-      <img src="https://sgxilglkeupxpnzkzqfq.supabase.co/storage/v1/object/public/product-images/porte-cles-974/1780942290879.webp" alt="Porte-clés Island Dreams offert" style="display:block;width:100%;max-width:360px;margin:0 auto 18px;border-radius:14px;border:1px solid rgba(26,46,59,.08);box-shadow:0 12px 24px rgba(26,46,59,.14);">
+      <img src="https://www.islanddreams.re/media/supabase/product-images/porte-cles-974/1780942290879.webp" alt="Porte-clés Island Dreams offert" style="display:block;width:100%;max-width:360px;margin:0 auto 18px;border-radius:14px;border:1px solid rgba(26,46,59,.08);box-shadow:0 12px 24px rgba(26,46,59,.14);">
       <h2 style="margin:0 0 8px;color:#1a2e3b;font-size:21px;line-height:1.25;font-weight:900;">
         Porte-clés Island Dreams offert
       </h2>

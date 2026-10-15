@@ -37,8 +37,8 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'sgxilglkeupxpnzkzqfq.supabase.co',
-        pathname: '/storage/v1/object/public/**',
+        hostname: 'islanddreams.pgbase-qtpcyjvnucq8wrzs0wjw8znp.137.74.171.48.sslip.io',
+        pathname: '/storage/objects/**',
       },
       {
         protocol: 'https',

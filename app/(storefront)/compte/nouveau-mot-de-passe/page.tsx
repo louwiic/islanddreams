@@ -24,7 +24,7 @@ export default function NewPasswordPage() {
     if (error) {
       setError(error.message);
     } else {
-      router.push('/compte');
+      router.push('/compte/connexion');
       router.refresh();
     }
   };

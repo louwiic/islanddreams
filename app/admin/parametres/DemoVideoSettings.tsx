@@ -120,7 +120,6 @@ export function DemoVideoSettings({ products, initialSettings }: Props) {
         method: 'PUT',
         headers: {
           'content-type': file.type,
-          'cache-control': '3600',
           'x-upsert': 'true',
         },
         body: file,
@@ -130,7 +129,7 @@ export function DemoVideoSettings({ products, initialSettings }: Props) {
         const uploadError = await uploadRes.text();
         setError(
           uploadError ||
-            `Upload refusé par Supabase. Taille fichier: ${(file.size / 1024 / 1024).toFixed(1)} Mo.`
+            `Upload refusé. Taille fichier: ${(file.size / 1024 / 1024).toFixed(1)} Mo.`
         );
         return;
       }
@@ -142,7 +141,7 @@ export function DemoVideoSettings({ products, initialSettings }: Props) {
           return;
         }
       } catch {
-        // Supabase peut répondre sans JSON exploitable sur un upload réussi.
+        // Le stockage peut répondre sans JSON après un upload réussi.
       }
 
       setSecondaryPreviewUrl((current) => current || videoUrl);

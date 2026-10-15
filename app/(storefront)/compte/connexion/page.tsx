@@ -76,6 +76,9 @@ export default function ConnexionPage() {
         } else if (data.user && data.user.identities?.length === 0) {
           // Compte déjà existant
           setError(t('auth.exists'));
+        } else if (data.session) {
+          router.push(redirect);
+          router.refresh();
         } else {
           setSuccess(
             t('auth.confirmation')
