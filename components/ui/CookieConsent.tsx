@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Analytics } from '@vercel/analytics/react';
+import { PlausibleAnalytics } from '@/components/ui/PlausibleAnalytics';
+import { CONSENT_KEY } from '@/lib/analytics/plausible';
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 type ConsentValue = 'accepted' | 'rejected' | null;
 
-const STORAGE_KEY = 'islanddreams_cookie_consent';
+const STORAGE_KEY = CONSENT_KEY;
 
 function readConsent(): ConsentValue {
   try {
@@ -47,7 +48,7 @@ export function CookieConsent() {
 
   return (
     <>
-      {consent === 'accepted' && <Analytics />}
+      {consent === 'accepted' && <PlausibleAnalytics />}
 
       {!consent && (
         <div className="fixed inset-x-3 bottom-3 z-[2147482500] mx-auto max-w-3xl rounded-2xl border border-jungle-200 bg-white p-4 shadow-2xl shadow-black/20 sm:bottom-5 sm:p-5">

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { track } from '@vercel/analytics/react';
+import { track } from '@/lib/analytics/plausible';
 
 type Props = {
   href: string;

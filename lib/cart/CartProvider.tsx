@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from 'react';
 import type { CartItem, Cart } from './types';
+import { track } from '@/lib/analytics/plausible';
 import { mediaUrl } from '@/lib/pgbase/media';
 
 /* ── Actions ─────────────────────────────────────────────── */
@@ -137,6 +138,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addItem = useCallback((item: CartItem) => {
     dispatch({ type: 'ADD', item });
+    track('cart_item_added');
     setIsOpen(true);
   }, []);
 

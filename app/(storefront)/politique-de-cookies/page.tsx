@@ -20,7 +20,7 @@ export default function PolitiqueCookiesPage() {
 
       <div className="max-w-3xl mx-auto px-6 py-12 prose prose-sm prose-ink legal-prose">
         <p className="text-ink/60 italic">
-          Cette politique de cookies a été mise à jour pour la dernière fois le 29 janvier 2026 et
+          Cette politique de cookies a été mise à jour pour la dernière fois le 15 octobre 2026 et
           s&apos;applique aux citoyens et aux résidents permanents légaux de l&apos;Espace Économique
           Européen et de la Suisse.
         </p>
@@ -89,14 +89,19 @@ export default function PolitiqueCookiesPage() {
               <td>Fonctionnel</td>
             </tr>
             <tr>
-              <td>Supabase</td>
+              <td>PGBase (auto-hébergé)</td>
               <td>Authentification et données</td>
               <td>Fonctionnel</td>
             </tr>
             <tr>
               <td>Vercel</td>
-              <td>Hébergement et analytics</td>
-              <td>Fonctionnel / Statistiques</td>
+              <td>Hébergement du site</td>
+              <td>Fonctionnel</td>
+            </tr>
+            <tr>
+              <td>Plausible (auto-hébergé)</td>
+              <td>Mesure d’audience sans cookie, après votre accord</td>
+              <td>Statistiques</td>
             </tr>
           </tbody>
         </table>

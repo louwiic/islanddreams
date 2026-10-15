@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import { Camera, Gift, Loader2, Mail, Music2, ThumbsUp, X } from 'lucide-react';
-import { track } from '@vercel/analytics/react';
+import { track } from '@/lib/analytics/plausible';
 
 export type ContestPopupConfig = {
   enabled: boolean;

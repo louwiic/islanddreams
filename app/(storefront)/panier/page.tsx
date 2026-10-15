@@ -1,5 +1,7 @@
 'use client';
 
+import { track } from '@/lib/analytics/plausible';
+
 import { useState, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -340,6 +342,7 @@ export default function PanierPage() {
       });
       const data = await res.json();
       if (data.url) {
+        track('checkout_started');
         window.location.href = data.url;
       } else {
         alert(data.error || t('checkout.paymentError'));

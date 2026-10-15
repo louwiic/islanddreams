@@ -95,8 +95,9 @@ export default function PolitiqueConfidentialitePage() {
         <p>Vos données peuvent être transmises aux prestataires suivants :</p>
         <ul>
           <li><strong>Stripe</strong> : traitement sécurisé des paiements</li>
-          <li><strong>Supabase</strong> : hébergement de la base de données</li>
+          <li><strong>PGBase auto-hébergé chez OVH</strong> : authentification, base de données et fichiers du site</li>
           <li><strong>Vercel</strong> : hébergement du site web</li>
+          <li><strong>Plausible auto-hébergé</strong> : statistiques de fréquentation et actions publiques après votre accord, sans cookie de suivi ni informations de compte ou de paiement</li>
           <li><strong>OVH</strong> : service de messagerie email</li>
           <li><strong>La Poste / transporteurs</strong> : livraison des commandes</li>
         </ul>

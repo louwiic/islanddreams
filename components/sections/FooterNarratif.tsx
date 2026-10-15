@@ -5,7 +5,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { track } from '@vercel/analytics/react';
+import { track } from '@/lib/analytics/plausible';
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
 import { TrustBanner } from '@/components/sections/TrustBanner';
 
