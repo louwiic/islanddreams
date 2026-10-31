@@ -14,7 +14,7 @@ Coolify : ses variables `SERVICE_*` ne sont pas des secrets à remplir dans Git.
 
 ## Accès et suivi
 
-- Interface : https://umami-znaumopmunlivp9o8nxknhki.137.74.171.48.sslip.io
+- Interface : https://stats.islanddreams.re
 - Site Island Dreams : `a4f29bdf-1dce-4736-8274-282bf4ffa55d` (identifiant public).
 - Contrôle de santé HTTPS `/api/heartbeat` : HTTP 200 le 31 octobre 2026.
 - Premier événement technique `installation_check` accepté par `/api/send`.
@@ -28,7 +28,7 @@ Variables publiques configurées dans Coolify pour le site (build et runtime) :
 
 ```dotenv
 NEXT_PUBLIC_ANALYTICS_PROVIDER=umami
-NEXT_PUBLIC_UMAMI_URL=https://umami-znaumopmunlivp9o8nxknhki.137.74.171.48.sslip.io
+NEXT_PUBLIC_UMAMI_URL=https://stats.islanddreams.re
 NEXT_PUBLIC_UMAMI_WEBSITE_ID=a4f29bdf-1dce-4736-8274-282bf4ffa55d
 ```
 
@@ -44,8 +44,12 @@ personnelles. Les pages vues utilisent un événement Umami sans nom ; les actio
 utilisent un événement nommé. L'historique Plausible reste dans sa propre base.
 
 Validation : `node --test scripts/test-analytics.cjs` et `npm run build`.
-Le déploiement du raccordement et sa réception depuis le navigateur restent à
-confirmer après publication du code.
+Le raccordement initial a été déployé avec le commit `624b5ac`. Les paramètres
+publics ont été vérifiés dans le JavaScript servi par Cloudflare. Le sous-domaine
+`stats.islanddreams.re` possède un enregistrement A Cloudflare proxifié vers
+`137.74.171.48` et un certificat HTTPS valide également sur le serveur origine.
+L'ancienne adresse sslip.io reste accessible pour la compatibilité des pages
+déjà ouvertes. Aucun changement de base de données ni d'identifiant de site.
 
 Le volume persistant préserve les données lors d'un redéploiement ; il ne remplace
 pas une sauvegarde. Ne pas supprimer les volumes lors d'une mise à jour.
