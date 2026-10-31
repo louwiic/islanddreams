@@ -94,12 +94,12 @@ export default function PolitiqueCookiesPage() {
               <td>Fonctionnel</td>
             </tr>
             <tr>
-              <td>Vercel</td>
+              <td>Serveur dédié (Coolify)</td>
               <td>Hébergement du site</td>
               <td>Fonctionnel</td>
             </tr>
             <tr>
-              <td>Plausible (auto-hébergé)</td>
+              <td>Umami (auto-hébergé)</td>
               <td>Mesure d’audience sans cookie, après votre accord</td>
               <td>Statistiques</td>
             </tr>

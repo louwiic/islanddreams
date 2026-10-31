@@ -24,19 +24,34 @@ export function track(name: string, _properties?: Record<string, unknown>): bool
   void _properties;
   if (typeof window === 'undefined' || !/^[a-z][a-z0-9_]{0,79}$/.test(name)) return false;
   try {
-    const endpoint = process.env.NEXT_PUBLIC_PLAUSIBLE_URL;
+    // Keep this public adapter's API stable for existing event callers.
+    const umami = process.env.NEXT_PUBLIC_ANALYTICS_PROVIDER === 'umami';
+    const endpoint = umami ? process.env.NEXT_PUBLIC_UMAMI_URL : process.env.NEXT_PUBLIC_PLAUSIBLE_URL;
+    const website = process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID;
+    if (umami && !website) return false;
     if (!endpoint || localStorage.getItem(CONSENT_KEY) !== 'accepted' ||
         localStorage.getItem('plausible_ignore') === 'true' || (navigator as Navigator & { globalPrivacyControl?: boolean }).globalPrivacyControl) return false;
     const url = publicPageUrl(window.location.href);
     if (!url) return false;
     // Deliberately discard arbitrary event properties: forms may contain personal data.
-    void fetch(`${endpoint.replace(/\/$/, '')}/api/event`, {
+    const referrer = referralOrigin(document.referrer);
+    const body = umami ? {
+      type: 'event',
+      payload: {
+        website,
+        hostname: DOMAIN,
+        url,
+        referrer,
+        ...(name === 'pageview' ? {} : { name }),
+      },
+    } : { name, domain: DOMAIN, url, referrer };
+    void fetch(`${endpoint.replace(/\/$/, '')}${umami ? '/api/send' : '/api/event'}`, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' },
       credentials: 'omit',
       referrerPolicy: 'no-referrer',
       keepalive: true,
-      body: JSON.stringify({ name, domain: DOMAIN, url, referrer: referralOrigin(document.referrer) }),
+      body: JSON.stringify(body),
     }).catch(() => {});
     return true;
   } catch { return false; }

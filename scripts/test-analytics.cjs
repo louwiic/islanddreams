@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const ts = require('typescript');
 
-function harness({ consent = 'accepted', href = 'https://www.islanddreams.re/boutique?email=secret@example.com#private', blocked = false, enabled = true } = {}) {
+function harness({ consent = 'accepted', href = 'https://www.islanddreams.re/boutique?email=secret@example.com#private', blocked = false, enabled = true, provider = 'plausible', website = '32af20dd-8743-4b9c-a443-e70b9328ad26' } = {}) {
   const requests = [];
   const exports = {};
   const { outputText } = ts.transpileModule(fs.readFileSync('lib/analytics/plausible.ts', 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } });
@@ -13,7 +13,7 @@ function harness({ consent = 'accepted', href = 'https://www.islanddreams.re/bou
     document: { referrer: 'https://google.com/search?q=private@example.com' },
     navigator: { globalPrivacyControl: blocked },
     localStorage: { getItem: key => key === 'islanddreams_cookie_consent' ? consent : null },
-    process: { env: { NEXT_PUBLIC_PLAUSIBLE_URL: enabled ? 'https://stats.example.com/' : '' } },
+    process: { env: { NEXT_PUBLIC_ANALYTICS_PROVIDER: provider, NEXT_PUBLIC_PLAUSIBLE_URL: enabled ? 'https://stats.example.com/' : '', NEXT_PUBLIC_UMAMI_URL: enabled ? 'https://umami.example.com/' : '', NEXT_PUBLIC_UMAMI_WEBSITE_ID: website } },
     fetch: (...args) => { requests.push(args); return Promise.resolve({ ok: true }); },
   });
   return { ...exports, requests };
@@ -49,4 +49,30 @@ test('Stripe return page never transmits the payment session ID', () => {
   const h = harness({ href: 'https://islanddreams.re/checkout/succes?session_id=cs_live_secret' });
   h.track('pageview');
   assert.equal(JSON.parse(h.requests[0][1].body).url, 'https://islanddreams.re/checkout/succes');
+});
+
+test('Umami sends one sanitized pageview without also calling Plausible', () => {
+  const h = harness({ provider: 'umami' });
+  assert.equal(h.track('pageview', { email: 'private@example.com' }), true);
+  assert.equal(h.requests.length, 1);
+  assert.equal(h.requests[0][0], 'https://umami.example.com/api/send');
+  assert.deepEqual(JSON.parse(h.requests[0][1].body), {
+    type: 'event', payload: { website: '32af20dd-8743-4b9c-a443-e70b9328ad26', hostname: 'islanddreams.re', url: 'https://islanddreams.re/boutique', referrer: 'https://google.com' },
+  });
+});
+
+test('Umami custom events retain their name and discard personal properties', () => {
+  const h = harness({ provider: 'umami' });
+  h.track('cart_item_added', { email: 'private@example.com' });
+  const { payload } = JSON.parse(h.requests[0][1].body);
+  assert.equal(payload.name, 'cart_item_added');
+  assert.equal(payload.data, undefined);
+});
+
+test('Umami respects consent, GPC, private pages and missing configuration', () => {
+  for (const options of [{ consent: 'rejected' }, { blocked: true }, { href: 'https://islanddreams.re/admin' }, { enabled: false }, { website: '' }]) {
+    const h = harness({ provider: 'umami', ...options });
+    assert.equal(h.track('pageview'), false);
+    assert.equal(h.requests.length, 0);
+  }
 });
