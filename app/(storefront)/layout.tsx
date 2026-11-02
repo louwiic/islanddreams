@@ -5,6 +5,7 @@ import { NewsletterPopup } from '@/components/ui/NewsletterPopup';
 import { getNavFeaturedCategory } from '@/lib/actions/categories';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { cookies } from 'next/headers';
+import { FooterNarratif } from '@/components/sections/FooterNarratif';
 import { MaintenancePage } from '@/components/sections/MaintenancePage';
 import { ChatWidgetLoader } from '@/components/chatbot/ChatWidgetLoader';
 import { DemoVideoWidget, type DemoVideoConfig } from '@/components/shop/DemoVideoWidget';
@@ -219,6 +220,7 @@ export default async function StorefrontLayout({
       <EventBanner banner={activeBanner} />
       <Navbar featuredCategory={featuredCategory} hasEventBanner={Boolean(activeBanner)} />
       {children}
+      <FooterNarratif />
       <CartDrawer />
       {contestPopupConfig ? <ContestPopup config={contestPopupConfig} /> : <NewsletterPopup />}
       <ChatWidgetLoader />

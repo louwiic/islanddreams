@@ -8,7 +8,6 @@ import { FrizeLivraison } from '@/components/sections/FrizeLivraison';
 import { ServiettePlage } from '@/components/sections/ServiettePlage';
 import { FemmePlage } from '@/components/sections/FemmePlage';
 import { VillesBlock } from '@/components/sections/VillesBlock';
-import { FooterNarratif } from '@/components/sections/FooterNarratif';
 import { CarteCollection } from '@/components/sections/CarteCollection';
 import { UspBanner } from '@/components/sections/UspBanner';
 import { TrustBanner } from '@/components/sections/TrustBanner';
@@ -195,7 +194,6 @@ export default async function Home() {
       <HomeReviewsCarousel reviews={reviews} />
       <HomeFaq items={faqs} />
       <VillesBlock products={products} />
-      <FooterNarratif />
     </>
   );
 }

@@ -8,6 +8,7 @@ import Image from 'next/image';
 import { track } from '@/lib/analytics/plausible';
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
 import { TrustBanner } from '@/components/sections/TrustBanner';
+import { FundingCredits } from '@/components/sections/FundingCredits';
 
 function SocialBtn({ href, label, children }: { href: string; label: string; children: React.ReactNode }) {
   return (
@@ -249,6 +250,7 @@ export function FooterNarratif() {
             </ul>
           </div>
 
+          <FundingCredits />
         </div>
 
         {/* ── Ligne copyright ── */}
