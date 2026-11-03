@@ -35,6 +35,7 @@ export default async function CampaignsPage() {
             {activeCount ?? 0} abonné{(activeCount ?? 0) > 1 ? 's' : ''} actif{(activeCount ?? 0) > 1 ? 's' : ''} via Resend
           </p>
         </div>
+        <Link href="/admin/newsletter/planification" className="rounded-lg border border-jungle-200 px-4 py-2 text-sm font-semibold text-jungle-700">Envois planifiés</Link>
         <Link
           href="/admin/newsletter/campagnes/nouveau"
           className="flex items-center gap-2 px-4 py-2 bg-jungle-600 text-white rounded-lg text-sm font-semibold hover:bg-jungle-700 transition-colors"

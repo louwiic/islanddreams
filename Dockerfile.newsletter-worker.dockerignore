@@ -1,0 +1,4 @@
+**
+!scripts/
+!scripts/newsletter-worker.mjs
+!Dockerfile.newsletter-worker

@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { CheckSquare, Eye, EyeOff, Loader2, Save, Send } from 'lucide-react';
+import { CalendarClock, CheckSquare, Eye, EyeOff, Loader2, Save, Send } from 'lucide-react';
+import { reunionDateToIso } from '@/lib/newsletter/scheduling';
 
 type Props = {
   initial?: {
@@ -23,59 +24,10 @@ type RecipientGroup = {
   preview: string[];
 };
 
-const defaultSubject = 'Fête des pères : un cadeau offert dès 25 € d’achat';
-
-const defaultNewsletterHtml = `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;color:#1a2e3b;line-height:1.6;">
-  <div style="text-align:center;margin:0 0 22px;">
-    <p style="display:inline-block;margin:0 0 14px;padding:7px 12px;border-radius:999px;background:#f5efe0;color:#2a5a3a;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.16em;">
-      Offre spéciale fête des pères
-    </p>
-    <h1 style="margin:0 auto 12px;max-width:460px;color:#1a2e3b;font-size:30px;line-height:1.12;font-weight:900;">
-      Un cadeau péi offert dès 25 € d’achat
-    </h1>
-    <p style="margin:0 auto;max-width:470px;color:#55636c;font-size:15px;">
-      En ce moment, à l’occasion de la fête des pères, Island Dreams ajoute automatiquement un porte-clés souvenir dans votre commande.
-    </p>
-  </div>
-
-  <div style="overflow:hidden;margin:0 0 22px;border-radius:16px;border:1px solid #ead7aa;background:#fbf4e5;">
-    <div style="background:#173f46;padding:14px 18px;text-align:center;">
-      <p style="margin:0;color:#f5efe0;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.18em;">
-        Cadeau débloqué à partir de 25 €
-      </p>
-    </div>
-    <div style="padding:22px 18px 20px;text-align:center;">
-      <img src="https://www.islanddreams.re/media/supabase/product-images/porte-cles-974/1780942290879.webp" alt="Porte-clés Island Dreams offert" style="display:block;width:100%;max-width:360px;margin:0 auto 18px;border-radius:14px;border:1px solid rgba(26,46,59,.08);box-shadow:0 12px 24px rgba(26,46,59,.14);">
-      <h2 style="margin:0 0 8px;color:#1a2e3b;font-size:21px;line-height:1.25;font-weight:900;">
-        Porte-clés Island Dreams offert
-      </h2>
-      <p style="margin:0 auto;max-width:420px;color:#55636c;font-size:14px;">
-        Aucun code à saisir : si votre panier atteint <strong style="color:#1a2e3b;">25 € d’achat</strong>, le cadeau est ajouté à votre commande.
-      </p>
-    </div>
-  </div>
-
-  <div style="margin:0 0 22px;padding:18px;border-radius:14px;background:#f7f7f7;border:1px solid #eeeeee;">
-    <p style="margin:0 0 8px;color:#1a2e3b;font-size:15px;font-weight:800;">
-      Une idée simple pour faire plaisir
-    </p>
-    <p style="margin:0;color:#58666f;font-size:14px;">
-      Magnets, stickers, déco ou souvenirs 974 : choisissez un cadeau qui rappelle La Réunion, nous glissons le petit plus dans le colis.
-    </p>
-  </div>
-
-  <div style="text-align:center;margin:0 0 20px;">
-    <a href="https://www.islanddreams.re/boutique" style="display:inline-block;background:#2a5a3a;color:#f5efe0;text-decoration:none;padding:14px 24px;border-radius:999px;font-size:14px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;">
-      Découvrir la boutique
-    </a>
-  </div>
-
-  <div style="border-top:1px solid #eeeeee;padding-top:14px;">
-    <p style="margin:0;color:#7b8790;font-size:12px;text-align:center;">
-      Offre valable selon stock disponible. Expédié en moins de 48h par Island Dreams, puis acheminement assuré par La Poste.
-    </p>
-  </div>
-</div>`;
+const defaultSubject = 'Les nouvelles péi d’Island Dreams';
+const defaultNewsletterHtml = `<h2>Un petit bout de La Réunion à partager</h2>
+<p>Découvrez notre sélection de souvenirs péi et trouvez une attention pour vos proches.</p>
+<p><a href="https://islanddreams.re/boutique">Découvrir la boutique</a></p>`;
 
 export function CampaignForm({ initial }: Props) {
   const router = useRouter();
@@ -89,6 +41,9 @@ export function CampaignForm({ initial }: Props) {
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
+  const [scheduledDate, setScheduledDate] = useState('');
+  const [scheduling, setScheduling] = useState(false);
+  const scheduleRequest = useRef<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -169,6 +124,25 @@ export function CampaignForm({ initial }: Props) {
     }
   };
 
+  const handleSchedule = async () => {
+    setError('');
+    try {
+      const scheduledAt = reunionDateToIso(scheduledDate);
+      if (Date.parse(scheduledAt) < Date.now() + 60000) throw new Error('Choisis une date au moins une minute dans le futur.');
+      if (!confirm(`Planifier « ${subject} » pour le ${new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long', timeStyle: 'short', timeZone: 'Indian/Reunion' }).format(new Date(scheduledAt))}, heure de La Réunion ? Les abonnés encore actifs au moment de l’envoi seront sélectionnés.`)) return;
+      setScheduling(true);
+      scheduleRequest.current ??= crypto.randomUUID();
+      const response = await fetch('/api/admin/newsletter/schedules', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subject, html: content, scheduledAt, requestKey: scheduleRequest.current }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Planification impossible.');
+      router.push('/admin/newsletter/planification'); router.refresh();
+    } catch (e) { setError(e instanceof Error ? e.message : 'Connexion impossible. Réessaie sans modifier le formulaire.'); }
+    finally { setScheduling(false); }
+  };
+
   return (
     <div className="space-y-6">
       {/* Destinataires */}
@@ -228,7 +202,7 @@ export function CampaignForm({ initial }: Props) {
         <input
           type="text"
           value={subject}
-          onChange={(e) => setSubject(e.target.value)}
+          onChange={(e) => { setSubject(e.target.value); scheduleRequest.current = null; }}
           placeholder="Ex: Nouveautés Island Dreams — Été 2026"
           className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-jungle-500 focus:border-jungle-500 outline-none"
         />
@@ -258,17 +232,27 @@ export function CampaignForm({ initial }: Props) {
         ) : (
           <textarea
             value={content}
-            onChange={(e) => setContent(e.target.value)}
+            onChange={(e) => { setContent(e.target.value); scheduleRequest.current = null; }}
             rows={16}
             placeholder={`<h2>Titre de votre campagne</h2>\n<p>Votre contenu ici...</p>\n<a href="https://www.islanddreams.re/boutique">Voir la boutique →</a>`}
             className="w-full px-4 py-3 border border-gray-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-jungle-500 focus:border-jungle-500 outline-none resize-y"
           />
         )}
         <p className="text-xs text-gray-400 mt-1">
-          Remplace <code>REMPLACER_PAR_URL_IMAGE_DU_CADEAU</code> par l’URL de l’image du porte-clés avant l’envoi.
-          Resend ajoute automatiquement le lien de désinscription en pied de mail.
+          Vérifie les images et les liens avec l’aperçu avant l’envoi. Un lien de désinscription est ajouté aux campagnes planifiées.
         </p>
       </div>
+
+      <section className="rounded-xl border border-jungle-200 bg-jungle-50 p-5 space-y-3">
+        <h2 className="flex items-center gap-2 font-bold text-jungle-800"><CalendarClock size={18} /> Planifier un envoi automatique</h2>
+        <p className="text-sm text-gray-600">Prépare ton contenu maintenant et choisis son heure d’envoi à La Réunion (UTC+4). L’envoi planifié utilise uniquement les abonnés newsletter encore actifs. Le contenu est figé après validation.</p>
+        <label htmlFor="newsletter-scheduled-date" className="block text-sm font-semibold">Date et heure à La Réunion</label>
+        <input id="newsletter-scheduled-date" type="datetime-local" value={scheduledDate} onChange={e => { setScheduledDate(e.target.value); scheduleRequest.current = null; }} className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm" />
+        <button type="button" onClick={() => void handleSchedule()} disabled={scheduling || saving || !scheduledDate || !subject.trim() || !content.trim() || recipientSources.length !== 1 || recipientSources[0] !== 'newsletter'} className="flex items-center gap-2 rounded-lg bg-jungle-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
+          {scheduling ? <Loader2 size={16} className="animate-spin" /> : <CalendarClock size={16} />} {scheduling ? 'Planification…' : 'Valider la planification'}
+        </button>
+        {(recipientSources.length !== 1 || recipientSources[0] !== 'newsletter') && <p className="text-sm text-amber-800">Sélectionne uniquement « Abonnés newsletter » pour planifier un envoi.</p>}
+      </section>
 
       {error && <p className="text-sm text-red-500">{error}</p>}
 
@@ -276,7 +260,7 @@ export function CampaignForm({ initial }: Props) {
       <div className="flex items-center gap-3 pt-2">
         <button
           onClick={() => handleSave(false)}
-          disabled={saving || !subject.trim() || !content.trim()}
+          disabled={saving || scheduling || !subject.trim() || !content.trim()}
           className="flex items-center gap-2 px-5 py-2.5 bg-jungle-600 text-white rounded-lg text-sm font-semibold hover:bg-jungle-700 transition-colors disabled:opacity-50"
         >
           {saving && !sending ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
@@ -284,7 +268,7 @@ export function CampaignForm({ initial }: Props) {
         </button>
         <button
           onClick={() => handleSave(true)}
-          disabled={saving || !subject.trim() || !content.trim()}
+          disabled={saving || scheduling || !subject.trim() || !content.trim()}
           className="flex items-center gap-2 px-5 py-2.5 bg-coral-500 text-white rounded-lg text-sm font-semibold hover:bg-coral-600 transition-colors disabled:opacity-50"
         >
           {sending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}

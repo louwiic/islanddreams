@@ -1,0 +1,15 @@
+services:
+  newsletter-worker:
+    build:
+      context: ../..
+      dockerfile: Dockerfile.newsletter-worker
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=8m
+    mem_limit: 128m
+    environment:
+      NEWSLETTER_APP_URL: ${NEWSLETTER_APP_URL:-https://islanddreams.re}
+      NEWSLETTER_WORKER_SECRET: ${NEWSLETTER_WORKER_SECRET:?Required}
+      NEWSLETTER_WORKER_DRY_RUN: ${NEWSLETTER_WORKER_DRY_RUN:-true}
