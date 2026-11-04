@@ -1,10 +1,10 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerAuth } from '@/lib/pgbase/auth';
+import { isAllowedAuthOrigin } from '@/lib/auth/request-origin';
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ action: string }> }) {
-  const origin = request.headers.get('origin');
-  if (origin && origin !== new URL(request.url).origin) return NextResponse.json({ error: { message: 'Origine refusée' } }, { status: 403 });
+  if (!isAllowedAuthOrigin(request)) return NextResponse.json({ error: { message: 'Origine refusée' } }, { status: 403 });
   try {
     const { action } = await params;
     const input = await request.json();
