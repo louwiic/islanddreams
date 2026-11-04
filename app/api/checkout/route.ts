@@ -355,6 +355,7 @@ export async function POST(req: NextRequest) {
     // ── Frais de livraison ──────────────────────────────────────────────
     let selectedShippingCost = 0;
     let selectedShippingName = '';
+    let shippingLineIndex = -1;
     if (shippingMethodId) {
       const availableShipping = await calculateShipping(
         customer.address.country || 'RE',
@@ -380,6 +381,7 @@ export async function POST(req: NextRequest) {
       selectedShippingName = method.name;
 
       if (method.cost > 0) {
+        shippingLineIndex = lineItems.length;
         lineItems.push({
           price_data: {
             currency: 'eur',
@@ -426,6 +428,20 @@ export async function POST(req: NextRequest) {
             { error: `Ce code promo est valable à partir de ${minimumAmount.toFixed(2)} € d’articles dans le panier.` },
             { status: 400 }
           );
+        }
+        // Shipping-only coupons apply to a dedicated Stripe product, never to merchandise.
+        const shippingProduct = promotion.metadata?.shippingProductId;
+        if (shippingProduct) {
+          const testProductId = promotion.metadata?.testProductId;
+          if (testProductId && (items.length !== 1 || items[0].productId !== testProductId || items[0].quantity !== 1)) {
+            return NextResponse.json({ error: 'Ce code est réservé à un exemplaire du produit TEST LOIC.' }, { status: 400 });
+          }
+          const shippingLine = shippingLineIndex >= 0 ? lineItems[shippingLineIndex] : undefined;
+          if (shippingLine?.price_data) {
+            delete shippingLine.price_data.product_data;
+            shippingLine.price_data.product = shippingProduct;
+          }
+          selectedShippingCost = 0;
         }
         discounts = [{ promotion_code: promotion.id }];
       } else {

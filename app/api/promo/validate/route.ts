@@ -96,6 +96,14 @@ export async function POST(req: NextRequest) {
     const coupon = await stripe.coupons.retrieve(resolvedId);
     console.log(`[PROMO] Coupon: percent_off=${coupon.percent_off}, amount_off=${coupon.amount_off}, name=${coupon.name}`);
 
+    if (promo.metadata?.shippingProductId) {
+      return NextResponse.json({
+        valid: true, label: 'Livraison offerte — test à usage unique',
+        discount: { freeShipping: true, testProductId: promo.metadata.testProductId || undefined },
+        promoCodeId: promo.id, minimumAmount,
+      });
+    }
+
     // Construire le label
     let label = '';
     const discount: { percentOff?: number; amountOff?: number } = {};

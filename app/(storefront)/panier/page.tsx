@@ -91,7 +91,7 @@ export default function PanierPage() {
   const [promoEmail, setPromoEmail] = useState('');
   const [promoStatus, setPromoStatus] = useState<'idle' | 'valid' | 'invalid' | 'already_used' | 'not_subscribed' | 'minimum_amount' | 'loading'>('idle');
   const [promoLabel, setPromoLabel] = useState('');
-  const [promoDiscount, setPromoDiscount] = useState<{ percentOff?: number; amountOff?: number } | null>(null);
+  const [promoDiscount, setPromoDiscount] = useState<{ percentOff?: number; amountOff?: number; freeShipping?: boolean; testProductId?: string } | null>(null);
   const [promoMinimumAmount, setPromoMinimumAmount] = useState<number | null>(null);
   const [giftOffer, setGiftOffer] = useState<GiftOffer | null>(null);
   const [cartReminderConsent, setCartReminderConsent] = useState(false);
@@ -102,15 +102,15 @@ export default function PanierPage() {
   // Poids total du panier
   const cartWeightG = items.reduce((sum, item) => sum + (item.weightGrams ?? 0) * item.quantity, 0);
 
-  // Trouver le coût de la méthode sélectionnée
-  const shippingCost = shippingOptions
-    ?.flatMap((o) => o.methods)
-    .find((m) => m.id === selectedMethod)?.cost ?? 0;
   const promoBelowMinimum =
     promoStatus === 'valid' &&
     promoMinimumAmount !== null &&
     total < promoMinimumAmount;
-  const effectivePromoStatus = promoBelowMinimum ? 'minimum_amount' : promoStatus;
+  const promoWrongProducts = Boolean(promoDiscount?.testProductId &&
+    (items.length !== 1 || items[0]?.productId !== promoDiscount.testProductId || items[0]?.quantity !== 1));
+  const effectivePromoStatus = promoBelowMinimum ? 'minimum_amount' : promoWrongProducts ? 'invalid' : promoStatus;
+  const shippingCost = effectivePromoStatus === 'valid' && promoDiscount?.freeShipping ? 0 :
+    shippingOptions?.flatMap((o) => o.methods).find((m) => m.id === selectedMethod)?.cost ?? 0;
 
   // Calcul de la réduction
   let discountAmount = 0;
