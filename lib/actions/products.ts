@@ -101,6 +101,7 @@ export async function getProductBySlug(slug: string) {
     .from('products')
     .select('*')
     .eq('slug', slug)
+    .eq('status', 'publish')
     .single();
 
   if (error) return null;

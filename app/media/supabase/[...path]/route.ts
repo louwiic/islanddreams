@@ -7,7 +7,16 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const bucket = path[0];
   if (!['product-images', 'demo-videos'].includes(bucket) || path.some(part => !part || part === '.' || part === '..')) return new Response(null, { status: 404 });
   const recovered = recoveredMediaPath(path.join('/'));
+  if (recovered && bucket === 'demo-videos') {
+    // Let the static file server deliver restored videos directly. A relative
+    // redirect also works behind a reverse proxy and preserves video range requests.
+    return new Response(null, {
+      status: 307,
+      headers: { Location: recovered, 'Cache-Control': 'public, max-age=300' },
+    });
+  }
   if (recovered) {
+    // Next's local image optimizer needs image bytes rather than a redirect.
     const asset = await fetch(new URL(recovered, request.url), { next: { revalidate: 300 } });
     if (asset.ok) return new Response(asset.body, { headers: { 'Content-Type': asset.headers.get('content-type') || 'image/jpeg', 'Cache-Control': 'public, max-age=300' } });
   }

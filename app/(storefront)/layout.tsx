@@ -66,6 +66,12 @@ async function getDemoVideoConfig(): Promise<DemoVideoConfig | null> {
   const config: DemoVideoConfig = {
     enabled: settings.demo_video_enabled === 'true' || settings.demo_video_enabled === '1',
     videoUrl: settings.demo_video_url || '',
+    previewUrl: [
+      '/media/supabase/demo-videos/home-demo-whatsapp-2026-07-23.mp4',
+      '/videos/home-demo-whatsapp-2026-07-23.mp4',
+    ].includes(settings.demo_video_url)
+      ? '/videos/home-demo-whatsapp-preview-v1.mp4'
+      : undefined,
     secondaryPreviewUrl: settings.demo_video_secondary_preview_url || undefined,
     posterUrl: settings.demo_video_poster_url || undefined,
     productSlug: settings.demo_video_product_slug || '',

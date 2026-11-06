@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 export type DemoVideoConfig = {
   enabled: boolean;
   videoUrl: string;
+  previewUrl?: string;
   secondaryPreviewUrl?: string;
   posterUrl?: string;
   productSlug: string;
@@ -36,15 +37,19 @@ type Props = {
   config: DemoVideoConfig | null;
 };
 
+const subscribeToMount = () => () => {};
+const clientPortalTarget = () => document.body;
+const serverPortalTarget = () => null;
+
 export function DemoVideoWidget({ config }: Props) {
   const { addItem } = useCart();
   const [open, setOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [added, setAdded] = useState(false);
+  const [secondaryUnavailable, setSecondaryUnavailable] = useState(false);
   const [activeVideoUrl, setActiveVideoUrl] = useState(config?.videoUrl || '');
-  const [portalTarget] = useState(() =>
-    typeof document === 'undefined' ? null : document.body
-  );
+  // Match the server HTML during hydration, then mount the floating player.
+  const portalTarget = useSyncExternalStore(subscribeToMount, clientPortalTarget, serverPortalTarget);
 
   useEffect(() => {
     if (!open) return;
@@ -70,7 +75,7 @@ export function DemoVideoWidget({ config }: Props) {
   const productPrice = product ? product.salePrice || product.price : null;
   const currentVideoUrl = activeVideoUrl || config.videoUrl;
   const previewVideoUrl =
-    config.secondaryPreviewUrl && currentVideoUrl === config.videoUrl
+    !secondaryUnavailable && config.secondaryPreviewUrl && currentVideoUrl === config.videoUrl
       ? config.secondaryPreviewUrl
       : currentVideoUrl !== config.videoUrl
         ? config.videoUrl
@@ -101,7 +106,7 @@ export function DemoVideoWidget({ config }: Props) {
 
   return createPortal(
     <>
-      <div
+      {!open && <div
         className="pointer-events-none fixed inset-0 z-[2147483000] h-dvh w-dvw overflow-hidden"
         aria-hidden={open ? true : undefined}
       >
@@ -132,12 +137,13 @@ export function DemoVideoWidget({ config }: Props) {
           >
             <div className="relative aspect-[9/16] bg-black">
               <video
-                src={config.videoUrl}
+                src={config.previewUrl || config.videoUrl}
                 poster={config.posterUrl}
                 muted
                 loop
                 playsInline
                 autoPlay
+                preload="metadata"
                 className="h-full w-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/10" />
@@ -152,7 +158,7 @@ export function DemoVideoWidget({ config }: Props) {
             </div>
           </button>
         </div>
-      </div>
+      </div>}
 
       {open && (
         <div
@@ -176,8 +182,15 @@ export function DemoVideoWidget({ config }: Props) {
             >
               <video
                 src={currentVideoUrl}
+                onError={() => {
+                  if (currentVideoUrl !== config.videoUrl) {
+                    setSecondaryUnavailable(true);
+                    setActiveVideoUrl(config.videoUrl);
+                  }
+                }}
                 poster={currentVideoUrl === config.videoUrl ? config.posterUrl : undefined}
                 controls
+                preload="metadata"
                 autoPlay
                 loop
                 playsInline
@@ -273,12 +286,16 @@ export function DemoVideoWidget({ config }: Props) {
               >
                 <span className="relative block h-20 w-14 shrink-0 overflow-hidden rounded-lg bg-black ring-1 ring-white/20">
                   <video
-                    src={previewVideoUrl}
+                    src={previewVideoUrl === config.videoUrl ? config.previewUrl || previewVideoUrl : previewVideoUrl}
+                    onError={() => {
+                      if (previewVideoUrl !== config.videoUrl) setSecondaryUnavailable(true);
+                    }}
                     poster={previewVideoUrl === config.videoUrl ? config.posterUrl : undefined}
                     muted
                     loop
                     playsInline
                     autoPlay
+                    preload="metadata"
                     className="h-full w-full object-cover"
                   />
                   <span className="absolute inset-0 grid place-items-center bg-black/20">
